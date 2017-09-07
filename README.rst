@@ -39,7 +39,7 @@ Scores
 A score to determine if protein translation is complete.  Defined as the ratio between reads in coding region to reads in the 3'UTR region normalized by the corresponding ratio in mRNA data allowing for incorrect 3'UTR annotations (CDS to 3'UTR ratio in mRNA is not 1 and is reflective of different protein producing potential) 
 
 * **ORFScore** [Bazzini2014]_ : Compares count of number of RPFs in each frame to a uniform distribution using Chi-Squared statistic to identify actively translated ORFs.
-.. image:: http://onlinelibrary.wiley.com/store/10.1002/embj.201488411/asset/equation/embj201488411-math-0001.gif?v=1&t=j7at7lqh&s=a44e40ae0f5d19149ca377e4fc6f1c5976bd81b0 
+.. image:: https://latex.codecogs.com/svg.latex?%5Clog_2%5Cbig%281%20&plus;%20%5Csum_%7Bi%3D1%7D%5E3%20%5Cfrac%7B%28F_i-%5Cbar%7BF%7D%29%5E2%7D%7BF%7D%20%5Cbig%29%20%5Ctimes%20%5Cbegin%7Bcases%7D%20-1%20%26%20%28F_1%20%3C%20F2%29%20%5Ccup%20%28F_1%20%3C%20F_3%29%2C%5C%5C%201%20%26%20%5Ctext%7Botherwise%7D%20%5Cend%7Bcases%7D
 where $F_i$ represents number of reads in frame $i$ and $\bar{F}$ represents $mean(F1,F2,F3)$
 
 * **Floss Score** [Ingolia2014]_ : 
