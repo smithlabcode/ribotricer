@@ -37,7 +37,6 @@ Scores
 
     $\frac{\frac{Counts_{CDS}}{Counts_{UTR}}_{Ribo}}{\frac{Counts_{CDS}}{Counts_{UTR}}_{RNA}}$
 
-unctional protein-coding transcripts with greater sensitivity by detecting the termination of translation
 
 Credits
 ---------
@@ -46,4 +45,4 @@ This package was created with Cookiecutter_ and the `audreyr/cookiecutter-pypack
 
 .. _Cookiecutter: https://github.com/audreyr/cookiecutter
 .. _`audreyr/cookiecutter-pypackage`: https://github.com/audreyr/cookiecutter-pypackage
-.. [Guttman2013] https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3756563/
+.. [Guttman2013]: https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3756563/
