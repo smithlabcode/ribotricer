@@ -48,7 +48,7 @@ where $F_i$ represents number of reads in frame $i$ and $\bar{F}$ represents $me
 where the $f_{ref}$ is contructed by counting the number of fragments of a particular read length over only annotated protein-coding genes. Cutiff is determined by identifying outliers using Tukey's method. 
 
     The FLOSS cutoff, calculated as a function of the total number of reads in the transcript histogram, was established by
-considering a rolling window of individual annotated genes and the computing the upper extreme outlier cutoff for each window using Tukey’s method (Q3 + 3*IQR, where Q3 is the 3rd quartile and IQR is the interquartile range).
+    considering a rolling window of individual annotated genes and the computing the upper extreme outlier cutoff for each       window using Tukey’s method (Q3 + 3*IQR, where Q3 is the 3rd quartile and IQR is the interquartile range).
 
 
 Credits
