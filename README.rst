@@ -43,7 +43,7 @@ A score to determine if protein translation is complete.  Defined as the ratio b
 where $F_i$ represents number of reads in frame $i$ and $\bar{F}$ represents $mean(F1,F2,F3)$
 
 * **Floss Score** [Ingolia2014]_ : 
-.. image:: http://ars.els-cdn.com/content/image/1-s2.0-S2211124714006299-si1.gif
+.. image:: https://latex.codecogs.com/svg.latex?0.5%20%5Ctimes%20%5Csum_%7Bl%3D26%7D%5E%7Bl%3D34%7D%20f%28l%29%20-%20f_%7Bref%7D%28l%29
 
 where the $f_{ref}$ is contructed by counting the number of fragments of a particular read length over only annotated protein-coding genes. Cutiff is determined by identifying outliers using Tukey's method. 
 
