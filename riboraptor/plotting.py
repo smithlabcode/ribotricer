@@ -1,17 +1,19 @@
 """Plotting methods."""
 from itertools import cycle
 from itertools import islice
-import matplotlib.pyplot as plt
 
-import seaborn as sns
-import pandas as pd
+import matplotlib.pyplot as plt
 from matplotlib.ticker import AutoMinorLocator
+import pandas as pd
+import seaborn as sns
 
 from .helpers import round_to_nearest
 
-from .count_utilities import summarize_counts
+__FRAME_COLORS__ = ['#1b9e77', '#d95f02', '#7570b3']
+
 
 def setup_plot():
+    """Setup plotting defaults"""
     plt.rcParams['savefig.dpi'] = 120
     plt.rcParams['figure.dpi'] = 120
     plt.rcParams['figure.autolayout'] = False
@@ -27,24 +29,21 @@ def setup_plot():
     sns.set_context('paper', font_scale=2)
 
 def setup_axis(ax, minorticks=10):
-
-    minorLocator = AutoMinorLocator(minorticks)
-    ax.xaxis.set_minor_locator(minorLocator)
+    """Setup axes defaults"""
+    minor_locator = AutoMinorLocator(minorticks)
+    ax.xaxis.set_minor_locator(minor_locator)
     ax.tick_params(which='major', width=2)
     ax.tick_params(which='minor', width=1)
     ax.tick_params(which='major', length=10)
     ax.tick_params(which='minor', length=6)
-#__FRAME_COLORS__ = ['#2ecc71', '#3498db', '#e74c3c']
-__FRAME_COLORS__ = ['#1b9e77',  '#d95f02', '#7570b3']
 
-
-def plot_framewise_dist(all_frag_counts, fragment_len_range, ax=None):
+def plot_framewise_dist(counts, fragment_len_range, ax=None):
     """Plot framewise distribution of fragments.
 
     Parameters
     ----------
-    all_frag_counts : dict or Series
-            A pandas Seires object with the position as key and each values as a dict of fragment length and read counts
+    counts : Series
+            A series with position as index and value as counts
 
     fragment_len_range: int or range
         Range of fragment lengths to average counts over
@@ -54,21 +53,17 @@ def plot_framewise_dist(all_frag_counts, fragment_len_range, ax=None):
 
     """
     setup_plot()
-    counts = summarize_counts(all_frag_counts, fragment_len_range)
-
-
     assert isinstance(counts, pd.Series)
-
     if ax is None:
-        fig, ax = plt.subplots()
+        _, ax = plt.subplots()
     setup_axis(ax)
     ax.set_ylabel('Number of reads')
     ax.set_xlim(min(counts.index) - 0.6,
                 round_to_nearest(max(counts.index), 10) + 0.6)
     barlist = ax.bar(counts.index, counts.values)
     barplot_colors = list(islice(cycle(__FRAME_COLORS__), None, len(counts.index)))
-    for index, bar in enumerate(barlist):
-        bar.set_color(barplot_colors[index])
+    for index, cbar in enumerate(barlist):
+        cbar.set_color(barplot_colors[index])
     ax.legend((barlist[0], barlist[1], barlist[2]),
               ('Frame 1', 'Frame 2', 'Frame 3'))
 
@@ -90,7 +85,7 @@ def plot_fragment_dist(fragment_lengths, ax=None):
     """
     setup_plot()
     if ax is None:
-        fig, ax = plt.subplots()
+        _, ax = plt.subplots()
     setup_axis(ax, 5)
     fragment_lengths = pd.Series(fragment_lengths)
     fragment_lengths_counts = fragment_lengths.value_counts().sort_index()
@@ -101,21 +96,35 @@ def plot_fragment_dist(fragment_lengths, ax=None):
     sns.despine(trim=True, offset=20)
     return ax
 
+def plot_rpf_density(counts, ax=None, marker=False, color='royalblue', label=None):
+    """Plot RPF density around start/stop codons.
 
-def plot_continuous(all_frag_counts, fragment_len_range, ax=None, half_window=30):
-    setup_plot()
-    counts = summarize_counts(all_frag_counts, fragment_len_range)
+    Parameters
+    ----------
+    counts : Series
+        A series with coordinates as index and counts as values
+    ax : matplotlib.Axes
+        Axis to create object on
+    marker : string
+        'o'/'x'
+    color : string
+        Line color
+    label : string
+        Label (useful only if plotting multiple objects on same axes)
 
-    counts = counts[range(-half_window, half_window)]
-    assert isinstance(counts, pd.Series)
+    """
     setup_plot()
     if ax is None:
-        fig, ax = plt.subplots()
-
+        _, ax = plt.subplots()
     setup_axis(ax)
-
     ax.set_ylabel('Number of reads')
-    ax.set_xlim(min(counts.index) - 0.6, round_to_nearest(max(counts.index), 10) + 0.6)
-    ax.plot(counts.index, counts.values, color='royalblue', marker='o', linewidth=2)#'#3498db')
+    if not marker:
+        ax.plot(counts.index, counts.values, color=color,
+                linewidth=2, label=label)
+    else:
+        ax.plot(counts.index, counts.values, color=color,
+                marker='o', linewidth=2, label=label)
+    ax.set_xlim(round_to_nearest(ax.get_xlim()[0], 50) - 0.6,
+                round_to_nearest(ax.get_xlim()[1], 50) + 0.6)
     sns.despine(trim=True, offset=20)
     return ax
