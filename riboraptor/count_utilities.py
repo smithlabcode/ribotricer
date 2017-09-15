@@ -109,9 +109,8 @@ def start_stop_codon_reads(bam, start_codon_bed, stop_codon_bed):
 
 def get_coverage_near_start_codons(start_codon_bed,
                                    coverage_dict,
-                                   n_codons=200):
+                                   n_nucleotides=600):
 
-    ## TODO : Fix this to take into account the stop codons
     bed_df = start_codon_bed.to_dataframe()
     pos_names = bed_df.chrom.str.cat(bed_df.start.astype(str), sep=':').tolist()
 
@@ -120,8 +119,8 @@ def get_coverage_near_start_codons(start_codon_bed,
     for start_codon in pos_names:
         chrom, start_position = start_codon.split(':')
         start_position = int(start_position)
-        cur_pointer = -60
-        while cur_pointer < n_codons * 3 - 1:
+        cur_pointer = -n_nucleotides
+        while cur_pointer < n_nucleotides:
             curr_pos = start_position + cur_pointer
             counts_counter = coverage_dict['{}:{}'.format(chrom, curr_pos)]
             coverage[cur_pointer] += counts_counter
