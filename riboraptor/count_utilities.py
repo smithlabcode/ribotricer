@@ -134,3 +134,5 @@ def summarize_counts(coverage, length_range):
     for index, values in coverage_series.iteritems():
         coverage_series[index] = pd.Series(values)[length_range].sum()
     return coverage_series
+
+
