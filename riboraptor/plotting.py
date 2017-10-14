@@ -1,4 +1,5 @@
 """Plotting methods."""
+from __future__ import division
 from itertools import cycle
 from itertools import islice
 
@@ -8,9 +9,11 @@ from matplotlib.ticker import MultipleLocator
 from matplotlib.ticker import FormatStrFormatter
 from matplotlib.ticker import StrMethodFormatter, NullFormatter
 
-
+import numpy as np
 import pandas as pd
 import seaborn as sns
+import pycwt as wavelet
+
 
 from .helpers import round_to_nearest
 from .helpers import identify_peaks
@@ -172,10 +175,89 @@ def plot_rpf_density(counts, ax=None, marker=False, color='royalblue',
                 marker='o', linewidth=2, label=label)
     #ax.set_xlim(round_to_nearest(ax.get_xlim()[0], 50) - 0.6,
     #            round_to_nearest(ax.get_xlim()[1], 50) + 0.6)
+    peak = None
     if identify_peak:
         peak = identify_peaks(counts)
         ax.axvline(x=peak, color='r', linestyle='dashed')
-        ax.text(peak+0.25, ax.get_ylim()[1]*0.9, '{}'.format(peak), color='r')
+        ax.text(peak+0.5, ax.get_ylim()[1]*0.9, '{}'.format(peak), color='r')
 
     sns.despine(trim=True, offset=10)
-    return ax
+    return (ax, peak)
+
+def create_wavelet(data, ax):
+    t = data.index
+
+    N = len(data.index)
+    p = np.polyfit(data.index, data, 1)
+    data_notrend = data - np.polyval(p, data.index)
+    std = data_notrend.std()  # Standard deviation
+    var = std**2  # Variance
+    data_normalized = data_notrend / std  # Normalized dataset
+
+    mother = wavelet.Morlet(6)
+    dt = 1
+    s0 = 2 * dt  # Starting scale, in this case 2 * 0.25 years = 6 months
+    dj = 1 / 12  # Twelve sub-octaves per octaves
+    J = 7 / dj  # Seven powers of two with dj sub-octaves
+    alpha, _, _ = wavelet.ar1(data)  # Lag-1 autocorrelation for red noise
+
+    wave, scales, freqs, coi, fft, fftfreqs = wavelet.cwt(
+        data_normalized, dt=dt, dj=dj, s0=s0, J=J, wavelet=mother)
+    iwave = wavelet.icwt(wave, scales, dt, dj, mother) * std
+
+    power = (np.abs(wave))**2
+    fft_power = np.abs(fft)**2
+    period = 1 / freqs
+
+    power /= scales[:, None]
+    signif, fft_theor = wavelet.significance(
+        1.0, dt, scales, 0, alpha, significance_level=0.95, wavelet=mother)
+    sig95 = np.ones([1, N]) * signif[:, None]
+    sig95 = power / sig95
+
+    glbl_power = power.mean(axis=1)
+    dof = N - scales  # Correction for padding at edges
+    glbl_signif, tmp = wavelet.significance(
+        var,
+        dt,
+        scales,
+        1,
+        alpha,
+        significance_level=0.95,
+        dof=dof,
+        wavelet=mother)
+
+    levels = [0.0625, 0.125, 0.25, 0.5, 1, 2, 4, 8, 16]
+    ax.contourf(
+        t,
+        np.log2(period),
+        np.log2(power),
+        np.log2(levels),
+        extend='both',
+        cmap=plt.cm.viridis)
+    extent = [t.min(), t.max(), 0, max(period)]
+    ax.contour(
+        t,
+        np.log2(period),
+        sig95, [-99, 1],
+        colors='k',
+        linewidths=2,
+        extent=extent)
+    ax.fill(
+        np.concatenate([t, t[-1:] + dt, t[-1:] + dt, t[:1] - dt, t[:1] - dt]),
+        np.concatenate([
+            np.log2(coi), [1e-9],
+            np.log2(period[-1:]),
+            np.log2(period[-1:]), [1e-9]
+        ]),
+        'k',
+        alpha=0.3,
+        hatch='x')
+    ax.set_title('Wavelet Power Spectrum')
+    ax.set_ylabel('Frequency')
+    Yticks = 2**np.arange(0, np.ceil(np.log2(period.max())))
+    ax.set_yticks(np.log2(Yticks))
+    ax.set_yticklabels(np.round(1 / Yticks, 3))
+
+    return (iwave, period, power, sig95, coi)
+
