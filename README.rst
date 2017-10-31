@@ -27,7 +27,9 @@ Python package to analyse ribosome profiling data
 Installation
 ------------
 
-.. code:: bash
+.. code-block:: bash
+
+   $ git clone git@github.com:saketkc/riboraptor.git
    $ conda install numpy scipy pandas matplotlib seaborn statsmodels pycwt
    $ cd riboraptor
    $ pip install -e .
