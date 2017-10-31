@@ -24,6 +24,13 @@ Python package to analyse ribosome profiling data
 * Free software: BSD license
 * Documentation: https://riboraptor.readthedocs.io.
 
+Installation
+------------
+
+.. code:: bash
+   $ conda install numpy scipy pandas matplotlib seaborn statsmodels pycwt
+   $ cd riboraptor
+   $ pip install -e .
 
 Features
 --------
