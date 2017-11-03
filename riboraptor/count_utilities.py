@@ -7,6 +7,12 @@ import HTSeq
 import pandas as pd
 import pysam
 import pybedtools
+import pyBigWig
+from pyfaidx import Fasta
+
+import numpy as np
+import warnings
+import sys
 
 def bed_to_genomic_interval(bed):
     '''
@@ -135,4 +141,192 @@ def summarize_counts(coverage, length_range):
         coverage_series[index] = pd.Series(values)[length_range].sum()
     return coverage_series
 
+"""
+def collapse_region(records):
+    record = records[0]
+    chrom = record['chrom']
+    strand = record['strand']
+    region = pd.Series(range(record['start'], record['end']))
+    for record in records:
+        region = region.combine_first(pd.Series(range(record['start'], record['end'])))
+    return (chrom, region[0], region[-1], strand)
 
+def get_coordinates(bed, gene):
+    '''Get collapsed coordiantes of a gene from the given bed file'''
+    bed = pybedtools.BedTool(bed).to_dataframe()
+    assert gene in bed['name']
+    region = collapse_region(bed[bed['name']==gene].T.to_dict().values())
+    return region
+"""
+
+class WigReader(object):
+    """Class for reading and querying wigfiles"""
+
+    def __init__(self, wig_location):
+        """
+        Arguments
+        ---------
+        wig_location: Path to bigwig
+        """
+        self.wig_location = wig_location
+        try:
+            self.wig = pyBigWig.open(self.wig_location)
+        except Exception as e:
+            raise Exception('Error reading wig file: {}'.format(e))
+
+    def query(self, intervals):
+        """ Query regions for scores
+        Arguments
+        ---------
+        intervals: list of tuples
+            A list of tuples with the following format: (chr, chrStart, chrEnd, strand)
+        Returns
+        -------
+        scores: np.array
+            A numpy array containing scores for each tuple
+        """
+        scores = []
+        chrom_lengths = self.get_chromosomes
+        for chrom, chromStart, chromEnd, strand in intervals:
+            if chrom not in list(chrom_lengths.keys()):
+                warnings.warn(
+                    'Chromosome {} does not appear in the bigwig'.format(chrom), UserWarning)
+                continue
+
+            chrom_length = chrom_lengths[chrom]
+            if int(chromStart) > chrom_length:
+                raise Exception('Chromsome start point exceeds chromosome length: {}>{}'.format(
+                    chromStart, chrom_length))
+            elif int(chromEnd) > chrom_length:
+                raise Exception('Chromsome end point exceeds chromosome length: {}>{}'.format(
+                    chromEnd, chrom_length))
+            score = self.wig.values(chrom, int(chromStart), int(chromEnd))
+            if strand == '-':
+                score.reverse()
+            scores.append(score)
+        return np.array(scores)
+
+    @property
+    def get_chromosomes(self):
+        """Return list of chromsome and their sizes
+        as in the wig file
+        Returns
+        -------
+        chroms: dict
+            Dictionary with {"chr": "Length"} format
+        """
+        return self.wig.chroms()
+
+def get_gene_coverage(gene_name, bed, bw, master_offset=0):
+    """Get gene coverage
+
+    Parameters
+    ----------
+
+    gene_name: str
+        Gene name
+    bed: str
+        Path to CDS or 5'UTR or 3'UTR bed
+    bw: str
+        Path to bigwig to fetch the scores from
+    master_offset: int
+        How much bases upstream?
+
+    """
+    if isinstance(bw, str):
+        bw = WigReader(bw)
+
+    chromsome_lengths = bw.get_chromosomes
+
+    bed = pybedtools.BedTool(bed).to_dataframe()
+    assert gene_name in bed['name'].tolist()
+    gene_group = bed[bed['name']==gene_name]
+
+    assert len(gene_group['strand'].unique()) == 1
+    assert len(gene_group['chrom'].unique()) == 1
+    chrom = gene_group['chrom'].unique()[0]
+    strand = gene_group['strand'].unique()[0]
+
+    # Collect all intervals at once
+    intervals = zip(gene_group['chrom'], gene_group['start'],
+                    gene_group['end'], gene_group['strand'])
+    chrom_length = chromsome_lengths[str(intervals[0][0])]
+    # Need to convert to list instead frm tuples
+    # TODO fix this?
+    intervals = map(list, intervals)
+    if strand == '+':
+        # For positive strand shift
+        # start codon position intervals[0][1] by -offset
+        if intervals[0][1] - master_offset >= 0:
+            intervals[0][1] = intervals[0][1] - master_offset
+            gene_offset = master_offset
+        else:
+            sys.stderr.write(
+                'Cannot offset beyond 0 for interval: {}. \
+                Set to start of chromsome.\n'.format(intervals[0]))
+            # Reset offset to minimum possible
+            gene_offset = intervals[0][1]
+            intervals[0][1] = 0
+    else:
+        # Else shift cooridnate of last element in intervals stop by + offset
+        if (intervals[-1][2] + master_offset <= chrom_length):
+            intervals[-1][2] = intervals[-1][2] + master_offset
+            gene_offset = master_offset
+        else:
+            sys.stderr.write('Cannot offset beyond 0 for interval: {}. \
+                             Set to end of chromsome.\n'.format(intervals[-1]))
+            gene_offset = chrom_length - intervals[-1][2]
+            # 1-end so chrom_length
+            intervals[-1][2] = chrom_length
+
+    intervals = map(tuple, intervals)
+
+    interval_coverage_list = []
+    for index, coverage in enumerate(bw.query(intervals)):
+        strand = intervals[index][3]
+        if strand == '+':
+            series_range = range(intervals[index][1], intervals[index][2])
+        elif strand == '-':
+            series_range = range(intervals[index][2], intervals[index][1], -1)
+
+        series = pd.Series(coverage, index=series_range)
+        interval_coverage_list.append(series)
+
+
+    if len(interval_coverage_list) == 0:
+        # Some genes might not be present in the bigwig at all
+        sys.stderr.write('Got empty list! intervals  for chr : {}\n'.format(intervals[0][0]))
+        return ([], None)
+
+    coverage_combined = interval_coverage_list[0]
+    for interval_coverage in interval_coverage_list[1:]:
+        coverage_combined = coverage_combined.combine_first(interval_coverage)
+    coverage_combined = coverage_combined.fillna(0)
+    index_to_genomic_pos_map = pd.Series(coverage_combined.index.tolist(), index=np.arange(len(coverage_combined))-gene_offset)
+    intervals_for_fasta_query = []
+    for pos in index_to_genomic_pos_map.values:
+        intervals_for_fasta_query.append((chrom, pos, pos+1, strand))
+    coverage_combined = coverage_combined.reset_index(drop=True)
+    coverage_combined = coverage_combined.rename(lambda x: x - gene_offset)
+
+    return (coverage_combined, intervals_for_fasta_query,
+            index_to_genomic_pos_map, gene_offset)
+
+def get_fasta_sequence(fasta, intervals):
+    if isinstance(fasta, str):
+        fasta = Fasta(fasta)
+    sequence = []
+    for interval in intervals:
+        chrom, start, stop, strand = interval
+        if strand == '+':
+            seq = fasta[chrom][int(start):int(stop)].seq
+        elif strand == '-':
+            seq = fasta[chrom][int(start):int(stop)].reverse.seq
+        sequence.append(seq)
+    return ('').join(sequence)
+
+def sort_genes_lengthwise(bed):
+    bed = pybedtools.BedTool(bed).to_dataframe()
+    bed['length'] = bed['end']-bed['start']
+    bed.sort_values(by='length', ascending=False, inplace=True)
+    return [tuple(x) for x in bed[['name', 'length']].values]
