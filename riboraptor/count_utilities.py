@@ -233,8 +233,8 @@ def get_gene_coverage(gene_name, bed, bw, master_offset=0):
         How much bases upstream?
 
     """
-    if isinstance(bw, str):
-        bw = WigReader(bw)
+    #if isinstance(bw, str):
+    bw = WigReader(bw)
 
     chromsome_lengths = bw.get_chromosomes
 
