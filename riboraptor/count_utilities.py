@@ -325,8 +325,27 @@ def get_fasta_sequence(fasta, intervals):
         sequence.append(seq)
     return ('').join(sequence)
 
+def get_region_sizes(region_bed_grouped):
+    region_sizes = {}
+    for gene_name, gene_group in region_bed_grouped:
+        ## Get rid of trailing dots
+        gene_name = re.sub(r'\.[0-9]+', '', gene_name)
+        # Collect all intervals at once
+        intervals = zip(gene_group['chrom'], gene_group['start'],
+                        gene_group['end'], gene_group['strand'])
+        for interval in intervals:
+            if gene_name not in region_sizes:
+                # End is always 1-based so does not require +1
+                region_sizes[gene_name] = interval[2] - interval[1]
+            else:
+                region_sizes[gene_name] += interval[2] - interval[1]
+    return region_sizes
+
 def sort_genes_lengthwise(bed):
     bed = pybedtools.BedTool(bed).to_dataframe()
-    bed['length'] = bed['end']-bed['start']
-    bed.sort_values(by='length', ascending=False, inplace=True)
-    return [tuple(x) for x in bed[['name', 'length']].values]
+    bed_grouped = bed.groupby('name')
+    sizes = get_region_sizes(bed_grouped)
+    sizes_df = pd.DataFrame(sizes.items(), columns=['name', 'length'])
+    
+    sizes_df.sort_values(by='length', ascending=False, inplace=True)
+    return [tuple(x) for x in sizes_df[['name', 'length']].values]
