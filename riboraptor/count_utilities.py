@@ -12,6 +12,7 @@ from pyfaidx import Fasta
 
 import numpy as np
 import warnings
+import re
 import sys
 
 def bed_to_genomic_interval(bed):
