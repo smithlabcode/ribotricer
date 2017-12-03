@@ -30,7 +30,7 @@ Installation
 .. code-block:: bash
 
    $ git clone git@github.com:saketkc/riboraptor.git
-   $ conda install numpy scipy pandas matplotlib seaborn statsmodels pycwt
+   $ conda install numpy scipy pandas matplotlib seaborn statsmodels pycwt mtspec
    $ cd riboraptor
    $ pip install -e .
 
