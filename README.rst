@@ -22,7 +22,7 @@ Python package to analyse ribosome profiling data
 
 
 * Free software: BSD license
-* Documentation: https://riboraptor.readthedocs.io.
+* Documentation: http://saketkc.github.io/riboraptor/
 
 Installation
 ------------
