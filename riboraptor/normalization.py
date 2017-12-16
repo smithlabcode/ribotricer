@@ -16,7 +16,7 @@ def deseq2_normalization(list_of_profiles):
     """
 
     ## Transpose the profiles so that the rows represent the positions, the columns represent the samples
-    list_of_profiles  = np.array(list_of_profiles).T
+    list_of_profiles  = np.array(list_of_profiles).T+1
     geometric_mean_col = np.sqrt(list_of_profiles.prod(axis=1))
     profiles_ratio = list_of_profiles/geometric_mean_col[:, None]
     size_factors = np.median(profiles_ratio, axis=0)
