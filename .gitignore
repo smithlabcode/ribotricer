@@ -61,3 +61,8 @@ target/
 # pyenv python configuration file
 .python-version
 .ipynb_checkpoints
+*.bam.*
+*.bed
+*.bg
+*.bw
+
