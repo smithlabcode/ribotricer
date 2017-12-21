@@ -20,14 +20,6 @@ riboraptor\.coherence module
     :undoc-members:
     :show-inheritance:
 
-riboraptor\.count\_utilities module
------------------------------------
-
-.. automodule:: riboraptor.count_utilities
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
 riboraptor\.gtfutils module
 ---------------------------
 

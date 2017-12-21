@@ -8,7 +8,8 @@ Contents:
 
    readme
    installation
-   usage
+   introduction
+   quickstart
    contributing
    authorshistory
 

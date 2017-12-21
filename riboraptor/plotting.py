@@ -1,23 +1,23 @@
 """Plotting methods."""
-from __future__ import division
+from __future__ import (absolute_import, division,
+                        print_function, unicode_literals)
+
+from collections import Counter
 from itertools import cycle
 from itertools import islice
 
 import matplotlib.pyplot as plt
-from matplotlib.ticker import AutoMinorLocator
 from matplotlib.ticker import MultipleLocator
 from matplotlib.ticker import FormatStrFormatter
-from matplotlib.ticker import StrMethodFormatter, NullFormatter
 
 import numpy as np
 import pandas as pd
 import seaborn as sns
 import pycwt as wavelet
 
-
-from .helpers import round_to_nearest
-from .helpers import identify_peaks
-from collections import Counter
+from .utils.helpers import identify_peaks
+from .utils.helpers import millify
+from .utils.helpers import round_to_nearest
 
 __FRAME_COLORS__ = ['#1b9e77', '#d95f02', '#7570b3']
 
@@ -39,19 +39,25 @@ def setup_plot():
     sns.set_context('paper', font_scale=2)
 
 
-def setup_axis(ax, axis='x', majorticks=10, minorticks=5, xrotation=0, yrotation=0):
-    """Setup axes defaults"""
+def setup_axis(ax, axis='x', majorticks=5,
+               minorticks=1, xrotation=0, yrotation=0):
+    """Setup axes defaults
 
-    """
-    minor_locator = AutoMinorLocator(minorticks)
-    if axis == 'x':
-        ax.xaxis.set_minor_locator(minor_locator)
-    elif axis == 'y':
-        ax.yaxis.set_minor_locator(minor_locator)
-    ax.tick_params(which='major', width=2)
-    ax.tick_params(which='minor', width=1)
-    ax.tick_params(which='major', length=10)
-    ax.tick_params(which='minor', length=6)
+    Parameters
+    ----------
+
+    ax : matplotlib.Axes
+
+    axis : str
+           Setup 'x' or 'y' axis
+    majorticks : int
+                 Length of interval between two major ticks
+    minorticks : int
+                 Length of interval between two major ticks
+    xrotation : int
+                Rotate x axis labels by xrotation degrees
+    yrotation : int
+                Rotate x axis labels by xrotation degrees
     """
     major_locator = MultipleLocator(majorticks)
     major_formatter = FormatStrFormatter('%d')
@@ -60,25 +66,50 @@ def setup_axis(ax, axis='x', majorticks=10, minorticks=5, xrotation=0, yrotation
         ax.xaxis.set_major_locator(major_locator)
         ax.xaxis.set_major_formatter(major_formatter)
         ax.xaxis.set_minor_locator(minor_locator)
-
     elif axis == 'y':
         ax.yaxis.set_major_locator(major_locator)
         ax.yaxis.set_major_formatter(major_formatter)
         ax.yaxis.set_minor_locator(minor_locator)
     elif axis == 'both':
-        ax.xaxis.set_major_locator(major_locator)
-        ax.xaxis.set_major_formatter(major_formatter)
-        ax.yaxis.set_minor_locator(minor_locator)
-        ax.yaxis.set_major_locator(major_locator)
-        ax.yaxis.set_major_formatter(major_formatter)
-        ax.yaxis.set_minor_locator(minor_locator)
+        setup_axis(ax, 'x', majorticks, minorticks, xrotation, yrotation)
+        setup_axis(ax, 'y', majorticks, minorticks, xrotation, yrotation)
     ax.tick_params(which='major', width=2, length=10)
     ax.tick_params(which='minor', width=1, length=6)
-    #xlabels = [l.get_text() for l in ax.get_xticklabels()]
-    #print(xlabels)
-    #ax.set_xticklabels(xlabels, rotation=xrotation,  ha='right')
-    #ylabels = [l.get_text() for l in ax.get_yticklabels()]
-    #ax.set_yticklabels(ylabels, rotation=yrotation)
+
+
+def plot_fragment_dist(fragment_lengths, ax=None, millify_labels=True, **kwargs):
+    """Plot fragment length distribution.
+
+    Parameters
+    ----------
+    fragment_lengths : array_like
+                     Array of fragment lengths
+
+    ax : matplotlib.Axes
+        Axis object
+    millify_labels : bool
+                     True if labels should be formatted to read millions/trillions etc
+
+    """
+    # setup_plot()
+    fig = None
+    if ax is None:
+       fig, ax = plt.subplots()
+    setup_axis(ax, **kwargs)
+    if isinstance(fragment_lengths, Counter):
+        fragment_lengths = pd.Series(fragment_lengths)
+        fragment_lengths_counts = fragment_lengths.sort_index()
+    else:
+        fragment_lengths = pd.Series(fragment_lengths)
+        fragment_lengths_counts = fragment_lengths.value_counts().sort_index()
+
+    ax.bar(fragment_lengths_counts.index, fragment_lengths_counts)
+    ax.set_xlim(min(fragment_lengths_counts.index) - 0.5,
+                round_to_nearest(max(fragment_lengths_counts.index), 10) + 0.5)
+    if millify_labels:
+        ax.set_yticklabels(list(map(lambda x: millify(x), ax.get_yticks())))
+    sns.despine(trim=True, offset=20)
+    return ax, fig
 
 
 def plot_framewise_dist(counts, fragment_len_range, ax=None):
@@ -105,7 +136,8 @@ def plot_framewise_dist(counts, fragment_len_range, ax=None):
     ax.set_xlim(min(counts.index) - 0.6,
                 round_to_nearest(max(counts.index), 10) + 0.6)
     barlist = ax.bar(counts.index, counts.values)
-    barplot_colors = list(islice(cycle(__FRAME_COLORS__), None, len(counts.index)))
+    barplot_colors = list(
+        islice(cycle(__FRAME_COLORS__), None, len(counts.index)))
     for index, cbar in enumerate(barlist):
         cbar.set_color(barplot_colors[index])
     ax.legend((barlist[0], barlist[1], barlist[2]),
@@ -115,74 +147,56 @@ def plot_framewise_dist(counts, fragment_len_range, ax=None):
     return ax
 
 
-def plot_fragment_dist(fragment_lengths, ax=None):
-    """Plot fragment length distribution.
-
-    Parameters
-    ----------
-    fragment_lengths : array_like
-                     Array of fragment lengths
-
-    ax : matplotlib.Axes
-        Axis object
-
-    """
-    setup_plot()
-    if ax is None:
-        _, ax = plt.subplots()
-    setup_axis(ax, 5)
-    if isinstance(fragment_lengths, Counter):
-        fragment_lengths = pd.Series(fragment_lengths)
-        fragment_lengths_counts = fragment_lengths.sort_index()
-    else:
-        fragment_lengths = pd.Series(fragment_lengths)
-        fragment_lengths_counts = fragment_lengths.value_counts().sort_index()
-
-    ax.bar(fragment_lengths_counts.index, fragment_lengths_counts)
-    ax.set_xlim(min(fragment_lengths_counts.index) - 0.5,
-                round_to_nearest(max(fragment_lengths_counts.index), 10) + 0.5)
-    sns.despine(trim=True, offset=20)
-    return ax
-
-def plot_rpf_density(counts, ax=None, marker=False, color='royalblue',
-                     label=None, identify_peak = True, **kwargs):
+def plot_read_counts(counts, ax=None, marker=False, color='royalblue',
+                     label=None, millify_labels=True, identify_peak=True, **kwargs):
     """Plot RPF density around start/stop codons.
 
     Parameters
     ----------
-    counts : Series
-        A series with coordinates as index and counts as values
+    counts : Series/Counter
+             A series with coordinates as index and counts as values
     ax : matplotlib.Axes
-        Axis to create object on
+         Axis to create object on
     marker : string
-        'o'/'x'
+             'o'/'x'
     color : string
-        Line color
+            Line color
     label : string
-        Label (useful only if plotting multiple objects on same axes)
+            Label (useful only if plotting multiple objects on same axes)
+    millify_labels : bool
+                     True if labels should be formatted to read millions/trillions etc
 
     """
-    setup_plot()
+    # setup_plot()
+    if isinstance(counts, Counter):
+        counts = pd.Series(counts)
+    fig = None
     if ax is None:
-        _, ax = plt.subplots()
+        fig, ax = plt.subplots()
     setup_axis(ax, **kwargs)
     ax.set_ylabel('Number of reads')
     if not marker:
-        ax.plot(counts.index.tolist(), counts.values.tolist(), color=color,
+        ax.plot(counts.index, counts.values, color=color,
                 linewidth=2, label=label)
     else:
         ax.plot(counts.index, counts.values, color=color,
                 marker='o', linewidth=2, label=label)
-    #ax.set_xlim(round_to_nearest(ax.get_xlim()[0], 50) - 0.6,
+    # ax.set_xlim(round_to_nearest(ax.get_xlim()[0], 50) - 0.6,
     #            round_to_nearest(ax.get_xlim()[1], 50) + 0.6)
     peak = None
     if identify_peak:
         peak = identify_peaks(counts)
         ax.axvline(x=peak, color='r', linestyle='dashed')
-        ax.text(peak+0.5, ax.get_ylim()[1]*0.9, '{}'.format(peak), color='r')
+        ax.text(peak + 0.5, ax.get_ylim()[1]
+                * 0.9, '{}'.format(peak), color='r')
 
+    if millify_labels:
+        ax.set_yticklabels(list(map(lambda x: millify(x), ax.get_yticks())))
+    ax.set_xlim(min(counts.index) - 0.5,
+                round_to_nearest(max(counts.index), 10) + 0.5)
     sns.despine(trim=True, offset=10)
-    return (ax, peak)
+    return ax, fig, peak
+
 
 def create_wavelet(data, ax):
     t = data.index
@@ -260,4 +274,3 @@ def create_wavelet(data, ax):
     ax.set_yticklabels(np.round(1 / Yticks, 3))
 
     return (iwave, period, power, sig95, coi)
-

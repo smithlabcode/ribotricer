@@ -10,9 +10,12 @@ import gffutils
 import pybedtools
 import pandas as pd
 
+
 def features_to_df(feature_list):
-    features = map(lambda x: (x.chrom, x.start, x.end, x.strand, x.feature_type), feature_list)
+    features = map(lambda x: (x.chrom, x.start, x.end,
+                              x.strand, x.feature_type), feature_list)
     return features
+
 
 def create_gene_dict(db):
     '''
@@ -33,8 +36,9 @@ def create_gene_dict(db):
         gene_ids = feature.attributes['gene_id']
         feature_type = feature.featuretype
         if feature_type == 'gene':
-            if len(gene_ids)!=1:
-                logging.warning('Found multiple gene_ids on line {} in gtf'.format(line_no))
+            if len(gene_ids) != 1:
+                logging.warning(
+                    'Found multiple gene_ids on line {} in gtf'.format(line_no))
                 break
             else:
                 gene_id = gene_ids[0]
@@ -44,11 +48,14 @@ def create_gene_dict(db):
 
             for gene_id in gene_ids:
                 for transcript_id in transcript_ids:
-                    gene_dict[gene_id][transcript_id][feature_type].append(feature)
+                    gene_dict[gene_id][transcript_id][feature_type].append(
+                        feature)
     return gene_dict
+
 
 def get_gene_list(gene_dict):
     return list(set(gene_dict.keys()))
+
 
 def get_UTR_regions(gene_dict, gene_id, transcript, cds):
     '''Get UTR only regions
@@ -73,7 +80,7 @@ def get_UTR_regions(gene_dict, gene_id, transcript, cds):
                    List of gffutils.feature representing 5'UTR regions
 
     '''
-    if len(cds)==0:
+    if len(cds) == 0:
         return [], []
     utr5_regions = []
     utr3_regions = []
@@ -81,8 +88,8 @@ def get_UTR_regions(gene_dict, gene_id, transcript, cds):
     first_cds = cds[0]
     last_cds = cds[-1]
     for utr in utrs:
-        ## Push all cds at once
-        ## Sort later to remove duplicates
+        # Push all cds at once
+        # Sort later to remove duplicates
         strand = utr.strand
         if strand == '+':
             if utr.stop < first_cds.start:
@@ -113,19 +120,21 @@ def create_bed(regions, bedtype='0'):
     bedstr = ''
     for region in regions:
         assert len(region.attributes['gene_id']) == 1
-        ## GTF start is 1-based, so shift by one while writing
-        ## to 0-based BED format
+        # GTF start is 1-based, so shift by one while writing
+        # to 0-based BED format
         if bedtype == '0':
             start = region.start - 1
         else:
             start = region.start
         bedstr += '{}\t{}\t{}\t{}\t{}\t{}\n'.format(region.chrom,
-                                             start,
-                                             region.stop,
-                                             re.sub('\.\d+', '', region.attributes['gene_id'][0]),
-                                             '.',
-                                             region.strand)
+                                                    start,
+                                                    region.stop,
+                                                    re.sub(
+                                                        '\.\d+', '', region.attributes['gene_id'][0]),
+                                                    '.',
+                                                    region.strand)
     return bedstr
+
 
 def rename_regions(regions, gene_id):
     '''Name all regions one gene_id
@@ -148,6 +157,7 @@ def rename_regions(regions, gene_id):
         region.attributes['gene_id'] = gene_id
     return regions
 
+
 def merge_regions(db, regions):
     '''Merge overlapping regions respecting strand
 
@@ -164,6 +174,7 @@ def merge_regions(db, regions):
     merged = db.merge(sorted(list(regions), key=lambda x: x.start))
     return merged
 
+
 def merge_regions_nostrand(db, regions):
     '''Merge overlapping regions ignoring strand
 
@@ -177,7 +188,8 @@ def merge_regions_nostrand(db, regions):
     '''
     if len(regions) == 0:
         return []
-    merged = db.merge(sorted(list(regions), key=lambda x: x.start), ignore_strand=True)
+    merged = db.merge(
+        sorted(list(regions), key=lambda x: x.start), ignore_strand=True)
     return merged
 
 
@@ -196,10 +208,10 @@ def create_all_bed(gtf_file, prefix):
     beds : all beds
     '''
     db = gffutils.create_db(gtf_file,
-                            dbfn = '{}.gffutils.db'.format(gtf_file),
-                            merge_strategy = 'merge',
-                            disable_infer_genes = True,
-                            disable_infer_transcripts = True)
+                            dbfn='{}.gffutils.db'.format(gtf_file),
+                            merge_strategy='merge',
+                            disable_infer_genes=True,
+                            disable_infer_transcripts=True)
     gene_dict = create_gene_dict(db)
     utr5_bed = ''
     utr3_bed = ''
@@ -229,7 +241,8 @@ def create_all_bed(gtf_file, prefix):
             exons = list(gene_dict[gene_id][feature]['exon'])
             merged_exons = merge_regions(db, exons)
             introns = db.interfeatures(merged_exons)
-            utr5_region, utr3_region = get_UTR_regions(gene_dict, gene_id, feature, cds)
+            utr5_region, utr3_region = get_UTR_regions(
+                gene_dict, gene_id, feature, cds)
             utr5_regions += utr5_region
             all_utr5 += utr5_region
             all_utr3 += utr3_region
@@ -258,9 +271,10 @@ def create_all_bed(gtf_file, prefix):
         exon_bed += create_bed(renamed_exons)
         intron_bed += create_bed(renamed_introns)
         cds_bed += create_bed(renamed_cds)
-    all_utrs = all_utr5+all_utr3
+    all_utrs = all_utr5 + all_utr3
     all_utr_list = features_to_df(all_utrs)
-    df = pd.DataFrame(all_utr_list, columns=['chrom', 'start', 'end', 'strand', 'name', ])
+    df = pd.DataFrame(all_utr_list, columns=[
+                      'chrom', 'start', 'end', 'strand', 'name', ])
     df = df.drop_duplicates()
     df = df.set_index(['chrom', 'start', 'end', 'strand'])
     with open('{}.modified_UTRS.gtf'.format(prefix), 'w') as fout:
@@ -268,9 +282,11 @@ def create_all_bed(gtf_file, prefix):
             fout.write('## {0}\n'.format(d))
         for feature in db.all_features():
             if feature.featuretype == 'UTR':
-                chrom, start, end, strand = feature.chrom, int(feature.start), int(feature.end), feature.strand
+                chrom, start, end, strand = feature.chrom, int(
+                    feature.start), int(feature.end), feature.strand
                 try:
-                    feature.featuretype = str(df.loc[(chrom, start, end, strand)].name[0])
+                    feature.featuretype = str(
+                        df.loc[(chrom, start, end, strand)].name[0])
                 except KeyError:
                     print ('something went wrong with feature: {}'.format(feature))
             fout.write(str(feature) + '\n')
@@ -290,18 +306,17 @@ def create_all_bed(gtf_file, prefix):
     intron_bedtool.remove_invalid().sort().saveas('{}.intron.bed'.format(prefix))
     cds_bedtool.remove_invalid().sort().saveas('{}.cds.bed'.format(prefix))
 
-
     for gene_id in get_gene_list(gene_dict):
         start_codons = []
         stop_codons = []
         for start_codon in db.children(gene_id, featuretype='start_codon'):
-            ## 1 -based stop
-            ## 0-based start handled while converting to bed
+            # 1 -based stop
+            # 0-based start handled while converting to bed
             start_codon.stop = start_codon.start
             start_codons.append(start_codon)
         for stop_codon in db.children(gene_id, featuretype='stop_codon'):
             stop_codon.start = stop_codon.stop
-            stop_codon.stop = stop_codon.stop+1
+            stop_codon.stop = stop_codon.stop + 1
             stop_codons.append(stop_codon)
         merged_start_codons = merge_regions(db, start_codons)
         renamed_start_codons = rename_regions(merged_start_codons, gene_id)
@@ -311,12 +326,12 @@ def create_all_bed(gtf_file, prefix):
         start_codon_bed += create_bed(renamed_start_codons)
         stop_codon_bed += create_bed(renamed_stop_codons)
 
-
     start_codon_bedtool = pybedtools.BedTool(start_codon_bed, from_string=True)
     stop_codon_bedtool = pybedtools.BedTool(stop_codon_bed, from_string=True)
-    start_codon_bedtool.remove_invalid().sort().saveas('{}.start_codon.bed'.format(prefix))
-    stop_codon_bedtool.remove_invalid().sort().saveas('{}.stop_codon.bed'.format(prefix))
-
+    start_codon_bedtool.remove_invalid().sort().saveas(
+        '{}.start_codon.bed'.format(prefix))
+    stop_codon_bedtool.remove_invalid().sort().saveas(
+        '{}.stop_codon.bed'.format(prefix))
 
     polyA_sites_bed = ''
     tss_sites_bed = ''
@@ -342,8 +357,10 @@ def create_all_bed(gtf_file, prefix):
 
     polyA_sites_bedtool = pybedtools.BedTool(polyA_sites_bed, from_string=True)
     tss_sites_bedtool = pybedtools.BedTool(tss_sites_bed, from_string=True)
-    polyA_sites_bedtool.remove_invalid().sort().saveas('{}.polyA_sites.bed'.format(prefix))
-    tss_sites_bedtool.remove_invalid().sort().saveas('{}.tss_sites.bed'.format(prefix))
+    polyA_sites_bedtool.remove_invalid().sort().saveas(
+        '{}.polyA_sites.bed'.format(prefix))
+    tss_sites_bedtool.remove_invalid().sort().saveas(
+        '{}.tss_sites.bed'.format(prefix))
     rRNA_sites = []
     rRNA_bed = ''
     for gene_id in get_gene_list(gene_dict):
@@ -354,7 +371,8 @@ def create_all_bed(gtf_file, prefix):
         rRNA_bed += create_bed(rRNA_sites)
 
     rRNA_sites_bedtool = pybedtools.BedTool(rRNA_bed, from_string=True)
-    rRNA_sites_bedtool.remove_invalid().sort().saveas('{}.rRNA_sites.bed'.format(prefix))
+    rRNA_sites_bedtool.remove_invalid().sort().saveas(
+        '{}.rRNA_sites.bed'.format(prefix))
 
     tRNA_sites = []
     tRNA_bed = ''
@@ -367,4 +385,5 @@ def create_all_bed(gtf_file, prefix):
         tRNA_bed += create_bed(tRNA_sites)
 
     tRNA_sites_bedtool = pybedtools.BedTool(tRNA_bed, from_string=True)
-    tRNA_sites_bedtool.remove_invalid().sort().saveas('{}.tRNA_sites.bed'.format(prefix))
+    tRNA_sites_bedtool.remove_invalid().sort().saveas(
+        '{}.tRNA_sites.bed'.format(prefix))
