@@ -24,7 +24,7 @@ class WigReader(object):
         """ Query regions for scores
 
         Parameters
-        ---------
+        ----------
         intervals : list(tuple)
                     A list of tuples with the following format:
                         (chr, chrStart, chrEnd, strand)

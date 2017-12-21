@@ -7,7 +7,7 @@ import numpy as np
 
 
 def millify(n):
-    """Convert integer to human readable format
+    """Convert integer to human readable format.
 
     Parameters
     ----------
@@ -28,15 +28,15 @@ def millify(n):
 
 
 def create_ideal_periodic_signal(signal_length):
-    """Create ideal ribo-seq signal
+    """Create ideal ribo-seq signal.
 
     Parameters
-    ---------
+    ----------
     signal_length : int
+                    Length of signal to create
 
     Returns
     -------
-
     signal : array_like
              1-0-0 signal
 
@@ -49,9 +49,11 @@ def create_ideal_periodic_signal(signal_length):
 
 def set_rotation(ax, degrees):
     """Rotate labels on axis.
+
     Parameters
     ----------
     ax : matplotlib.Axes
+         Axes object
     degrees : int
               Rotation degrees
     """
@@ -61,7 +63,7 @@ def set_rotation(ax, degrees):
 
 
 def round_to_nearest(x, base=5):
-    '''Round to nearest base
+    '''Round to nearest base.
 
     Parameters
     ----------
@@ -77,7 +79,7 @@ def round_to_nearest(x, base=5):
 
 
 def r2(x, y):
-    '''Calculate pearson correlation between two vectors
+    '''Calculate pearson correlation between two vectors.
 
     Parameters
     ----------

@@ -10,8 +10,10 @@ Contents:
    installation
    introduction
    quickstart
-   contributing
-   authorshistory
+   modules
+   authors
+   history
+
 
 Indices and tables
 ==================
