@@ -27,8 +27,9 @@ def calculate_cdf(data):
     index = data.index.tolist()
     cdf = []
     for i in range(min(index), max(index)):
-        cdf.append(np.sum(data[range(min(index), i)])/total)
+        cdf.append(np.sum(data[range(min(index), i)]) / total)
     return pd.Series(cdf, index=index[1:])
+
 
 def KS_test(a, b):
     """Perform KS test between a and b values
@@ -62,6 +63,6 @@ def KS_test(a, b):
     cdf_a = calculate_cdf(a)
     cdf_b = calculate_cdf(b)
     effect_size, p = ks_2samp(a, b, alternative='greater')
-    D = np.argmax(np.abs(cdf_a-cdf_b))-1
-    #a.index[np.argmax(np.array(cdf_a)-np.array(cdf_b))]
+    D = np.argmax(np.abs(cdf_a - cdf_b)) - 1
+    # a.index[np.argmax(np.array(cdf_a)-np.array(cdf_b))]
     return D, effect_size, p, cdf_a, cdf_b

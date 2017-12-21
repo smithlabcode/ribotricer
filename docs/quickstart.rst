@@ -137,8 +137,6 @@ Site map
  - :ref:`search`
 
 
-.. _toc-getting-started:
-
 .. toctree::
    :hidden:
    :maxdepth: 2

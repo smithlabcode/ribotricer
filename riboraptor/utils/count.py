@@ -303,11 +303,11 @@ def htseq_to_cpm(htseq_f, outfile=None):
     htseq = read_htseq(htseq_f)
     rate = htseq['counts']
     denom = rate.sum()
-    cpm = rate/denom *1e6
+    cpm = rate / denom * 1e6
     if outfile:
         pd.DataFrame(cpm, columns=['cpm']).to_csv(
             outfile, sep='\t', index=True, header=False)
-    cpm = pd.DataFrame(cpm)#, columns=['cpm'])
+    cpm = pd.DataFrame(cpm)  # , columns=['cpm'])
     cpm.columns = ['cpm']
     cpm = cpm.sort_values(by='cpm', ascending=False)
     return cpm

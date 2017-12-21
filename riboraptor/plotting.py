@@ -94,7 +94,7 @@ def plot_fragment_dist(fragment_lengths, ax=None, millify_labels=True, **kwargs)
     # setup_plot()
     fig = None
     if ax is None:
-       fig, ax = plt.subplots()
+        fig, ax = plt.subplots()
     setup_axis(ax, **kwargs)
     if isinstance(fragment_lengths, Counter):
         fragment_lengths = pd.Series(fragment_lengths)
