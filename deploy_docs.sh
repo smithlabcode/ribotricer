@@ -1,11 +1,10 @@
 #!/bin/bash
+set -euxo pipefail
 
-cd docs
 make clean
-make html
-cd ..
+make docs
 # commit and push
-git add -A
+git add riboraptor docs
 git commit -m "building and pushing docs"
 git push origin master
 # switch branches and pull the data we want
