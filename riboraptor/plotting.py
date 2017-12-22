@@ -6,6 +6,9 @@ from collections import Counter
 from itertools import cycle
 from itertools import islice
 
+import matplotlib
+matplotlib.use('Agg')
+
 import matplotlib.pyplot as plt
 from matplotlib.ticker import MultipleLocator
 from matplotlib.ticker import FormatStrFormatter
@@ -20,7 +23,7 @@ from .utils.helpers import millify
 from .utils.helpers import round_to_nearest
 
 __FRAME_COLORS__ = ['#1b9e77', '#d95f02', '#7570b3']
-DPI = 1000
+DPI = 300
 
 
 def setup_plot():
@@ -78,15 +81,15 @@ def setup_axis(ax, axis='x', majorticks=5,
     ax.tick_params(which='minor', width=1, length=6)
 
 
-def plot_fragment_dist(fragment_lengths, ax=None,
-                       millify_labels=True, input_is_stream=False,
-                       saveto=None, **kwargs):
-    """Plot fragment length distribution.
+def plot_read_length_dist(read_lengths, ax=None,
+                          millify_labels=True, input_is_stream=False,
+                          saveto=None, **kwargs):
+    """Plot read length distribution.
 
     Parameters
     ----------
-    fragment_lengths : array_like
-                     Array of fragment lengths
+    read_lengths : array_like
+                     Array of read lengths
 
     ax : matplotlib.Axes
         Axis object
@@ -101,44 +104,45 @@ def plot_fragment_dist(fragment_lengths, ax=None,
     """
     if input_is_stream:
         counter = {}
-        for line in fragment_lengths:
+        for line in read_lengths:
             splitted = list(map(lambda x: int(x), line.strip().split('\t')))
             counter[splitted[0]] = splitted[1]
-        fragment_lengths = Counter(counter)
+        read_lengths = Counter(counter)
     fig = None
     if ax is None:
         fig, ax = plt.subplots()
     else:
         fig = ax.get_figure()
     setup_axis(ax, **kwargs)
-    if isinstance(fragment_lengths, Counter):
-        fragment_lengths = pd.Series(fragment_lengths)
-        fragment_lengths_counts = fragment_lengths.sort_index()
+    if isinstance(read_lengths, Counter):
+        read_lengths = pd.Series(read_lengths)
+        read_lengths_counts = read_lengths.sort_index()
     else:
-        fragment_lengths = pd.Series(fragment_lengths)
-        fragment_lengths_counts = fragment_lengths.value_counts().sort_index()
+        read_lengths = pd.Series(read_lengths)
+        read_lengths_counts = read_lengths.value_counts().sort_index()
 
-    ax.bar(fragment_lengths_counts.index, fragment_lengths_counts)
-    ax.set_xlim(min(fragment_lengths_counts.index) - 0.5,
-                round_to_nearest(max(fragment_lengths_counts.index), 10) + 0.5)
+    ax.bar(read_lengths_counts.index, read_lengths_counts)
+    ax.set_xlim(min(read_lengths_counts.index) - 0.5,
+                round_to_nearest(max(read_lengths_counts.index), 10) + 0.5)
     if millify_labels:
         ax.set_yticklabels(list(map(lambda x: millify(x), ax.get_yticks())))
     sns.despine(trim=True, offset=20)
     if saveto:
+        fig.tight_layout()
         fig.savefig(saveto, dpi=DPI)
     return ax, fig
 
 
-def plot_framewise_dist(counts, fragment_len_range,
+def plot_framewise_dist(counts, read_len_range,
                         ax=None, saveto=None):
-    """Plot framewise distribution of fragments.
+    """Plot framewise distribution of reads.
 
     Parameters
     ----------
     counts : Series
             A series with position as index and value as counts
-    fragment_len_range: int or range
-        Range of fragment lengths to average counts over
+    read_len_range: int or range
+        Range of read lengths to average counts over
     ax : matplotlib.Axes
         Default none
     saveto : str
@@ -164,6 +168,7 @@ def plot_framewise_dist(counts, fragment_len_range,
               ('Frame 1', 'Frame 2', 'Frame 3'))
     sns.despine(trim=True, offset=20)
     if saveto:
+        fig.tight_layout()
         fig.savefig(saveto, dpi=DPI)
     return ax
 
@@ -225,6 +230,7 @@ def plot_read_counts(counts, ax=None,
                 round_to_nearest(max(counts.index), 10) + 0.5)
     sns.despine(trim=True, offset=10)
     if saveto:
+        fig.tight_layout()
         fig.savefig(saveto, dpi=DPI)
     return ax, fig, peak
 
@@ -269,6 +275,7 @@ def plot_featurewise_barplot(utr5_counts, cds_counts,
     ax.set_ylabel('# RPFs')
     sns.despine(trim=True, offset=10)
     if saveto:
+        fig.tight_layout()
         fig.savefig(saveto, dpi=DPI)
     return ax, fig
 

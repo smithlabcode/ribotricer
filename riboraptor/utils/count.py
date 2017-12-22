@@ -6,6 +6,7 @@ from collections import Counter
 from collections import OrderedDict
 import subprocess
 import sys
+import tempfile
 
 import numpy as np
 import pandas as pd
@@ -17,7 +18,8 @@ from scipy.stats import norm
 from .wig import WigReader
 
 
-def bedgraph_to_bigwig(bedgraph, chrom_sizes, bigwig):
+def bedgraph_to_bigwig(bedgraph, chrom_sizes,
+                       saveto, input_is_stream=False):
     """Convert bedgraph to bigwig.
 
     Parameters
@@ -26,21 +28,29 @@ def bedgraph_to_bigwig(bedgraph, chrom_sizes, bigwig):
                Path to bedgraph file
     chrom_sizes : str
                   Path to genome chromosome sizes file
-    bigwig : str
+    saveto : str
              Path to write bigwig file
+    input_is_stream : bool
+                      True if input is sent through stdin
     """
+    if input_is_stream:
+        with tempfile.TemporaryFile() as fp:
+            fp.write(('\n').join(bedgraph))
+            filename = fp.name
+        bedgraph = filename
+
     cmds = ['bedSort', bedgraph, bedgraph]
     p = subprocess.Popen(cmds, stdout=subprocess.PIPE,
                          stderr=subprocess.PIPE, universal_newlines=True)
     stdout, stderr = p.communicate()
 
-    cmds = ['bedGraphToBigWig', bedgraph, chrom_sizes, bigwig]
+    cmds = ['bedGraphToBigWig', bedgraph, chrom_sizes, saveto]
     p = subprocess.Popen(cmds, stdout=subprocess.PIPE,
                          stderr=subprocess.PIPE, universal_newlines=True)
     stdout, stderr = p.communicate()
 
 
-def create_bedgraph(bam, strand='both', end_type='5prime', outfile=None):
+def bam_to_bedgraph(bam, strand='both', end_type='5prime', saveto=None):
     """Create bigwig from bam.
 
     Parameters
@@ -48,10 +58,10 @@ def create_bedgraph(bam, strand='both', end_type='5prime', outfile=None):
     bam : str
           Path to bam file
     strand : str, optional
-             Use fragments mapping to '+/-/both' strands
+             Use reads mapping to '+/-/both' strands
     end_type : str
                Use only end_type=5prime(5') or "3prime(3')"
-    outfile : str, optional
+    saveto : str, optional
               Path to write bedgraph
 
     Returns
@@ -77,47 +87,49 @@ def create_bedgraph(bam, strand='both', end_type='5prime', outfile=None):
         genome_cov = bed.genome_coverage(bg=True,
                                          additional_args=extra_args)
     print(type(genome_cov))
-    if outfile:
-        with open(outfile, 'w') as outf:
+    if saveto:
+        with open(saveto, 'w') as outf:
             outf.write(str(genome_cov))
     return genome_cov
 
 
-def fragment_enrichment(fragment_lengths,
-                        enrichment_range=range(28, 32),
-                        input_is_stream=False):
-    """Calculate fragment enrichment for a certain range of lengths
+def read_enrichment(read_lengths,
+                    enrichment_range=range(28, 32),
+                    input_is_stream=False):
+    """Calculate read enrichment for a certain range of lengths
 
     Parameters
     ----------
-    fragment_lengths : Counter
-                       A counter with fragment lengths and their counts
+    read_lengths : Counter
+                       A counter with read lengths and their counts
     enrichment_range : range or str
-                       Range of fragments to concentrate upon [28-32 or range(28,32)]
+                       Range of reads to concentrate upon
+                       [28-32 or range(28,32)]
     input_is_stream : bool
                       True if input is sent through stdin
 
     Returns
     -------
-    ratiro : float
+    ratio : float
              Enrichment in this range
 
     """
     if input_is_stream:
         counter = {}
-        for line in fragment_lengths:
+        for line in read_lengths:
             splitted = list(map(lambda x: int(x), line.strip().split('\t')))
             counter[splitted[0]] = splitted[1]
-        fragment_lengths = Counter(counter)
-    if isinstance(fragment_lengths, Counter):
-        fragment_lengths = pd.Series(fragment_lengths)
-    if isinstance(enrichment_range, unicode) or isinstance(enrichment_range, str):
+        read_lengths = Counter(counter)
+    if isinstance(read_lengths, Counter):
+        read_lengths = pd.Series(read_lengths)
+    if isinstance(enrichment_range, unicode) or\
+            isinstance(enrichment_range, str):
         splitted = list(
             map(lambda x: int(x), enrichment_range.strip().split('-')))
         enrichment_range = range(splitted[0], splitted[1])
-    rpf_signal = fragment_lengths[enrichment_range].sum()
-    total_signal = fragment_lengths.sum()
-    array = [[x] * y for x, y in sorted(fragment_lengths.iteritems())]
+    rpf_signal = read_lengths[enrichment_range].sum()
+    total_signal = read_lengths.sum()
+    array = [[x] * y for x, y in sorted(read_lengths.iteritems())]
     mean_length, std_dev_length = norm.fit(
         np.concatenate(array).ravel().tolist())
 
@@ -300,14 +312,14 @@ def get_region_sizes(bed):
     return region_sizes
 
 
-def htseq_to_cpm(htseq_f, outfile=None):
+def htseq_to_cpm(htseq_f, saveto=None):
     """Convert HTSeq counts to CPM.
 
     Parameters
     ----------
     htseq_f : str
               Path to HTseq counts file
-    outfile : str, optional
+    saveto : str, optional
               Path to output file
     Returns
     -------
@@ -319,16 +331,16 @@ def htseq_to_cpm(htseq_f, outfile=None):
     rate = htseq['counts']
     denom = rate.sum()
     cpm = rate / denom * 1e6
-    if outfile:
+    if saveto:
         pd.DataFrame(cpm, columns=['cpm']).to_csv(
-            outfile, sep='\t', index=True, header=False)
+            saveto, sep='\t', index=True, header=False)
     cpm = pd.DataFrame(cpm)  # , columns=['cpm'])
     cpm.columns = ['cpm']
     cpm = cpm.sort_values(by='cpm', ascending=False)
     return cpm
 
 
-def htseq_to_tpm(htseq_f, cds_bed_f, outfile=None):
+def htseq_to_tpm(htseq_f, cds_bed_f, saveto=None):
     """Convert HTSeq counts to TPM.
 
     Parameters
@@ -338,7 +350,7 @@ def htseq_to_tpm(htseq_f, cds_bed_f, outfile=None):
     region_sizes : dict
                    Dict with keys as gene and values
                    as length (CDS/Exon) of that gene
-    outfile : str, optional
+    saveto : str, optional
               Path to output file
     Returns
     -------
@@ -351,9 +363,9 @@ def htseq_to_tpm(htseq_f, cds_bed_f, outfile=None):
     rate = np.log(htseq['counts']).subtract(np.log(cds_bed_sizes))
     denom = np.log(np.sum(np.exp(rate)))
     tpm = np.exp(rate - denom + np.log(1e6))
-    if outfile:
+    if saveto:
         pd.DataFrame(tpm, columns=['tpm']).to_csv(
-            outfile, sep='\t', index=True, header=False)
+            saveto, sep='\t', index=True, header=False)
     tpm = pd.DataFrame(tpm, columns=['tpm'])
     tpm = tpm.sort_values(by='tpm', ascending=False)
     return tpm
@@ -408,7 +420,7 @@ def read_htseq(htseq_f):
 
 
 def read_length_distribution(bam):
-    """Count fragment lengths.
+    """Count read lengths.
 
     Parameters
     ----------
@@ -418,7 +430,7 @@ def read_length_distribution(bam):
     Returns
     -------
     lengths : counter
-              Counter of fragment length and counts
+              Counter of read length and counts
 
     """
     bam = pysam.AlignmentFile(bam, 'rb')
