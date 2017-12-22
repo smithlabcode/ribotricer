@@ -83,15 +83,19 @@ def create_bedgraph(bam, strand='both', end_type='5prime', outfile=None):
     return genome_cov
 
 
-def fragment_enrichment(fragment_lengths, enrichment_range=range(28, 32)):
+def fragment_enrichment(fragment_lengths,
+                        enrichment_range=range(28, 32),
+                        input_is_stream=False):
     """Calculate fragment enrichment for a certain range of lengths
 
     Parameters
     ----------
     fragment_lengths : Counter
                        A counter with fragment lengths and their counts
-    enrichment_range : range
-                       Range of fragments to concentrate upon
+    enrichment_range : range or str
+                       Range of fragments to concentrate upon [28-32 or range(28,32)]
+    input_is_stream : bool
+                      True if input is sent through stdin
 
     Returns
     -------
@@ -99,8 +103,17 @@ def fragment_enrichment(fragment_lengths, enrichment_range=range(28, 32)):
              Enrichment in this range
 
     """
+    if input_is_stream:
+        counter = {}
+        for line in fragment_lengths:
+            splitted = list(map (lambda x: int(x), line.strip().split('\t')))
+            counter[splitted[0]] = splitted[1]
+        fragment_lengths = Counter(counter)
     if isinstance(fragment_lengths, Counter):
         fragment_lengths = pd.Series(fragment_lengths)
+    if isinstance(enrichment_range, unicode) or isinstance(enrichment_range, str):
+        splitted = list(map (lambda x: int(x), enrichment_range.strip().split('-')))
+        enrichment_range = range(splitted[0], splitted[1])
     rpf_signal = fragment_lengths[enrichment_range].sum()
     total_signal = fragment_lengths.sum()
     array = [[x] * y for x, y in sorted(fragment_lengths.iteritems())]
