@@ -4,6 +4,7 @@ from __future__ import (absolute_import, division,
 
 from collections import Counter
 from collections import OrderedDict
+import os
 import subprocess
 import sys
 import tempfile
@@ -16,6 +17,18 @@ import pysam
 from scipy.stats import norm
 
 from .wig import WigReader
+
+
+def _create_bam_index(bam):
+    """Create bam index.
+
+    Parameters
+    ----------
+    bam : str
+          Path to bam file
+    """
+    if not os.path.exists('{}.bai'.format(bam)):
+        pysam.index(bam)
 
 
 def bedgraph_to_bigwig(bedgraph, chrom_sizes,
@@ -385,6 +398,7 @@ def mapping_reads_summary(bam):
              Counter with keys as number of times read maps
              and values as number of reads of that type
     """
+    _create_bam_index(bam)
     bam = pysam.AlignmentFile(bam, 'rb')
     counts = Counter()
     for query in bam.fetch():
@@ -433,6 +447,7 @@ def read_length_distribution(bam):
               Counter of read length and counts
 
     """
+    _create_bam_index(bam)
     bam = pysam.AlignmentFile(bam, 'rb')
     return Counter([query.query_length for query in bam.fetch()
                     if query.mapping_quality == 255
@@ -474,6 +489,7 @@ def unique_mapping_reads_count(bam):
     n_mapped : int
                Count of mapped reads
     """
+    _create_bam_index(bam)
     bam = pysam.AlignmentFile(bam, 'rb')
     n_mapped = len([query for query in bam.fetch()
                     if query.mapping_quality == 255
