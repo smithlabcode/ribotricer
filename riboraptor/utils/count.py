@@ -106,13 +106,14 @@ def fragment_enrichment(fragment_lengths,
     if input_is_stream:
         counter = {}
         for line in fragment_lengths:
-            splitted = list(map (lambda x: int(x), line.strip().split('\t')))
+            splitted = list(map(lambda x: int(x), line.strip().split('\t')))
             counter[splitted[0]] = splitted[1]
         fragment_lengths = Counter(counter)
     if isinstance(fragment_lengths, Counter):
         fragment_lengths = pd.Series(fragment_lengths)
     if isinstance(enrichment_range, unicode) or isinstance(enrichment_range, str):
-        splitted = list(map (lambda x: int(x), enrichment_range.strip().split('-')))
+        splitted = list(
+            map(lambda x: int(x), enrichment_range.strip().split('-')))
         enrichment_range = range(splitted[0], splitted[1])
     rpf_signal = fragment_lengths[enrichment_range].sum()
     total_signal = fragment_lengths.sum()
@@ -443,7 +444,8 @@ def summarize_counters(samplewise_dict):
     """
     totals = {}
     for key, sample_gene_dict in samplewise_dict.iteritems():
-        totals[key] = np.nansum([np.nansum(d) for d in sample_gene_dict.values()])
+        totals[key] = np.nansum([np.nansum(d)
+                                 for d in sample_gene_dict.values()])
     return totals
 
 

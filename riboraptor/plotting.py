@@ -20,6 +20,7 @@ from .utils.helpers import millify
 from .utils.helpers import round_to_nearest
 
 __FRAME_COLORS__ = ['#1b9e77', '#d95f02', '#7570b3']
+DPI = 1000
 
 
 def setup_plot():
@@ -77,7 +78,9 @@ def setup_axis(ax, axis='x', majorticks=5,
     ax.tick_params(which='minor', width=1, length=6)
 
 
-def plot_fragment_dist(fragment_lengths, ax=None, millify_labels=True, **kwargs):
+def plot_fragment_dist(fragment_lengths, ax=None,
+                       millify_labels=True, input_is_stream=False,
+                       saveto=None, **kwargs):
     """Plot fragment length distribution.
 
     Parameters
@@ -88,13 +91,25 @@ def plot_fragment_dist(fragment_lengths, ax=None, millify_labels=True, **kwargs)
     ax : matplotlib.Axes
         Axis object
     millify_labels : bool
-                     True if labels should be formatted to read millions/trillions etc
+                     True if labels should be formatted to
+                     read millions/trillions etc
+    input_is_stream : bool
+                      True if input is sent through stdin
+    saveto : str
+             Path to save output file to (<filename>.png/<filename>.pdf)
 
     """
-    # setup_plot()
+    if input_is_stream:
+        counter = {}
+        for line in fragment_lengths:
+            splitted = list(map(lambda x: int(x), line.strip().split('\t')))
+            counter[splitted[0]] = splitted[1]
+        fragment_lengths = Counter(counter)
     fig = None
     if ax is None:
         fig, ax = plt.subplots()
+    else:
+        fig = ax.get_figure()
     setup_axis(ax, **kwargs)
     if isinstance(fragment_lengths, Counter):
         fragment_lengths = pd.Series(fragment_lengths)
@@ -109,28 +124,33 @@ def plot_fragment_dist(fragment_lengths, ax=None, millify_labels=True, **kwargs)
     if millify_labels:
         ax.set_yticklabels(list(map(lambda x: millify(x), ax.get_yticks())))
     sns.despine(trim=True, offset=20)
+    if saveto:
+        fig.savefig(saveto, dpi=DPI)
     return ax, fig
 
 
-def plot_framewise_dist(counts, fragment_len_range, ax=None):
+def plot_framewise_dist(counts, fragment_len_range,
+                        ax=None, saveto=None):
     """Plot framewise distribution of fragments.
 
     Parameters
     ----------
     counts : Series
             A series with position as index and value as counts
-
     fragment_len_range: int or range
         Range of fragment lengths to average counts over
-
     ax : matplotlib.Axes
         Default none
-
+    saveto : str
+             Path to save output file to (<filename>.png/<filename>.pdf)
     """
-    setup_plot()
+    # setup_plot()
     assert isinstance(counts, pd.Series)
+    fig = None
     if ax is None:
-        _, ax = plt.subplots()
+        fig, ax = plt.subplots()
+    else:
+        fig = ax.get_figure()
     setup_axis(ax)
     ax.set_ylabel('Number of reads')
     ax.set_xlim(min(counts.index) - 0.6,
@@ -142,13 +162,17 @@ def plot_framewise_dist(counts, fragment_len_range, ax=None):
         cbar.set_color(barplot_colors[index])
     ax.legend((barlist[0], barlist[1], barlist[2]),
               ('Frame 1', 'Frame 2', 'Frame 3'))
-
     sns.despine(trim=True, offset=20)
+    if saveto:
+        fig.savefig(saveto, dpi=DPI)
     return ax
 
 
-def plot_read_counts(counts, ax=None, marker=False, color='royalblue',
-                     label=None, millify_labels=True, identify_peak=True, **kwargs):
+def plot_read_counts(counts, ax=None,
+                     marker=False, color='royalblue',
+                     label=None, millify_labels=True,
+                     identify_peak=True, saveto=None,
+                     **kwargs):
     """Plot RPF density around start/stop codons.
 
     Parameters
@@ -164,7 +188,10 @@ def plot_read_counts(counts, ax=None, marker=False, color='royalblue',
     label : string
             Label (useful only if plotting multiple objects on same axes)
     millify_labels : bool
-                     True if labels should be formatted to read millions/trillions etc
+                     True if labels should be formatted to
+                     read millions/trillions etc
+    saveto : str
+             Path to save output file to (<filename>.png/<filename>.pdf)
 
     """
     # setup_plot()
@@ -173,6 +200,8 @@ def plot_read_counts(counts, ax=None, marker=False, color='royalblue',
     fig = None
     if ax is None:
         fig, ax = plt.subplots()
+    else:
+        fig = ax.get_figure()
     setup_axis(ax, **kwargs)
     ax.set_ylabel('Number of reads')
     if not marker:
@@ -195,10 +224,14 @@ def plot_read_counts(counts, ax=None, marker=False, color='royalblue',
     ax.set_xlim(min(counts.index) - 0.5,
                 round_to_nearest(max(counts.index), 10) + 0.5)
     sns.despine(trim=True, offset=10)
+    if saveto:
+        fig.savefig(saveto, dpi=DPI)
     return ax, fig, peak
 
 
-def plot_featurewise_barplot(utr5_counts, cds_counts, utr3_counts, ax=None):
+def plot_featurewise_barplot(utr5_counts, cds_counts,
+                             utr3_counts, ax=None,
+                             saveto=None):
     """Plot barplots for 5'UTR/CDS/3'UTR counts.
 
     Parameters
@@ -215,20 +248,28 @@ def plot_featurewise_barplot(utr5_counts, cds_counts, utr3_counts, ax=None):
                   Total number of reads in 3'UTR region
                   or alternatively a dictionary/series with
                   genes as key and 3'UTR counts as values
+    saveto : str
+             Path to save output file to (<filename>.png/<filename>.pdf)
     """
     fig = None
     if ax is None:
         fig, ax = plt.subplots()
+    else:
+        fig = ax.get_figure()
     barlist = ax.bar([0, 1, 2], [utr5_counts, cds_counts, utr3_counts])
     barlist[0].set_color('#1b9e77')
     barlist[1].set_color('#d95f02')
     barlist[2].set_color('#7570b3')
-    ax.set_xticks([0,1,2])
+    ax.set_xticks([0, 1, 2])
     ax.set_xticklabels(["5'UTR", "CDS", "3'UTR"])
     max_counts = np.max(np.hstack([utr5_counts, cds_counts, utr3_counts]))
-    setup_axis(ax=ax, axis='y', majorticks=max_counts//10, minorticks=max_counts//20)
+    setup_axis(ax=ax, axis='y',
+               majorticks=max_counts // 10,
+               minorticks=max_counts // 20)
     ax.set_ylabel('# RPFs')
     sns.despine(trim=True, offset=10)
+    if saveto:
+        fig.savefig(saveto, dpi=DPI)
     return ax, fig
 
 
