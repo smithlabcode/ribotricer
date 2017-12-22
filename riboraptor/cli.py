@@ -1,15 +1,39 @@
-# -*- coding: utf-8 -*-
-
+from __future__ import (absolute_import, division,
+                        print_function, unicode_literals)
 import click
+click.disable_unicode_literals_warning = True
+import six
 
+from riboraptor.utils import bedgraph_to_bigwig
+from riboraptor.utils import fragment_enrichment
+from riboraptor.utils import gene_coverage
+from riboraptor.utils import htseq_to_cpm
+from riboraptor.utils import mapping_reads_summary
+from riboraptor.utils import read_length_distribution
 
-@click.command()
-def main(args=None):
-    """Console script for riboraptor"""
-    click.echo("Replace this message by putting your code into "
-               "riboraptor.cli.main")
-    click.echo("See click documentation at http://click.pocoo.org/")
+from riboraptor.plotting import plot_read_counts
+from riboraptor.plotting import plot_fragment_dist
+from click_help_colors import HelpColorsGroup, HelpColorsCommand
 
+CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
 
-if __name__ == "__main__":
-    main()
+@click.group(cls=HelpColorsGroup,
+             help_headers_color='yellow',
+             help_options_color='green')
+@click.version_option(version='0.1.0')
+
+def cli():
+    """riboraptor: Tool for ribosome profiling analysis"""
+    pass
+
+@cli.command('rld', context_settings=CONTEXT_SETTINGS)
+
+@click.option('--bam',
+              help = 'Path to BAM file',
+              required = True)
+
+def rld_command(bam):
+    counts = read_length_distribution(bam)
+    for l, count in six.iteritems(dict(counts)):
+        print('{}\t{}'.format(l, count))
+

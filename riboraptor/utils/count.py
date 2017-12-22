@@ -109,9 +109,9 @@ def fragment_enrichment(fragment_lengths, enrichment_range=range(28, 32)):
 
     # mean_length_floor = np.floor(mean_length)
     # 1 - P(x1 < X <x2) = P(X<x1) + P(X>x2) = cdf(x1) + sf(x2)
-    pvalue = norm.cdf(min(enrichment_range), mean_length, std_dev_length) + norm.sf(max(enrichment_range),
-                                                                                    mean_length,
-                                                                                    std_dev_length)
+    cdf_min = norm.cdf(min(enrichment_range), mean_length, std_dev_length)
+    sf_max = norm.sf(max(enrichment_range), mean_length, std_dev_length)
+    pvalue = cdf_min + sf_max
     ratio = rpf_signal / float(total_signal - rpf_signal)
     return ratio, pvalue
 
@@ -207,8 +207,9 @@ def gene_coverage(gene_name, bed, bw, master_offset=0):
     for interval_coverage in interval_coverage_list[1:]:
         coverage_combined = coverage_combined.combine_first(interval_coverage)
     coverage_combined = coverage_combined.fillna(0)
+    coverage_index = np.arange(len(coverage_combined)) - gene_offset
     index_to_genomic_pos_map = pd.Series(coverage_combined.index.tolist(),
-                                         index=np.arange(len(coverage_combined)) - gene_offset)
+                                         index=coverage_index)
     intervals_for_fasta_query = []
     for pos in index_to_genomic_pos_map.values:
         intervals_for_fasta_query.append((chrom, pos, pos + 1, strand))
@@ -410,6 +411,27 @@ def read_length_distribution(bam):
     return Counter([query.query_length for query in bam.fetch()
                     if query.mapping_quality == 255
                     and not query.is_secondary])
+
+
+def summarize_counters(samplewise_dict):
+    """Summarize gene counts for a collection of samples.
+
+    Parameters
+    ----------
+    samplewise_dict : dict
+                      A dictionary with key as sample name and value
+                      as another dictionary of counts for each gene
+
+    Returns
+    -------
+    totals : dict
+             A dictionary with key as sample name and value as total gene count
+
+    """
+    totals = {}
+    for key, sample_gene_dict in samplewise_dict.iteritems():
+        totals[key] = np.nansum([np.nansum(d) for d in sample_gene_dict.values()])
+    return totals
 
 
 def unique_mapping_reads_count(bam):

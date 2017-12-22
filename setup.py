@@ -51,7 +51,7 @@ setup(
                  'riboraptor'},
     entry_points={
         'console_scripts': [
-            'riboraptor=riboraptor.cli:main'
+            'riboraptor=riboraptor.cli:cli'
         ]
     },
     include_package_data=True,

@@ -198,6 +198,40 @@ def plot_read_counts(counts, ax=None, marker=False, color='royalblue',
     return ax, fig, peak
 
 
+def plot_featurewise_barplot(utr5_counts, cds_counts, utr3_counts, ax=None):
+    """Plot barplots for 5'UTR/CDS/3'UTR counts.
+
+    Parameters
+    ----------
+    utr5_counts : int or dict
+                  Total number of reads in 5'UTR region
+                  or alternatively a dictionary/series with
+                  genes as key and 5'UTR counts as values
+    cds_counts : int or dict
+                  Total number of reads in CDs region
+                  or alternatively a dictionary/series with
+                  genes as key and CDS counts as values
+    utr3_counts : int or dict
+                  Total number of reads in 3'UTR region
+                  or alternatively a dictionary/series with
+                  genes as key and 3'UTR counts as values
+    """
+    fig = None
+    if ax is None:
+        fig, ax = plt.subplots()
+    barlist = ax.bar([0, 1, 2], [utr5_counts, cds_counts, utr3_counts])
+    barlist[0].set_color('#1b9e77')
+    barlist[1].set_color('#d95f02')
+    barlist[2].set_color('#7570b3')
+    ax.set_xticks([0,1,2])
+    ax.set_xticklabels(["5'UTR", "CDS", "3'UTR"])
+    max_counts = np.max(np.hstack([utr5_counts, cds_counts, utr3_counts]))
+    setup_axis(ax=ax, axis='y', majorticks=max_counts//10, minorticks=max_counts//20)
+    ax.set_ylabel('# RPFs')
+    sns.despine(trim=True, offset=10)
+    return ax, fig
+
+
 def create_wavelet(data, ax):
     t = data.index
 
