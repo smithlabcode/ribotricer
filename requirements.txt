@@ -11,3 +11,5 @@ pysam>=0.11.2.2
 scipy>=0.19.1
 seaborn>=0.8.1
 six>=1.11.0
+Click>=6.0
+click-help-colors>=0.4

@@ -9,30 +9,10 @@ with open('README.rst') as readme_file:
 with open('HISTORY.rst') as history_file:
     history = history_file.read()
 
-requirements = [
-    'numpy',
-    'scipy',
-    'matplotlib',
-    'seaborn',
-    'pandas',
-    'statsmodels',
-    'mtspec',
-    'pycwt',
-    'Click>=6.0',
-]
+with open('requirements.txt') as reqs:
+    requirements = reqs.readlines()
 
-test_requirements = [
-    'numpy',
-    'scipy',
-    'matplotlib',
-    'seaborn',
-    'pandas',
-    'statsmodels',
-    'mtspec',
-    'pycwt',
-    'Click>=6.0',
-    'pytest',
-]
+test_requirements = requirements + ['pytest']
 
 setup(
     name='riboraptor',
