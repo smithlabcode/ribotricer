@@ -24,10 +24,16 @@ install:
   - conda create -q -n test-environment python=$TRAVIS_PYTHON_VERSION
   - source activate test-environment
   - pip install -r requirements.txt
+  - pip install travis-sphinx
   - python setup.py install
 
 # command to run tests, e.g. python setup.py test
-script: riboraptor
+script:
+  - riboraptor
+  - travis-sphinx build
+
+after_success:
+  - travis-sphinx deploy
 
 deploy:
   provider: pypi
