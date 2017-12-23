@@ -18,6 +18,13 @@ from scipy.stats import norm
 
 from .wig import WigReader
 
+__SAM_NOT_UNIQ_FLAGS__ = [4, 20, 256, 272, 2048]
+
+# Unmapped, Unmapped+Reverse strand, Not primary alignment,
+# Not primary alignment + reverse strand, supplementary alignment
+
+# Source: https://broadinstitute.github.io/picard/explain-flags.html
+
 
 def _create_bam_index(bam):
     """Create bam index.
@@ -29,6 +36,39 @@ def _create_bam_index(bam):
     """
     if not os.path.exists('{}.bai'.format(bam)):
         pysam.index(bam)
+
+
+def _is_read_uniq_mapping(read):
+    """Check if read is uniquely mappable.
+
+    Parameters
+    ----------
+
+    read : pysam.Alignment.fetch object
+
+
+    Most reliable: ['NH'] tag
+    """
+    # Filter out secondary alignments
+    if read.is_secondary:
+        return False
+    tags = dict(read.get_tags())
+    try:
+        nh_count = tags['NH']
+    except KeyError:
+        # Reliable in case of STAR
+        if read.mapping_quality == 255:
+            return True
+        if read.mapping_quality < 1:
+            return False
+        # NH tag not set so rely on flags
+        if read.flag in __SAM_NOT_UNIQ_FLAGS__:
+            return False
+        else:
+            raise RuntimeError('Malformed BAM?')
+    if nh_count == 1:
+        return True
+    return False
 
 
 def bedgraph_to_bigwig(bedgraph, chrom_sizes,
@@ -173,7 +213,7 @@ def gene_coverage(gene_name, bed, bw, master_offset=0):
     -------
     coverage_combined : series
                         Series with index as position and value as coverage
-    intervals_for_fasta_query : list
+    intervals_for_fasta_read : list
                                 List of tuples
     index_to_genomic_pos_map : series
 
@@ -226,7 +266,7 @@ def gene_coverage(gene_name, bed, bw, master_offset=0):
     intervals = map(tuple, intervals)
 
     interval_coverage_list = []
-    for index, coverage in enumerate(bw.query(intervals)):
+    for index, coverage in enumerate(bw.read(intervals)):
         strand = intervals[index][3]
         if strand == '+':
             series_range = range(intervals[index][1], intervals[index][2])
@@ -249,13 +289,13 @@ def gene_coverage(gene_name, bed, bw, master_offset=0):
     coverage_index = np.arange(len(coverage_combined)) - gene_offset
     index_to_genomic_pos_map = pd.Series(coverage_combined.index.tolist(),
                                          index=coverage_index)
-    intervals_for_fasta_query = []
+    intervals_for_fasta_read = []
     for pos in index_to_genomic_pos_map.values:
-        intervals_for_fasta_query.append((chrom, pos, pos + 1, strand))
+        intervals_for_fasta_read.append((chrom, pos, pos + 1, strand))
     coverage_combined = coverage_combined.reset_index(drop=True)
     coverage_combined = coverage_combined.rename(lambda x: x - gene_offset)
 
-    return (coverage_combined, intervals_for_fasta_query,
+    return (coverage_combined, intervals_for_fasta_read,
             index_to_genomic_pos_map, gene_offset)
 
 
@@ -403,11 +443,11 @@ def mapping_reads_summary(bam):
     _create_bam_index(bam)
     bam = pysam.AlignmentFile(bam, 'rb')
     counts = Counter()
-    for query in bam.fetch():
-        if query.is_secondary:
+    for read in bam.fetch():
+        if read.is_secondary:
             continue
         try:
-            nh_count = Counter([dict(query.get_tags())['NH']])
+            nh_count = Counter([dict(read.get_tags())['NH']])
         except KeyError:
             nh_count = Counter([1])
         counts += nh_count
@@ -451,9 +491,8 @@ def read_length_distribution(bam):
     """
     _create_bam_index(bam)
     bam = pysam.AlignmentFile(bam, 'rb')
-    return Counter([query.query_length for query in bam.fetch()
-                    if query.mapping_quality == 255
-                    and not query.is_secondary])
+    return Counter([read.query_length for read in bam.fetch()
+                    if _is_read_uniq_mapping(read)])
 
 
 def summarize_counters(samplewise_dict):
@@ -493,7 +532,8 @@ def unique_mapping_reads_count(bam):
     """
     _create_bam_index(bam)
     bam = pysam.AlignmentFile(bam, 'rb')
-    n_mapped = len([query for query in bam.fetch()
-                    if query.mapping_quality == 255
-                    and not query.is_secondary])
+    n_mapped = 0
+    for read in bam.fetch():
+        if _is_read_uniq_mapping(read):
+            n_mapped += 1
     return n_mapped
