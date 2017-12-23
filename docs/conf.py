@@ -50,7 +50,8 @@ extensions = ['matplotlib.sphinxext.only_directives',
               'sphinx.ext.doctest',
               'sphinx.ext.viewcode',
               'sphinx.ext.inheritance_diagram',
-              'numpydoc']
+              'numpydoc',
+              'sphinxcontrib.fulltoc']
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']

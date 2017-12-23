@@ -334,6 +334,7 @@ def htseq_to_cpm(htseq_f, saveto=None):
               Path to HTseq counts file
     saveto : str, optional
               Path to output file
+
     Returns
     -------
     cpm : dataframe
@@ -365,6 +366,7 @@ def htseq_to_tpm(htseq_f, cds_bed_f, saveto=None):
                    as length (CDS/Exon) of that gene
     saveto : str, optional
               Path to output file
+
     Returns
     -------
     tpm : dataframe

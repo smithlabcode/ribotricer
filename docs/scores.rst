@@ -24,9 +24,6 @@ where the $f_{ref}$ is contructed by counting the number of fragments of a parti
     considering a rolling window of individual annotated genes and the computing the upper extreme outlier cutoff for each       window using Tukey’s method (Q3 + 3*IQR, where Q3 is the 3rd quartile and IQR is the interquartile range).
 
 
-Links
------
-
 .. _Guttman2013: https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3756563/
 .. _Bazzini2014: https://www.ncbi.nlm.nih.gov/pubmed/24705786
 .. _Ingolia2014: https://www.ncbi.nlm.nih.gov/pubmed/25159147
