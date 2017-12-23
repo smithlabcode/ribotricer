@@ -5,13 +5,13 @@ import sys
 import click
 import six
 
-from .utils import bam_to_bedgraph
-from .utils import bedgraph_to_bigwig
-from .utils import read_enrichment
-from .utils import gene_coverage
+from . import bam_to_bedgraph
+from . import bedgraph_to_bigwig
+from . import read_enrichment
+from . import gene_coverage
 # from .utils import htseq_to_cpm
-from .utils import mapping_reads_summary
-from .utils import read_length_distribution
+from . import mapping_reads_summary
+from . import read_length_distribution
 
 from .plotting import plot_read_counts
 from .plotting import plot_read_length_dist

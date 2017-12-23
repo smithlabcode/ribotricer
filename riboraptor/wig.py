@@ -13,6 +13,7 @@ class WigReader(object):
         ---------
         wig_location : string
                        Path to wig file
+
         """
         self.wig_location = wig_location
         try:
@@ -33,6 +34,12 @@ class WigReader(object):
         -------
         scores : array_like
                  A numpy array containing scores for each tuple
+
+
+        .. currentmodule:: .WigReader
+        .. autosummary::
+            .WigReader
+
         """
         scores = []
         chrom_lengths = self.get_chromosomes
@@ -64,5 +71,10 @@ class WigReader(object):
         -------
         chroms : dict
                  Dictionary with {"chr": "Length"} format
+
+
+        .. currentmodule:: .WigReader
+        .. autosummary::
+            .WigReader
         """
         return self.wig.chroms()

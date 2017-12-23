@@ -18,9 +18,9 @@ import pandas as pd
 import seaborn as sns
 import pycwt as wavelet
 
-from .utils.helpers import identify_peaks
-from .utils.helpers import millify
-from .utils.helpers import round_to_nearest
+from .helpers import identify_peaks
+from .helpers import millify
+from .helpers import round_to_nearest
 
 __FRAME_COLORS__ = ['#1b9e77', '#d95f02', '#7570b3']
 DPI = 300

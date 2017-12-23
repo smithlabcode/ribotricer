@@ -24,7 +24,6 @@ setup(
     url='https://github.com/saketkc/riboraptor',
     packages=[
         'riboraptor',
-        'riboraptor.utils',
         'riboraptor.periodicity',
     ],
     package_dir={'riboraptor':
