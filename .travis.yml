@@ -30,7 +30,7 @@ install:
 # command to run tests, e.g. python setup.py test
 script:
   - riboraptor
-  - travis-sphinx build
+  - travis-sphinx build --source=$TRAVIS_BUILD_DIR/docs
 
 after_success:
   - travis-sphinx deploy
