@@ -5,7 +5,7 @@ import pyBigWig
 
 
 class WigReader(object):
-    """Class for reading and querying wigfiles"""
+    """Class for reading and querying wigfiles."""
 
     def __init__(self, wig_location):
         """
@@ -21,7 +21,7 @@ class WigReader(object):
             raise Exception('Error reading wig file: {}'.format(e))
 
     def query(self, intervals):
-        """ Query regions for scores
+        """ Query regions for scores.
 
         Parameters
         ----------
@@ -58,7 +58,7 @@ class WigReader(object):
     @property
     def get_chromosomes(self):
         """Return list of chromsome and their sizes
-        as in the wig file
+        as in the wig file.
 
         Returns
         -------

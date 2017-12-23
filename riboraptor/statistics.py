@@ -8,15 +8,13 @@ from scipy.stats.mstats import ks_2samp
 def calculate_cdf(data):
     """Calculate CDF given data points
 
-    Parameter
-    ---------
-
+    Parameters
+    ----------
     data : array-like
         Input values
 
     Returns
     -------
-
     cdf : series
         Cumulative distribution funvtion calculated at indexed points
 
@@ -36,26 +34,19 @@ def KS_test(a, b):
 
     Parameters
     ----------
-
     a, b : array-like
-        Input
+           Input
 
     Returns
     -------
-
     D : int
         KS D statistic
-
     effect_size : float
-        maximum difference at point of D-statistic
-
+                  maximum difference at point of D-statistic
     cdf_a, cdf_b : float
-        CDF of a, b
+                   CDF of a, b
 
-    Note
-    ----
-
-    By default this method does testing for alternative=lesser implying
+    Note:    By default this method does testing for alternative=lesser implying
     that the test will reject H0 when the CDf of b is 'above' a
 
 

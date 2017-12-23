@@ -24,9 +24,11 @@ Contents:
 
    installation
    quickstart
+   scores
    modules
-   authors
    history
+   contributing
+   authors
 
 
 
@@ -37,14 +39,4 @@ Site map
  - :ref:`genindex`
  - :ref:`modindex`
  - :ref:`search`
-
-
-.. _toc-getting-started:
-
-.. toctree::
-   :hidden:
-   :maxdepth: 2
-   :caption: Getting started
-
-   quickstart
 

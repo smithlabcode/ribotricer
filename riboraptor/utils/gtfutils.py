@@ -113,9 +113,14 @@ def get_UTR_regions(gene_dict, gene_id, transcript, cds):
 
 
 def create_bed(regions, bedtype='0'):
-    '''Create bed from list of regions
-    bedtype: 0 or 1
-        0-Based or 1-based coordinate of the BED
+    '''Create bed from list of regions.
+
+    Parameters
+    ----------
+    regions : array like
+              List of regions
+    bedtype : 0 or 1
+              0-Based or 1-based coordinate of the BED
     '''
     bedstr = ''
     for region in regions:
