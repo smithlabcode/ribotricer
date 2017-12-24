@@ -1,21 +1,25 @@
 from __future__ import (absolute_import, division,
                         print_function, unicode_literals)
+from collections import OrderedDict
 import os
 import sys
+
 import click
+from click_help_colors import HelpColorsGroup
 import six
 
-from . import bam_to_bedgraph
-from . import bedgraph_to_bigwig
-from . import read_enrichment
-from . import gene_coverage
-# from .utils import htseq_to_cpm
-from . import mapping_reads_summary
-from . import read_length_distribution
+from .count import bam_to_bedgraph
+from .count import bedgraph_to_bigwig
+from .count import read_enrichment
+from .count import gene_coverage
+# from .count import htseq_to_cpm
+from .count import mapping_reads_summary
+from .count import metagene_coverage
+from .count import read_length_distribution
+from .count import unique_mapping_reads_count
 
 from .plotting import plot_read_counts
 from .plotting import plot_read_length_dist
-from click_help_colors import HelpColorsGroup
 
 click.disable_unicode_literals_warning = True
 CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
@@ -108,6 +112,55 @@ def mapping_reads_summary_cmd(bam):
         sys.stdout.write(os.linesep)
 
 
+@cli.command('metagene-coverage', context_settings=CONTEXT_SETTINGS,
+             help='Plot metagene plot')
+@click.option('--bigwig', '--bw',
+              help='Path to bigwig',
+              required=True)
+@click.option('--htseq_f',
+              help='Path to htseq counts file',
+              required=True)
+@click.option('--region_bed',
+              help='Path to CDS bed file',
+              required=True)
+@click.option('--prefix',
+              help='Save pickle files to')
+@click.option('--offset',
+              help='Number of upstream bases to count',
+              type=int,
+              default=60)
+@click.option('--n-meta',
+              help='Number of genes to use for calculating metagene average',
+              type=int,
+              default=-1)
+@click.option('--n-save-gene',
+              help='Number of genes profiles to pickle',
+              type=int,
+              default=0)
+@click.option('--ignore_tx_version',
+              help='Ignore version (.xyz) in gene names',
+              is_flag=True)
+def metagene_coverage_cmd(bigwig,
+                          htseq_f,
+                          region_bed,
+                          prefix,
+                          offset,
+                          n_meta,
+                          n_save_gene,
+                          ignore_tx_version):
+    metagene_profile = metagene_coverage(bigwig,
+                                         htseq_f,
+                                         region_bed,
+                                         prefix,
+                                         master_offset=60,
+                                         top_n_meta=-1,
+                                         top_n_gene=10,
+                                         ignore_tx_version=True)
+    for l, count in six.iteritems(metagene_profile.to_dict(OrderedDict)):
+        sys.stdout.write('{}\t{}'.format(l, count))
+        sys.stdout.write(os.linesep)
+
+
 @cli.command('plot-read-counts', context_settings=CONTEXT_SETTINGS,
              help='Plot read counts distribution across a gene')
 @click.option('--millify_labels',
@@ -155,10 +208,18 @@ def plot_read_length_dist_cmd(millify_labels, saveto):
 @click.option('--lrange',
               help='reads lengths to use for enrichment',
               default='28-32')
-def read_enrichment_cmd(lrange):
-    enrichment, pvalue = read_enrichment(sys.stdin.readlines(),
-                                         lrange,
-                                         True)
+@click.option('--infile', '-i', help='Tab separated read length distribution file')
+def read_enrichment_cmd(infile, lrange):
+    if not infile:
+        enrichment, pvalue = read_enrichment(sys.stdin.readlines(),
+                                             lrange,
+                                             True)
+    else:
+        enrichment, pvalue = read_enrichment(infile,
+                                             lrange,
+                                             False,
+                                             True)
+
     sys.stdout.write('(Enrichment: {}, pval: {})'.format(enrichment, pvalue))
     sys.stdout.write(os.linesep)
 
@@ -173,3 +234,14 @@ def rld_cmd(bam):
     for l, count in six.iteritems(dict(counts)):
         sys.stdout.write('{}\t{}'.format(l, count))
         sys.stdout.write(os.linesep)
+
+
+@cli.command('uniq-mapping-count', context_settings=CONTEXT_SETTINGS,
+             help='Count number of unique mapping reads')
+@click.option('--bam',
+              help='Path to BAM file',
+              required=True)
+def uniq_mapping_cmd(bam):
+    count = unique_mapping_reads_count(bam)
+    sys.stdout.write(str(count))
+    sys.stdout.write(os.linesep)

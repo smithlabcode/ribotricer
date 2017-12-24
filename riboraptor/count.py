@@ -5,6 +5,8 @@ from __future__ import (absolute_import, division,
 from collections import Counter
 from collections import OrderedDict
 import os
+import pickle
+import re
 import subprocess
 import sys
 import tempfile
@@ -17,6 +19,7 @@ import pysam
 from scipy.stats import norm
 
 from .wig import WigReader
+from .helpers import mkdir_p
 
 __SAM_NOT_UNIQ_FLAGS__ = [4, 20, 256, 272, 2048]
 
@@ -24,6 +27,12 @@ __SAM_NOT_UNIQ_FLAGS__ = [4, 20, 256, 272, 2048]
 # Not primary alignment + reverse strand, supplementary alignment
 
 # Source: https://broadinstitute.github.io/picard/explain-flags.html
+
+
+def _check_file_exists(filepath):
+    if os.path.isfile(os.path.abspath(filepath)):
+        return True
+    return False
 
 
 def _create_bam_index(bam):
@@ -147,8 +156,9 @@ def bam_to_bedgraph(bam, strand='both', end_type='5prime', saveto=None):
 
 
 def read_enrichment(read_lengths,
-                    enrichment_range=range(28, 32),
-                    input_is_stream=False):
+                    enrichment_range=range(28, 33),
+                    input_is_stream=False,
+                    input_is_file=False):
     """Calculate read enrichment for a certain range of lengths
 
     Parameters
@@ -157,7 +167,7 @@ def read_enrichment(read_lengths,
                        A counter with read lengths and their counts
     enrichment_range : range or str
                        Range of reads to concentrate upon
-                       [28-32 or range(28,32)]
+                       (28-32 or range(28,33))
     input_is_stream : bool
                       True if input is sent through stdin
 
@@ -167,7 +177,14 @@ def read_enrichment(read_lengths,
              Enrichment in this range
 
     """
-    if input_is_stream:
+    if input_is_file:
+        if not _check_file_exists(read_lengths):
+            raise RuntimeError('{} does not exist.'.format(read_lengths))
+        read_lengths = pd.read_table(read_lengths,
+                                     names=['frag_len', 'frag_count'],
+                                     sep='\t')
+        read_lengths = pd.Series(read_lengths.frag_count.tolist(), index=read_lengths.frag_len.tolist())
+    elif input_is_stream:
         counter = {}
         for line in read_lengths:
             splitted = list(map(lambda x: int(x), line.strip().split('\t')))
@@ -179,7 +196,7 @@ def read_enrichment(read_lengths,
             isinstance(enrichment_range, str):
         splitted = list(
             map(lambda x: int(x), enrichment_range.strip().split('-')))
-        enrichment_range = range(splitted[0], splitted[1])
+        enrichment_range = range(splitted[0], splitted[1]+1)
     rpf_signal = read_lengths[enrichment_range].sum()
     total_signal = read_lengths.sum()
     array = [[x] * y for x, y in sorted(read_lengths.iteritems())]
@@ -453,6 +470,111 @@ def mapping_reads_summary(bam):
         counts += nh_count
     return counts
 
+
+def metagene_coverage(bigwig,
+                      htseq_f,
+                      region_bed_f,
+                      prefix=None,
+                      master_offset=60,
+                      top_n_meta=-1,
+                      top_n_gene=10,
+                      ignore_tx_version=True):
+    bw = WigReader(bigwig)
+    region_bed = pybedtools.BedTool(region_bed_f).sort().to_dataframe()
+
+    # Group intervals by gene name
+    cds_grouped = region_bed.groupby('name')
+
+    # Get region sizes
+    region_sizes = get_region_sizes(cds_grouped)
+    ranked_genes = read_htseq(htseq_f, region_sizes, prefix)
+
+    # Only consider genes which are in cds_grouped.keys
+    ranked_genes = [gene for gene in ranked_genes if gene in cds_grouped.groups.keys()]
+    if prefix:
+        mkdir_p(os.path.dir(prefix))
+        pickle.dump(ranked_genes,
+                    open('{}_ranked_genes.pickle'.format(prefix), 'wb'),
+                    pickle.HIGHEST_PROTOCOL)
+
+    genewise_offsets = {}
+    gene_position_counter = Counter()
+    genewise_normalized_coverage = pd.Series()
+    genewise_raw_coverage = pd.Series()
+
+    if top_n_meta == -1:
+        # Use all
+        top_meta_genes = ranked_genes
+    else:
+        top_meta_genes = ranked_genes[:top_n_meta]
+    topgene_normalized_coverage = pd.Series()
+    topgene_position_counter = Counter()
+
+    if top_n_gene == -1:
+        # Use all genes! Not recommended
+        top_genes = ranked_genes
+    elif top_n_gene == 0:
+        top_genes = []
+    else:
+        # Top  genes individual plot
+        top_genes = ranked_genes[:top_n_gene]
+
+    for gene_name, gene_group in cds_grouped:
+        if ignore_tx_version:
+            gene_name = re.sub(r'\.[0-9]+', '', gene_name)
+        coverage_combined, gene_offset = gene_coverage(
+            gene_group, bw, master_offset)
+
+        # Generate individual plot for top genes
+        if gene_name in top_genes:
+            pickle.dump(coverage_combined,
+                        open('{}_{}.pickle'.format(prefix, gene_name), 'wb'),
+                        pickle.HIGHEST_PROTOCOL)
+
+        # Generate top gene version metagene plot
+        if gene_name in top_meta_genes:
+            topgene_normalized_coverage = topgene_normalized_coverage.add(
+                coverage_combined / coverage_combined.mean(), fill_value=0)
+
+        genewise_normalized_coverage = genewise_normalized_coverage.add(
+            coverage_combined / coverage_combined.mean(), fill_value=0)
+        genewise_raw_coverage = genewise_raw_coverage.add(
+            coverage_combined, fill_value=0)
+        gene_position_counter += Counter(coverage_combined.index.tolist())
+        genewise_offsets[gene_name] = gene_offset
+
+    if len(gene_position_counter) != len(genewise_normalized_coverage):
+        sys.exit(1)
+
+    gene_position_counter = pd.Series(gene_position_counter)
+    metagene_normalized_coverage = genewise_normalized_coverage.div(gene_position_counter)
+    metagene_raw_coverage = genewise_raw_coverage
+    pickle.dump(gene_position_counter,
+                open('{}_gene_position_counter.pickle'.format(prefix), 'wb'),
+                pickle.HIGHEST_PROTOCOL)
+    pickle.dump(metagene_normalized_coverage,
+                open('{}_metagene_normalized.pickle'.format(prefix), 'wb'),
+                pickle.HIGHEST_PROTOCOL)
+    pickle.dump(metagene_raw_coverage,
+                open('{}_metagene_raw.pickle'.format(prefix), 'wb'),
+                pickle.HIGHEST_PROTOCOL)
+    pickle.dump(genewise_offsets,
+                open('{}_genewise_offsets.pickle'.format(prefix), 'wb'),
+                pickle.HIGHEST_PROTOCOL)
+
+    if len(topgene_position_counter) != len(topgene_normalized_coverage):
+        sys.exit(1)
+
+    topgene_position_counter = pd.Series(topgene_position_counter)
+    topgene_normalized_coverage = topgene_normalized_coverage.div(topgene_position_counter)
+
+    pickle.dump(topgene_position_counter,
+                open('{}_topgene_position_counter.pickle'.format(prefix), 'wb'),
+                pickle.HIGHEST_PROTOCOL)
+    pickle.dump(topgene_normalized_coverage,
+                open('{}_topgene_normalized.pickle'.format(prefix), 'wb'),
+                pickle.HIGHEST_PROTOCOL)
+    return metagene_normalized_coverage
 
 def read_htseq(htseq_f):
     """Read HTSeq file.
