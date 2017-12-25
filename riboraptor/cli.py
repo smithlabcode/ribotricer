@@ -36,18 +36,18 @@ def cli():
 
 @cli.command('bam-to-bedgraph', context_settings=CONTEXT_SETTINGS,
              help='Convert bam to bedgraph')
-@click.option('--bam',
+@click.option('--bam', '-i',
               help='Path to BAM file',
               required=True)
-@click.option('--strand',
+@click.option('--strand', '-s',
               help='Count from strand of this type only',
               type=click.Choice(['+', '-', 'both']),
               default='both')
-@click.option('--end_type',
+@click.option('--end_type', '-e',
               help='Pileup 5\' / 3\'/ either ends',
               type=click.Choice(['5prime', '3prime', 'either']),
               default='5prime')
-@click.option('--saveto',
+@click.option('--saveto', '-o',
               help='Path to write bedgraph output',
               default=None)
 def bam_to_bedgraph_cmd(bam, strand,
@@ -61,34 +61,34 @@ def bam_to_bedgraph_cmd(bam, strand,
 
 @cli.command('bedgraph-to-bigwig', context_settings=CONTEXT_SETTINGS,
              help='Convert bedgraph to bigwig')
-@click.option('--bedgraph', '--bg',
+@click.option('--bedgraph', '-bg', '-i',
               help='Path to bedgraph file (optional)',
               default=None)
-@click.option('--chrom_sizes',
+@click.option('--sizes', '-s',
               help='Path to genome chrom.sizes file',
               required=True)
-@click.option('--saveto',
+@click.option('--saveto', '-o',
               help='Path to write bigwig output',
               required=True)
-def bedgraph_to_bigwig_cmd(bedgraph, chrom_sizes, saveto):
+def bedgraph_to_bigwig_cmd(bedgraph, sizes, saveto):
     if bedgraph:
-        bedgraph_to_bigwig(bedgraph, chrom_sizes, saveto)
+        bedgraph_to_bigwig(bedgraph, sizes, saveto)
     else:
-        bedgraph_to_bigwig(sys.stdout.readlines(), chrom_sizes, saveto, True)
+        bedgraph_to_bigwig(sys.stdin.readlines(), sizes, saveto, True)
 
 
 @cli.command('gene-coverage', context_settings=CONTEXT_SETTINGS,
              help='Calculate coverage across a gene')
-@click.option('--gene',
+@click.option('--gene', '-n',
               help='Gene name',
               required=True)
-@click.option('--bed',
+@click.option('--bed', '-i',
               help='BED file with \'gene\' annotated in name column',
               required=True)
-@click.option('--bigwig', '--bw',
+@click.option('--bigwig', '-bw',
               help='Path to bigwig',
               required=True)
-@click.option('--offset',
+@click.option('--offset', '-o',
               help='Number of upstream bases to count',
               type=int,
               default=0)

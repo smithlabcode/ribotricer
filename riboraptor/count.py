@@ -80,7 +80,7 @@ def _is_read_uniq_mapping(read):
     return False
 
 
-def bedgraph_to_bigwig(bedgraph, chrom_sizes,
+def bedgraph_to_bigwig(bedgraph, sizes,
                        saveto, input_is_stream=False):
     """Convert bedgraph to bigwig.
 
@@ -88,7 +88,7 @@ def bedgraph_to_bigwig(bedgraph, chrom_sizes,
     ----------
     bedgraph : str
                Path to bedgraph file
-    chrom_sizes : str
+    sizes : str
                   Path to genome chromosome sizes file
     saveto : str
              Path to write bigwig file
@@ -96,21 +96,31 @@ def bedgraph_to_bigwig(bedgraph, chrom_sizes,
                       True if input is sent through stdin
     """
     if input_is_stream:
-        with tempfile.TemporaryFile() as fp:
-            fp.write(('\n').join(bedgraph))
-            filename = fp.name
+        total_lines = len(bedgraph)
+        with open(os.path.splitext(saveto)[0] + '.bg', 'w') as fp:
+            for index, line in enumerate(bedgraph):
+                if index == (total_lines - 1):
+                    fp.write(line.rstrip())
+                else:
+                    fp.write(line)
+            filename = str(fp.name)
         bedgraph = filename
 
     cmds = ['bedSort', bedgraph, bedgraph]
     p = subprocess.Popen(cmds, stdout=subprocess.PIPE,
                          stderr=subprocess.PIPE, universal_newlines=True)
     stdout, stderr = p.communicate()
+    rc = p.returncode
+    if rc!=0:
+        raise RuntimeError('Error running bedSort.\nstdout : {} \n stderr : {}'.format(stdout, stderr))
 
-    cmds = ['bedGraphToBigWig', bedgraph, chrom_sizes, saveto]
+    cmds = ['bedGraphToBigWig', bedgraph, sizes, saveto]
     p = subprocess.Popen(cmds, stdout=subprocess.PIPE,
                          stderr=subprocess.PIPE, universal_newlines=True)
     stdout, stderr = p.communicate()
-
+    rc = p.returncode
+    if rc!=0:
+        raise RuntimeError('Error running bedSort.\nstdout : {} \n stderr : {}'.format(stdout, stderr))
 
 def bam_to_bedgraph(bam, strand='both', end_type='5prime', saveto=None):
     """Create bigwig from bam.
@@ -182,7 +192,8 @@ def read_enrichment(read_lengths,
         read_lengths = pd.read_table(read_lengths,
                                      names=['frag_len', 'frag_count'],
                                      sep='\t')
-        read_lengths = pd.Series(read_lengths.frag_count.tolist(), index=read_lengths.frag_len.tolist())
+        read_lengths = pd.Series(
+            read_lengths.frag_count.tolist(), index=read_lengths.frag_len.tolist())
     elif input_is_stream:
         counter = {}
         for line in read_lengths:
@@ -195,7 +206,7 @@ def read_enrichment(read_lengths,
             isinstance(enrichment_range, str):
         splitted = list(
             map(lambda x: int(x), enrichment_range.strip().split('-')))
-        enrichment_range = range(splitted[0], splitted[1]+1)
+        enrichment_range = range(splitted[0], splitted[1] + 1)
     rpf_signal = read_lengths[enrichment_range].sum()
     total_signal = read_lengths.sum()
     array = [[x] * y for x, y in sorted(read_lengths.iteritems())]
@@ -489,7 +500,8 @@ def metagene_coverage(bigwig,
     ranked_genes = read_htseq(htseq_f, region_sizes, prefix)
 
     # Only consider genes which are in cds_grouped.keys
-    ranked_genes = [gene for gene in ranked_genes if gene in cds_grouped.groups.keys()]
+    ranked_genes = [
+        gene for gene in ranked_genes if gene in cds_grouped.groups.keys()]
     if prefix:
         mkdir_p(os.path.dir(prefix))
         pickle.dump(ranked_genes,
@@ -546,7 +558,8 @@ def metagene_coverage(bigwig,
         sys.exit(1)
 
     gene_position_counter = pd.Series(gene_position_counter)
-    metagene_normalized_coverage = genewise_normalized_coverage.div(gene_position_counter)
+    metagene_normalized_coverage = genewise_normalized_coverage.div(
+        gene_position_counter)
     metagene_raw_coverage = genewise_raw_coverage
     pickle.dump(gene_position_counter,
                 open('{}_gene_position_counter.pickle'.format(prefix), 'wb'),
@@ -565,7 +578,8 @@ def metagene_coverage(bigwig,
         sys.exit(1)
 
     topgene_position_counter = pd.Series(topgene_position_counter)
-    topgene_normalized_coverage = topgene_normalized_coverage.div(topgene_position_counter)
+    topgene_normalized_coverage = topgene_normalized_coverage.div(
+        topgene_position_counter)
 
     pickle.dump(topgene_position_counter,
                 open('{}_topgene_position_counter.pickle'.format(prefix), 'wb'),
@@ -574,6 +588,7 @@ def metagene_coverage(bigwig,
                 open('{}_topgene_normalized.pickle'.format(prefix), 'wb'),
                 pickle.HIGHEST_PROTOCOL)
     return metagene_normalized_coverage
+
 
 def read_htseq(htseq_f):
     """Read HTSeq file.
