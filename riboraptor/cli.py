@@ -55,7 +55,7 @@ def bam_to_bedgraph_cmd(bam, strand,
     bedgraph = bam_to_bedgraph(bam, strand,
                                end_type, saveto)
     if saveto is None:
-        sys.stdout.write(bedgraph)
+        sys.stdout.write(str(bedgraph))
         sys.stdout.write(os.linesep)
 
 

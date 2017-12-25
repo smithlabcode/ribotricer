@@ -148,11 +148,10 @@ def bam_to_bedgraph(bam, strand='both', end_type='5prime', saveto=None):
     else:
         genome_cov = bed.genome_coverage(bg=True,
                                          additional_args=extra_args)
-    print(type(genome_cov))
     if saveto:
         with open(saveto, 'w') as outf:
             outf.write(str(genome_cov))
-    return genome_cov
+    return str(genome_cov)
 
 
 def read_enrichment(read_lengths,
