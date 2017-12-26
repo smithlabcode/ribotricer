@@ -3,7 +3,7 @@ import os
 __GENOMES_DB__ = ['hg38', 'mm10']
 
 
-def _load_bed(bedname, genome='hg38'):
+def _get_bed(bedname, genome='hg38'):
     """Load bed from annotation.
     """
     annotation_dir = os.path.join(os.path.dirname(__file__),

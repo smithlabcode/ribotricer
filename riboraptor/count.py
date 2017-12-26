@@ -9,7 +9,6 @@ import pickle
 import re
 import subprocess
 import sys
-import tempfile
 
 import numpy as np
 import pandas as pd
@@ -21,7 +20,7 @@ from scipy.stats import norm
 from .wig import WigReader
 from .helpers import mkdir_p
 from .genome import _get_sizes
-from .genome import _load_bed
+from .genome import _get_bed
 from .genome import __GENOMES_DB__
 
 
@@ -530,14 +529,13 @@ def metagene_coverage(bigwig,
 
     Returns
     -------
-    metagene_profile: : series
-                        Metagene profile
-
+    metagene_profile : series
+                       Metagene profile
     """
     bw = WigReader(bigwig)
-    if region_bed_f.lower.split('_')[0] in __GENOMES_DB__:
+    if region_bed_f.lower().split('_')[0] in __GENOMES_DB__:
 
-        genome, region_type = region_bed_f.lower().strip('_')
+        genome, region_type = region_bed_f.lower().split('_')
         region_bed_f = _get_bed(region_type, genome)
 
     region_bed = pybedtools.BedTool(region_bed_f).sort().to_dataframe()
@@ -552,6 +550,7 @@ def metagene_coverage(bigwig,
         ranked_genes = [
             gene for gene in ranked_genes if gene in cds_grouped.groups.keys()]
     else:
+        # Use all genes when no htseq present
         ranked_genes = list(cds_grouped.groups.keys())
     genewise_offsets = {}
     gene_position_counter = Counter()
@@ -564,6 +563,7 @@ def metagene_coverage(bigwig,
     else:
         # Not useful if htseq-counts missing
         top_meta_genes = ranked_genes[:top_n_meta]
+
     topgene_normalized_coverage = pd.Series()
     topgene_position_counter = Counter()
 
@@ -579,26 +579,28 @@ def metagene_coverage(bigwig,
     for gene_name, gene_group in cds_grouped:
         if ignore_tx_version:
             gene_name = re.sub(r'\.[0-9]+', '', gene_name)
-        coverage_combined, _, _, gene_offset = gene_coverage(
+        gene_cov, _, _, gene_offset = gene_coverage(
             gene_name, region_bed_f, bw, offset)
 
         # Generate individual plot for top genes
         if gene_name in top_genes:
             mkdir_p(os.path.dir(prefix))
-            pickle.dump(coverage_combined,
+            pickle.dump(gene_cov,
                         open('{}_{}.pickle'.format(prefix, gene_name), 'wb'),
                         pickle.HIGHEST_PROTOCOL)
 
         # Generate top gene version metagene plot
         if gene_name in top_meta_genes:
+            norm_cov = gene_cov / gene_cov.mean()
             topgene_normalized_coverage = topgene_normalized_coverage.add(
-                coverage_combined / coverage_combined.mean(), fill_value=0)
+                norm_cov,  fill_value=0)
+            topgene_position_counter += Counter(gene_cov.index.tolist())
 
         genewise_normalized_coverage = genewise_normalized_coverage.add(
-            coverage_combined / coverage_combined.mean(), fill_value=0)
+            norm_cov, fill_value=0)
         genewise_raw_coverage = genewise_raw_coverage.add(
-            coverage_combined, fill_value=0)
-        gene_position_counter += Counter(coverage_combined.index.tolist())
+            gene_cov, fill_value=0)
+        gene_position_counter += Counter(gene_cov.index.tolist())
         genewise_offsets[gene_name] = gene_offset
 
     if len(gene_position_counter) != len(genewise_normalized_coverage):
