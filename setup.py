@@ -28,6 +28,8 @@ setup(
     ],
     package_dir={'riboraptor':
                  'riboraptor'},
+    package_data={'riboraptor': ['annotation/hg38/*.*']}, # 'data/*.bw',
+    #data_files=[('riboraptor', ['annotation/*.*'])],
     entry_points={
         'console_scripts': [
             'riboraptor=riboraptor.cli:cli'

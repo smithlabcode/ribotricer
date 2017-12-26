@@ -27,6 +27,14 @@ riboraptor\.count module
     :undoc-members:
     :show-inheritance:
 
+riboraptor\.genome module
+-------------------------
+
+.. automodule:: riboraptor.genome
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 riboraptor\.gtfutils module
 ---------------------------
 

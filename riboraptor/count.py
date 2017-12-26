@@ -20,6 +20,10 @@ from scipy.stats import norm
 
 from .wig import WigReader
 from .helpers import mkdir_p
+from .genome import _get_sizes
+from .genome import _load_bed
+from .genome import __GENOMES_DB__
+
 
 __SAM_NOT_UNIQ_FLAGS__ = [4, 20, 256, 272, 2048]
 
@@ -89,7 +93,8 @@ def bedgraph_to_bigwig(bedgraph, sizes,
     bedgraph : str
                Path to bedgraph file
     sizes : str
-                  Path to genome chromosome sizes file
+            Path to genome chromosome sizes file
+            or genome name
     saveto : str
              Path to write bigwig file
     input_is_stream : bool
@@ -105,6 +110,12 @@ def bedgraph_to_bigwig(bedgraph, sizes,
                     fp.write(line)
             filename = str(fp.name)
         bedgraph = filename
+
+    if not os.path.isfile(sizes):
+        if sizes in __GENOMES_DB__:
+            sizes = _get_sizes(sizes)
+        else:
+            raise RuntimeError('Could not load size for {}'.format(sizes))
 
     cmds = ['bedSort', bedgraph, bedgraph]
     p = subprocess.Popen(cmds, stdout=subprocess.PIPE,
@@ -502,6 +513,7 @@ def metagene_coverage(bigwig,
     region_bed_f : str
                    Path to region bed file (CDS/3'UTR/5'UTR)
                    with bed name column as gene
+                   or a genome name (hg38_cds, hg38_utr3, hg38_utr5)
     htseq_f : str
               Path to htseq-counts file
     prefix : str
@@ -523,6 +535,10 @@ def metagene_coverage(bigwig,
 
     """
     bw = WigReader(bigwig)
+    if region_bed_f.lower.split('_')[0] in __GENOMES_DB__:
+
+        genome, region_type = region_bed_f.lower().strip('_')
+        region_bed_f = _get_bed(region_type, genome)
 
     region_bed = pybedtools.BedTool(region_bed_f).sort().to_dataframe()
     # Group intervals by gene name

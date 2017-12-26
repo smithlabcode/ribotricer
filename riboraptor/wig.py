@@ -20,7 +20,8 @@ class WigReader(object):
         try:
             self.wig = pyBigWig.open(self.wig_location)
         except Exception as e:
-            raise Exception('Error reading wig file {} : {}'.format(os.path.abspath(self.wig_location), e))
+            raise Exception('Error reading wig file {} : {}'.format(
+                os.path.abspath(self.wig_location), e))
 
     def query(self, intervals):
         """ Query regions for scores.
