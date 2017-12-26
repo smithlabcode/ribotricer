@@ -111,16 +111,19 @@ def bedgraph_to_bigwig(bedgraph, sizes,
                          stderr=subprocess.PIPE, universal_newlines=True)
     stdout, stderr = p.communicate()
     rc = p.returncode
-    if rc!=0:
-        raise RuntimeError('Error running bedSort.\nstdout : {} \n stderr : {}'.format(stdout, stderr))
+    if rc != 0:
+        raise RuntimeError(
+            'Error running bedSort.\nstdout : {} \n stderr : {}'.format(stdout, stderr))
 
     cmds = ['bedGraphToBigWig', bedgraph, sizes, saveto]
     p = subprocess.Popen(cmds, stdout=subprocess.PIPE,
                          stderr=subprocess.PIPE, universal_newlines=True)
     stdout, stderr = p.communicate()
     rc = p.returncode
-    if rc!=0:
-        raise RuntimeError('Error running bedSort.\nstdout : {} \n stderr : {}'.format(stdout, stderr))
+    if rc != 0:
+        raise RuntimeError(
+            'Error running bedSort.\nstdout : {} \n stderr : {}'.format(stdout, stderr))
+
 
 def bam_to_bedgraph(bam, strand='both', end_type='5prime', saveto=None):
     """Create bigwig from bam.
@@ -222,7 +225,7 @@ def read_enrichment(read_lengths,
     return ratio, pvalue
 
 
-def gene_coverage(gene_name, bed, bw, master_offset=0):
+def gene_coverage(gene_name, bed, bw, offset=0):
     """Get gene coverage.
 
     Parameters
@@ -233,7 +236,7 @@ def gene_coverage(gene_name, bed, bw, master_offset=0):
           Path to CDS or 5'UTR or 3'UTR bed
     bw : str
          Path to bigwig to fetch the scores from
-    master_offset : int
+    offset : int
                     Number of bases to count upstream
 
     Returns
@@ -247,7 +250,8 @@ def gene_coverage(gene_name, bed, bw, master_offset=0):
     gene_offset : int
                 Gene wise offsets
     """
-    bw = WigReader(bw)
+    if not isinstance(bw, WigReader):
+        bw = WigReader(bw)
     chromsome_lengths = bw.get_chromosomes
     bed = pybedtools.BedTool(bed).to_dataframe()
     assert gene_name in bed['name'].tolist()
@@ -268,9 +272,9 @@ def gene_coverage(gene_name, bed, bw, master_offset=0):
     if strand == '+':
         # For positive strand shift
         # start codon position intervals[0][1] by -offset
-        if intervals[0][1] - master_offset >= 0:
-            intervals[0][1] = intervals[0][1] - master_offset
-            gene_offset = master_offset
+        if intervals[0][1] - offset >= 0:
+            intervals[0][1] = intervals[0][1] - offset
+            gene_offset = offset
         else:
             sys.stderr.write(
                 'Cannot offset beyond 0 for interval: {}. \
@@ -280,9 +284,9 @@ def gene_coverage(gene_name, bed, bw, master_offset=0):
             intervals[0][1] = 0
     else:
         # Else shift cooridnate of last element in intervals stop by + offset
-        if (intervals[-1][2] + master_offset <= chrom_length):
-            intervals[-1][2] = intervals[-1][2] + master_offset
-            gene_offset = master_offset
+        if (intervals[-1][2] + offset <= chrom_length):
+            intervals[-1][2] = intervals[-1][2] + offset
+            gene_offset = offset
         else:
             sys.stderr.write('Cannot offset beyond 0 for interval: {}. \
                              Set to end of chromsome.\n'.format(intervals[-1]))
@@ -293,7 +297,7 @@ def gene_coverage(gene_name, bed, bw, master_offset=0):
     intervals = map(tuple, intervals)
 
     interval_coverage_list = []
-    for index, coverage in enumerate(bw.read(intervals)):
+    for index, coverage in enumerate(bw.query(intervals)):
         strand = intervals[index][3]
         if strand == '+':
             series_range = range(intervals[index][1], intervals[index][2])
@@ -482,26 +486,57 @@ def mapping_reads_summary(bam):
 
 
 def metagene_coverage(bigwig,
-                      htseq_f,
                       region_bed_f,
+                      htseq_f=None,
                       prefix=None,
-                      master_offset=60,
+                      offset=60,
                       top_n_meta=-1,
                       top_n_gene=10,
                       ignore_tx_version=True):
-    bw = WigReader(bigwig)
-    region_bed = pybedtools.BedTool(region_bed_f).sort().to_dataframe()
+    """Calculate metagene coverage.
 
+    Parameters
+    ----------
+    bigwig : str
+             Path to bigwig file
+    region_bed_f : str
+                   Path to region bed file (CDS/3'UTR/5'UTR)
+                   with bed name column as gene
+    htseq_f : str
+              Path to htseq-counts file
+    prefix : str
+             Prefix to write output files
+    offset : int
+             Number of bases to offset upstream
+    top_n_meta : int
+                 Total number of top expressed genes
+                 to use for calculating metagene profile
+    top_n_gene : int
+                 Number of gene profiles to output
+    ignore_tx_version : bool
+                 Should versions be ignored for gene names
+
+    Returns
+    -------
+    metagene_profile: : series
+                        Metagene profile
+
+    """
+    bw = WigReader(bigwig)
+
+    region_bed = pybedtools.BedTool(region_bed_f).sort().to_dataframe()
     # Group intervals by gene name
     cds_grouped = region_bed.groupby('name')
 
     # Get region sizes
-    region_sizes = get_region_sizes(cds_grouped)
-    ranked_genes = read_htseq(htseq_f, region_sizes, prefix)
-
-    # Only consider genes which are in cds_grouped.keys
-    ranked_genes = [
-        gene for gene in ranked_genes if gene in cds_grouped.groups.keys()]
+    region_sizes = get_region_sizes(region_bed_f)
+    if htseq_f:
+        ranked_genes = read_htseq(htseq_f, region_sizes, prefix)
+        # Only consider genes which are in cds_grouped.keys
+        ranked_genes = [
+            gene for gene in ranked_genes if gene in cds_grouped.groups.keys()]
+    else:
+        ranked_genes = list(cds_grouped.groups.keys())
     if prefix:
         mkdir_p(os.path.dir(prefix))
         pickle.dump(ranked_genes,
@@ -517,6 +552,7 @@ def metagene_coverage(bigwig,
         # Use all
         top_meta_genes = ranked_genes
     else:
+        # Not useful if htseq-counts missing
         top_meta_genes = ranked_genes[:top_n_meta]
     topgene_normalized_coverage = pd.Series()
     topgene_position_counter = Counter()
@@ -533,8 +569,8 @@ def metagene_coverage(bigwig,
     for gene_name, gene_group in cds_grouped:
         if ignore_tx_version:
             gene_name = re.sub(r'\.[0-9]+', '', gene_name)
-        coverage_combined, gene_offset = gene_coverage(
-            gene_group, bw, master_offset)
+        coverage_combined, _, _, gene_offset = gene_coverage(
+            gene_name, region_bed_f, bw, offset)
 
         # Generate individual plot for top genes
         if gene_name in top_genes:

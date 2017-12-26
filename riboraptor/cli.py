@@ -49,7 +49,7 @@ def cli():
               default='5prime')
 @click.option('--saveto', '-o',
               help='Path to write bedgraph output',
-              default=None)
+              default=None, show_default=True)
 def bam_to_bedgraph_cmd(bam, strand,
                         end_type, saveto):
     bedgraph = bam_to_bedgraph(bam, strand,
@@ -63,7 +63,7 @@ def bam_to_bedgraph_cmd(bam, strand,
              help='Convert bedgraph to bigwig')
 @click.option('--bedgraph', '-bg', '-i',
               help='Path to bedgraph file (optional)',
-              default=None)
+              default=None, show_default=True)
 @click.option('--sizes', '-s',
               help='Path to genome chrom.sizes file',
               required=True)
@@ -114,12 +114,11 @@ def mapping_reads_summary_cmd(bam):
 
 @cli.command('metagene-coverage', context_settings=CONTEXT_SETTINGS,
              help='Plot metagene plot')
-@click.option('--bigwig', '--bw',
+@click.option('--bigwig', '-bw',
               help='Path to bigwig',
               required=True)
 @click.option('--htseq_f',
-              help='Path to htseq counts file',
-              required=True)
+              help='Path to htseq counts file')
 @click.option('--region_bed',
               help='Path to CDS bed file',
               required=True)
@@ -149,13 +148,13 @@ def metagene_coverage_cmd(bigwig,
                           n_save_gene,
                           ignore_tx_version):
     metagene_profile = metagene_coverage(bigwig,
-                                         htseq_f,
                                          region_bed,
+                                         htseq_f,
                                          prefix,
-                                         master_offset=60,
-                                         top_n_meta=-1,
-                                         top_n_gene=10,
-                                         ignore_tx_version=True)
+                                         offset=offset,
+                                         top_n_meta=n_meta,
+                                         top_n_gene=n_save_gene,
+                                         ignore_tx_version=ignore_tx_version)
     for l, count in six.iteritems(metagene_profile.to_dict(OrderedDict)):
         sys.stdout.write('{}\t{}'.format(l, count))
         sys.stdout.write(os.linesep)
