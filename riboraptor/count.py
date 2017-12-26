@@ -537,12 +537,6 @@ def metagene_coverage(bigwig,
             gene for gene in ranked_genes if gene in cds_grouped.groups.keys()]
     else:
         ranked_genes = list(cds_grouped.groups.keys())
-    if prefix:
-        mkdir_p(os.path.dir(prefix))
-        pickle.dump(ranked_genes,
-                    open('{}_ranked_genes.pickle'.format(prefix), 'wb'),
-                    pickle.HIGHEST_PROTOCOL)
-
     genewise_offsets = {}
     gene_position_counter = Counter()
     genewise_normalized_coverage = pd.Series()
@@ -574,6 +568,7 @@ def metagene_coverage(bigwig,
 
         # Generate individual plot for top genes
         if gene_name in top_genes:
+            mkdir_p(os.path.dir(prefix))
             pickle.dump(coverage_combined,
                         open('{}_{}.pickle'.format(prefix, gene_name), 'wb'),
                         pickle.HIGHEST_PROTOCOL)
@@ -591,38 +586,45 @@ def metagene_coverage(bigwig,
         genewise_offsets[gene_name] = gene_offset
 
     if len(gene_position_counter) != len(genewise_normalized_coverage):
+        raise RuntimeError('Gene normalizaed counter mismatch')
         sys.exit(1)
 
     gene_position_counter = pd.Series(gene_position_counter)
     metagene_normalized_coverage = genewise_normalized_coverage.div(
         gene_position_counter)
     metagene_raw_coverage = genewise_raw_coverage
-    pickle.dump(gene_position_counter,
-                open('{}_gene_position_counter.pickle'.format(prefix), 'wb'),
-                pickle.HIGHEST_PROTOCOL)
-    pickle.dump(metagene_normalized_coverage,
-                open('{}_metagene_normalized.pickle'.format(prefix), 'wb'),
-                pickle.HIGHEST_PROTOCOL)
-    pickle.dump(metagene_raw_coverage,
-                open('{}_metagene_raw.pickle'.format(prefix), 'wb'),
-                pickle.HIGHEST_PROTOCOL)
-    pickle.dump(genewise_offsets,
-                open('{}_genewise_offsets.pickle'.format(prefix), 'wb'),
-                pickle.HIGHEST_PROTOCOL)
 
     if len(topgene_position_counter) != len(topgene_normalized_coverage):
+        raise RuntimeError('Top gene normalizaed counter mismatch')
         sys.exit(1)
 
     topgene_position_counter = pd.Series(topgene_position_counter)
     topgene_normalized_coverage = topgene_normalized_coverage.div(
         topgene_position_counter)
 
-    pickle.dump(topgene_position_counter,
-                open('{}_topgene_position_counter.pickle'.format(prefix), 'wb'),
-                pickle.HIGHEST_PROTOCOL)
-    pickle.dump(topgene_normalized_coverage,
-                open('{}_topgene_normalized.pickle'.format(prefix), 'wb'),
-                pickle.HIGHEST_PROTOCOL)
+    if prefix:
+        mkdir_p(os.path.dir(prefix))
+        pickle.dump(ranked_genes,
+                    open('{}_ranked_genes.pickle'.format(prefix), 'wb'),
+                    pickle.HIGHEST_PROTOCOL)
+        pickle.dump(gene_position_counter,
+                    open('{}_gene_position_counter.pickle'.format(prefix), 'wb'),
+                    pickle.HIGHEST_PROTOCOL)
+        pickle.dump(metagene_normalized_coverage,
+                    open('{}_metagene_normalized.pickle'.format(prefix), 'wb'),
+                    pickle.HIGHEST_PROTOCOL)
+        pickle.dump(metagene_raw_coverage,
+                    open('{}_metagene_raw.pickle'.format(prefix), 'wb'),
+                    pickle.HIGHEST_PROTOCOL)
+        pickle.dump(genewise_offsets,
+                    open('{}_genewise_offsets.pickle'.format(prefix), 'wb'),
+                    pickle.HIGHEST_PROTOCOL)
+        pickle.dump(topgene_position_counter,
+                    open('{}_topgene_position_counter.pickle'.format(prefix), 'wb'),
+                    pickle.HIGHEST_PROTOCOL)
+        pickle.dump(topgene_normalized_coverage,
+                    open('{}_topgene_normalized.pickle'.format(prefix), 'wb'),
+                    pickle.HIGHEST_PROTOCOL)
     return metagene_normalized_coverage
 
 

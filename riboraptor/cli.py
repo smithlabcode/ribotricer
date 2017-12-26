@@ -155,6 +155,7 @@ def metagene_coverage_cmd(bigwig,
                                          top_n_meta=n_meta,
                                          top_n_gene=n_save_gene,
                                          ignore_tx_version=ignore_tx_version)
+    print(metagene_profile)
     for l, count in six.iteritems(metagene_profile.to_dict(OrderedDict)):
         sys.stdout.write('{}\t{}'.format(l, count))
         sys.stdout.write(os.linesep)
