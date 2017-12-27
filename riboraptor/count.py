@@ -210,17 +210,6 @@ def count_reads_in_features(feature_bed, bam, force_strandedness=False):
 
     else:
         count = pybedtools.BedTool(bam).intersect(b=feature_bed, bed=True, stream=True).count()
-    print('bam : {} | bed : {} | Count : {}'.format(bam.fn, feature_bed, count))
-
-    """
-    if force_strandedness:
-        count = bam.intersect(b=feature_bed,
-                              additional_args='-s').count()
-
-    else:
-        count = bam.intersect(b=feature_bed, stream=False).count()
-    print('bam : {} | bed : {} | Count : {}'.format(bam.fn, feature_bed, count))
-    """
     return count
 
 
@@ -261,11 +250,6 @@ def count_utr5_utr3_cds(bam, utr5_bed=None, cds_bed=None, utr3_bed=None,
         results = pool.map(
             partial(count_reads_in_features, bam=bam, force_strandedness=force_strandedness), feature_beds)
     counts = OrderedDict(zip(order, results))
-    """
-    counts = OrderedDict()
-    for index, bed in enumerate(feature_beds):
-        counts[order[index]] = count_reads_in_features(pybedtools.BedTool(bed), bam, force_strandedness)
-    """
     if saveto:
         pickle.dump(counts,
                     open('{}.pickle'.format(saveto), 'wb'),
