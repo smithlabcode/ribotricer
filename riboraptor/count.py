@@ -4,11 +4,14 @@ from __future__ import (absolute_import, division,
 
 from collections import Counter
 from collections import OrderedDict
+from contextlib import contextmanager
+from functools import partial
 import os
 import pickle
 import re
 import subprocess
 import sys
+
 
 import numpy as np
 import pandas as pd
@@ -16,6 +19,7 @@ import pybedtools
 from pyfaidx import Fasta
 import pysam
 from scipy.stats import norm
+import multiprocessing
 
 from .wig import WigReader
 from .helpers import mkdir_p
@@ -24,12 +28,18 @@ from .genome import _get_bed
 from .genome import __GENOMES_DB__
 
 
-__SAM_NOT_UNIQ_FLAGS__ = [4, 20, 256, 272, 2048]
-
 # Unmapped, Unmapped+Reverse strand, Not primary alignment,
 # Not primary alignment + reverse strand, supplementary alignment
 
 # Source: https://broadinstitute.github.io/picard/explain-flags.html
+__SAM_NOT_UNIQ_FLAGS__ = [4, 20, 256, 272, 2048]
+
+
+@contextmanager
+def _poolcontext(*args, **kwargs):
+    pool = multiprocessing.Pool(*args, **kwargs)
+    yield pool
+    pool.terminate()
 
 
 def _check_file_exists(filepath):
@@ -175,6 +185,65 @@ def bam_to_bedgraph(bam, strand='both', end_type='5prime', saveto=None):
         with open(saveto, 'w') as outf:
             outf.write(str(genome_cov))
     return str(genome_cov)
+
+
+def count_reads_in_features(bam, feature_bed, force_strandedness=False):
+    """Count reads overlapping features.
+
+    Parameters
+    ----------
+    bam : str
+          Path to bam file
+    feature_bed : str
+                   Path to features bed file
+
+    Returns
+    -------
+    counts : int
+             Number of intersection between bam and bed
+    """
+    if force_strandedness:
+        return pybedtools.BedTool(bam).intersect(b=feature_bed,
+                                                 stream=True,
+                                                 additional_args='-s').count()
+
+    return pybedtools.BedTool(bam).intersect(b=feature_bed, stream=True).count()
+
+
+def count_utr5_utr3_cds(bam, utr5_bed=None, cds_bed=None, utr3_bed=None,
+                        genome=None, force_strandedness=False):
+    """One shot counts over UTR5/UTR3/CDS.
+
+    Parameters
+    ----------
+    bam : str
+          Path to bam file
+    utr5_bed : str
+               Path to 5'UTR feature bed file
+    utr3_bed : str
+               Path to 3'UTR feature bed file
+    cds_bed : str
+               Path to CDS feature bed file
+    Returns
+    -------
+    counts : dict
+             Dict with keys as feature type and counts as values
+
+    """
+    order = ['utr5', 'cds', 'utr3']
+    if genome:
+        utr5_bed = _get_bed('utr5', genome)
+        cds_bed = _get_bed('cds', genome)
+        utr3_bed = _get_bed('utr3', genome)
+    feature_beds = [utr5_bed, cds_bed, utr3_bed]
+    for index, bed in enumerate(feature_beds):
+        if bed is None:
+            raise RuntimeError('{} cannot be none.'.format(order[index]))
+    with _poolcontext(processes=3) as pool:
+        results = pool.map(
+            partial(count_reads_in_features, bam=bam), feature_beds)
+    counts = OrderedDict(zip(order, results))
+    return counts
 
 
 def read_enrichment(read_lengths,
@@ -513,6 +582,11 @@ def metagene_coverage(bigwig,
                    Path to region bed file (CDS/3'UTR/5'UTR)
                    with bed name column as gene
                    or a genome name (hg38_cds, hg38_utr3, hg38_utr5)
+    max_positions: int
+                   Number of positions to consider while
+                   calculating the normalized coverage
+                   -1 for the entore length of gene
+                   Higher values lead to slower implementation
     htseq_f : str
               Path to htseq-counts file
     prefix : str
@@ -584,7 +658,7 @@ def metagene_coverage(bigwig,
 
         # Generate individual plot for top genes
         if gene_name in top_genes:
-            mkdir_p(os.path.dir(prefix))
+            mkdir_p(os.path.dirname(prefix))
             pickle.dump(gene_cov,
                         open('{}_{}.pickle'.format(prefix, gene_name), 'wb'),
                         pickle.HIGHEST_PROTOCOL)
@@ -621,7 +695,7 @@ def metagene_coverage(bigwig,
         topgene_position_counter)
 
     if prefix:
-        mkdir_p(os.path.dir(prefix))
+        mkdir_p(os.path.dirname(prefix))
         pickle.dump(ranked_genes,
                     open('{}_ranked_genes.pickle'.format(prefix), 'wb'),
                     pickle.HIGHEST_PROTOCOL)
@@ -703,9 +777,9 @@ def summarize_counters(samplewise_dict):
 
     """
     totals = {}
-    for key, sample_gene_dict in samplewise_dict.iteritems():
+    for key, sample_dict in samplewise_dict.iteritems():
         totals[key] = np.nansum([np.nansum(d)
-                                 for d in sample_gene_dict.values()])
+                                 for d in list(sample_dict.values)])
     return totals
 
 
