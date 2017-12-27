@@ -23,6 +23,7 @@ Contents:
    :maxdepth: 2
 
    installation
+   cmd-manual
    quickstart
    scores
    modules
