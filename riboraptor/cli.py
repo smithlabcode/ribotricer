@@ -79,7 +79,7 @@ def bedgraph_to_bigwig_cmd(bedgraph, sizes, saveto):
         bedgraph_to_bigwig(sys.stdin.readlines(), sizes, saveto, True)
 
 
-@click.command('count-in-feature', context_settings=CONTEXT_SETTINGS,
+@cli.command('count-in-feature', context_settings=CONTEXT_SETTINGS,
                help='Count reads in given feature bed file')
 @click.option('--bam', help='Path to bam file', required=True)
 @click.option('--bed', help='Path to 5\'utr file', required=True)
@@ -89,7 +89,7 @@ def count_reads_in_features_cmd(bam, bed):
     sys.stdout.write(os.linesep)
 
 
-@click.command('count-all-features', context_settings=CONTEXT_SETTINGS,
+@cli.command('count-all-features', context_settings=CONTEXT_SETTINGS,
                help='Count reads in 5\'UTr/CDs/3\'UTR regions')
 @click.option('--bam', help='Path to bam file', required=True)
 @click.option('--utr5-bed', help='Path to 5\'utr file')
@@ -101,7 +101,7 @@ def count_reads_in_features_cmd(bam, bed):
 def count_utr5_utr3_cds_cmd(bam, utr5_bed, cds_bed, utr3_bed,
                             genome, s, prefix):
     counts = count_utr5_utr3_cds(bam=bam, utr5_bed=utr5_bed,
-                                 cds_bed=utr5_bed, utr3_bed=utr3_bed,
+                                 cds_bed=cds_bed, utr3_bed=utr3_bed,
                                  genome=genome, force_strandedness=s,
                                  saveto=prefix)
     for region, count in six.iteritems(dict(counts)):
@@ -193,8 +193,7 @@ def metagene_coverage_cmd(bigwig,
                                          top_n_meta=n_meta,
                                          top_n_gene=n_save_gene,
                                          ignore_tx_version=ignore_tx_version)
-    print(metagene_profile)
-    for l, count in six.iteritems(metagene_profile.to_dict(OrderedDict)):
+    for l, count in metagene_profile.iteritems():
         sys.stdout.write('{}\t{}'.format(l, count))
         sys.stdout.write(os.linesep)
 

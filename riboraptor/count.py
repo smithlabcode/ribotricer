@@ -33,7 +33,7 @@ from .genome import __GENOMES_DB__
 
 # Source: https://broadinstitute.github.io/picard/explain-flags.html
 __SAM_NOT_UNIQ_FLAGS__ = [4, 20, 256, 272, 2048]
-
+__HIGHEST_PROTOCOL__ = 2
 
 @contextmanager
 def _poolcontext(*args, **kwargs):
@@ -187,7 +187,7 @@ def bam_to_bedgraph(bam, strand='both', end_type='5prime', saveto=None):
     return str(genome_cov)
 
 
-def count_reads_in_features(bam, feature_bed, force_strandedness=False):
+def count_reads_in_features(feature_bed, bam, force_strandedness=False):
     """Count reads overlapping features.
 
     Parameters
@@ -203,11 +203,25 @@ def count_reads_in_features(bam, feature_bed, force_strandedness=False):
              Number of intersection between bam and bed
     """
     if force_strandedness:
-        return pybedtools.BedTool(bam).intersect(b=feature_bed,
-                                                 stream=True,
-                                                 additional_args='-s').count()
+        count = pybedtools.BedTool(bam).intersect(b=feature_bed,
+                                                  bed=True,
+                                                  stream=True,
+                                                  additional_args='-s').count()
 
-    return pybedtools.BedTool(bam).intersect(b=feature_bed, stream=True).count()
+    else:
+        count = pybedtools.BedTool(bam).intersect(b=feature_bed, bed=True, stream=True).count()
+    print('bam : {} | bed : {} | Count : {}'.format(bam.fn, feature_bed, count))
+
+    """
+    if force_strandedness:
+        count = bam.intersect(b=feature_bed,
+                              additional_args='-s').count()
+
+    else:
+        count = bam.intersect(b=feature_bed, stream=False).count()
+    print('bam : {} | bed : {} | Count : {}'.format(bam.fn, feature_bed, count))
+    """
+    return count
 
 
 def count_utr5_utr3_cds(bam, utr5_bed=None, cds_bed=None, utr3_bed=None,
@@ -233,6 +247,7 @@ def count_utr5_utr3_cds(bam, utr5_bed=None, cds_bed=None, utr3_bed=None,
              Dict with keys as feature type and counts as values
 
     """
+    #bam = pybedtools.BedTool(bam)
     order = ['utr5', 'cds', 'utr3']
     if genome:
         utr5_bed = _get_bed('utr5', genome)
@@ -242,14 +257,19 @@ def count_utr5_utr3_cds(bam, utr5_bed=None, cds_bed=None, utr3_bed=None,
     for index, bed in enumerate(feature_beds):
         if bed is None:
             raise RuntimeError('{} cannot be none.'.format(order[index]))
-    with _poolcontext(processes=3) as pool:
+    with _poolcontext(processes=16) as pool:
         results = pool.map(
-            partial(count_reads_in_features, bam=bam), feature_beds)
+            partial(count_reads_in_features, bam=bam, force_strandedness=force_strandedness), feature_beds)
     counts = OrderedDict(zip(order, results))
+    """
+    counts = OrderedDict()
+    for index, bed in enumerate(feature_beds):
+        counts[order[index]] = count_reads_in_features(pybedtools.BedTool(bed), bam, force_strandedness)
+    """
     if saveto:
         pickle.dump(counts,
                     open('{}.pickle'.format(saveto), 'wb'),
-                    pickle.HIGHEST_PROTOCOL)
+                    __HIGHEST_PROTOCOL__)
     return counts
 
 
@@ -678,7 +698,7 @@ def metagene_coverage(bigwig,
             mkdir_p(os.path.dirname(prefix))
             pickle.dump(gene_cov,
                         open('{}_{}.pickle'.format(prefix, gene_name), 'wb'),
-                        pickle.HIGHEST_PROTOCOL)
+                        __HIGHEST_PROTOCOL__)
 
         # Generate top gene version metagene plot
         if gene_name in top_meta_genes:
@@ -712,25 +732,25 @@ def metagene_coverage(bigwig,
         mkdir_p(os.path.dirname(prefix))
         pickle.dump(ranked_genes,
                     open('{}_ranked_genes.pickle'.format(prefix), 'wb'),
-                    pickle.HIGHEST_PROTOCOL)
+                    __HIGHEST_PROTOCOL__)
         pickle.dump(gene_position_counter,
                     open('{}_gene_position_counter.pickle'.format(prefix), 'wb'),
-                    pickle.HIGHEST_PROTOCOL)
+                    __HIGHEST_PROTOCOL__)
         pickle.dump(metagene_normalized_coverage,
                     open('{}_metagene_normalized.pickle'.format(prefix), 'wb'),
-                    pickle.HIGHEST_PROTOCOL)
+                    __HIGHEST_PROTOCOL__)
         pickle.dump(metagene_raw_coverage,
                     open('{}_metagene_raw.pickle'.format(prefix), 'wb'),
-                    pickle.HIGHEST_PROTOCOL)
+                    __HIGHEST_PROTOCOL__)
         pickle.dump(genewise_offsets,
                     open('{}_genewise_offsets.pickle'.format(prefix), 'wb'),
-                    pickle.HIGHEST_PROTOCOL)
+                    __HIGHEST_PROTOCOL__)
         pickle.dump(topgene_position_counter,
                     open('{}_topgene_position_counter.pickle'.format(prefix), 'wb'),
-                    pickle.HIGHEST_PROTOCOL)
+                    __HIGHEST_PROTOCOL__)
         pickle.dump(topgene_normalized_coverage,
                     open('{}_topgene_normalized.pickle'.format(prefix), 'wb'),
-                    pickle.HIGHEST_PROTOCOL)
+                    __HIGHEST_PROTOCOL__)
     return metagene_normalized_coverage
 
 
