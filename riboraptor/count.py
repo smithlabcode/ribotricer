@@ -211,7 +211,7 @@ def count_reads_in_features(bam, feature_bed, force_strandedness=False):
 
 
 def count_utr5_utr3_cds(bam, utr5_bed=None, cds_bed=None, utr3_bed=None,
-                        genome=None, force_strandedness=False):
+                        genome=None, force_strandedness=False, saveto=None):
     """One shot counts over UTR5/UTR3/CDS.
 
     Parameters
@@ -223,7 +223,10 @@ def count_utr5_utr3_cds(bam, utr5_bed=None, cds_bed=None, utr3_bed=None,
     utr3_bed : str
                Path to 3'UTR feature bed file
     cds_bed : str
-               Path to CDS feature bed file
+              Path to CDS feature bed file
+    saveto : str, optional
+             Path to output file
+
     Returns
     -------
     counts : dict
@@ -243,6 +246,10 @@ def count_utr5_utr3_cds(bam, utr5_bed=None, cds_bed=None, utr3_bed=None,
         results = pool.map(
             partial(count_reads_in_features, bam=bam), feature_beds)
     counts = OrderedDict(zip(order, results))
+    if saveto:
+        pickle.dump(counts,
+                    open('{}.pickle'.format(saveto), 'wb'),
+                    pickle.HIGHEST_PROTOCOL)
     return counts
 
 
@@ -304,7 +311,7 @@ def read_enrichment(read_lengths,
     return ratio, pvalue
 
 
-def gene_coverage(gene_name, bed, bw, offset=0):
+def gene_coverage(gene_name, bed, bw, gene_group=None, offset=0):
     """Get gene coverage.
 
     Parameters
@@ -332,9 +339,11 @@ def gene_coverage(gene_name, bed, bw, offset=0):
     if not isinstance(bw, WigReader):
         bw = WigReader(bw)
     chromsome_lengths = bw.get_chromosomes
-    bed = pybedtools.BedTool(bed).to_dataframe()
+    if not isinstance(bed, pd.DataFrame):
+        bed = pybedtools.BedTool(bed).to_dataframe()
     assert gene_name in bed['name'].tolist()
-    gene_group = bed[bed['name'] == gene_name]
+    if gene_group is None:
+        gene_group = bed[bed['name'] == gene_name]
 
     assert len(gene_group['strand'].unique()) == 1
     assert len(gene_group['chrom'].unique()) == 1
@@ -404,7 +413,6 @@ def gene_coverage(gene_name, bed, bw, offset=0):
         intervals_for_fasta_read.append((chrom, pos, pos + 1, strand))
     coverage_combined = coverage_combined.reset_index(drop=True)
     coverage_combined = coverage_combined.rename(lambda x: x - gene_offset)
-
     return (coverage_combined, intervals_for_fasta_read,
             index_to_genomic_pos_map, gene_offset)
 
@@ -483,7 +491,7 @@ def htseq_to_cpm(htseq_f, saveto=None):
     htseq_f : str
               Path to HTseq counts file
     saveto : str, optional
-              Path to output file
+             Path to output file
 
     Returns
     -------
@@ -566,6 +574,7 @@ def mapping_reads_summary(bam):
 
 def metagene_coverage(bigwig,
                       region_bed_f,
+                      max_positions=200,
                       htseq_f=None,
                       prefix=None,
                       offset=60,
@@ -653,11 +662,19 @@ def metagene_coverage(bigwig,
     for gene_name, gene_group in cds_grouped:
         if ignore_tx_version:
             gene_name = re.sub(r'\.[0-9]+', '', gene_name)
-        gene_cov, _, _, gene_offset = gene_coverage(
-            gene_name, region_bed_f, bw, offset)
+        gene_cov, _, _, gene_offset = gene_coverage(gene_name, region_bed,
+                                                    bw, gene_group, offset)
+        if max_positions != -1:
+            min_index = min(gene_cov.index.tolist())
+            gene_length = max(gene_cov.index.tolist())
+            #gene_length = len(gene_cov.inex) + min_index
+
+            # Keep only important positions
+            gene_cov = gene_cov[range(min_index, min(gene_length, max_positions))]
+            print (gene_name, gene_length, max(gene_cov.index))
 
         # Generate individual plot for top genes
-        if gene_name in top_genes:
+        if gene_name in top_genes and prefix:
             mkdir_p(os.path.dirname(prefix))
             pickle.dump(gene_cov,
                         open('{}_{}.pickle'.format(prefix, gene_name), 'wb'),
@@ -670,10 +687,8 @@ def metagene_coverage(bigwig,
                 norm_cov,  fill_value=0)
             topgene_position_counter += Counter(gene_cov.index.tolist())
 
-        genewise_normalized_coverage = genewise_normalized_coverage.add(
-            norm_cov, fill_value=0)
-        genewise_raw_coverage = genewise_raw_coverage.add(
-            gene_cov, fill_value=0)
+        genewise_normalized_coverage = genewise_normalized_coverage.add(norm_cov, fill_value=0)
+        genewise_raw_coverage = genewise_raw_coverage.add(gene_cov, fill_value=0)
         gene_position_counter += Counter(gene_cov.index.tolist())
         genewise_offsets[gene_name] = gene_offset
 
@@ -691,8 +706,7 @@ def metagene_coverage(bigwig,
         sys.exit(1)
 
     topgene_position_counter = pd.Series(topgene_position_counter)
-    topgene_normalized_coverage = topgene_normalized_coverage.div(
-        topgene_position_counter)
+    topgene_normalized_coverage = topgene_normalized_coverage.div(topgene_position_counter)
 
     if prefix:
         mkdir_p(os.path.dirname(prefix))

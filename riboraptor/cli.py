@@ -10,6 +10,8 @@ import six
 
 from .count import bam_to_bedgraph
 from .count import bedgraph_to_bigwig
+from .count import count_reads_in_features
+from .count import count_utr5_utr3_cds
 from .count import read_enrichment
 from .count import gene_coverage
 # from .count import htseq_to_cpm
@@ -77,6 +79,36 @@ def bedgraph_to_bigwig_cmd(bedgraph, sizes, saveto):
         bedgraph_to_bigwig(sys.stdin.readlines(), sizes, saveto, True)
 
 
+@click.command('count-in-feature', context_settings=CONTEXT_SETTINGS,
+               help='Count reads in given feature bed file')
+@click.option('--bam', help='Path to bam file', required=True)
+@click.option('--bed', help='Path to 5\'utr file', required=True)
+def count_reads_in_features_cmd(bam, bed):
+    counts = count_reads_in_features(bam, bed)
+    sys.stdout.write('{}'.format(counts))
+    sys.stdout.write(os.linesep)
+
+
+@click.command('count-all-features', context_settings=CONTEXT_SETTINGS,
+               help='Count reads in 5\'UTr/CDs/3\'UTR regions')
+@click.option('--bam', help='Path to bam file', required=True)
+@click.option('--utr5-bed', help='Path to 5\'utr file')
+@click.option('--cds-bed', help='Path to CDS file')
+@click.option('--utr3-bed', help='Path to 3\'UTR file')
+@click.option('--genome', '-g', help='Genome (for loading bed files internally)')
+@click.option('-s', help='Force strandedness', is_flag=True)
+@click.option('--prefix', help='Prefix to write pickled contents')
+def count_utr5_utr3_cds_cmd(bam, utr5_bed, cds_bed, utr3_bed,
+                            genome, s, prefix):
+    counts = count_utr5_utr3_cds(bam=bam, utr5_bed=utr5_bed,
+                                 cds_bed=utr5_bed, utr3_bed=utr3_bed,
+                                 genome=genome, force_strandedness=s,
+                                 saveto=prefix)
+    for region, count in six.iteritems(dict(counts)):
+        sys.stdout.write('{}\t{}'.format(region, count))
+        sys.stdout.write(os.linesep)
+
+
 @cli.command('gene-coverage', context_settings=CONTEXT_SETTINGS,
              help='Calculate coverage across a gene')
 @click.option('--gene', '-n',
@@ -117,11 +149,15 @@ def mapping_reads_summary_cmd(bam):
 @click.option('--bigwig', '-bw',
               help='Path to bigwig',
               required=True)
-@click.option('--htseq_f',
-              help='Path to htseq counts file')
 @click.option('--region_bed',
               help='Path to CDS bed file',
               required=True)
+@click.option('--max-positions',
+              help='Number of upstream bases to count',
+              type=int,
+              default=200)
+@click.option('--htseq_f',
+              help='Path to htseq counts file')
 @click.option('--prefix',
               help='Save pickle files to')
 @click.option('--offset',
@@ -140,17 +176,19 @@ def mapping_reads_summary_cmd(bam):
               help='Ignore version (.xyz) in gene names',
               is_flag=True)
 def metagene_coverage_cmd(bigwig,
-                          htseq_f,
                           region_bed,
+                          max_positions,
+                          htseq_f,
                           prefix,
                           offset,
                           n_meta,
                           n_save_gene,
                           ignore_tx_version):
-    metagene_profile = metagene_coverage(bigwig,
-                                         region_bed,
-                                         htseq_f,
-                                         prefix,
+    metagene_profile = metagene_coverage(bigwig=bigwig,
+                                         region_bed_f=region_bed,
+                                         max_positions=max_positions,
+                                         htseq_f=htseq_f,
+                                         prefix=prefix,
                                          offset=offset,
                                          top_n_meta=n_meta,
                                          top_n_gene=n_save_gene,
