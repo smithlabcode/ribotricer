@@ -219,7 +219,7 @@ def metagene_coverage_cmd(bigwig,
               is_flag=True)
 @click.option('--saveto',
               help='Path to file (png/pdf) to save to',
-              required=True)
+              default=None, show_default=True)
 @click.option('--no-ascii',
               help='Do not plot ascii',
               is_flag=True)
@@ -252,7 +252,7 @@ def plot_read_counts_cmd(counts,
               is_flag=True)
 @click.option('--saveto',
               help='Path to file (png/pdf) to save to',
-              required=True)
+              default=None, show_default=True)
 @click.option('--no-ascii',
               help='Do not plot ascii',
               is_flag=True)

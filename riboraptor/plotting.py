@@ -143,7 +143,7 @@ def plot_read_length_dist(read_lengths, ax=None,
         fig.savefig(saveto, dpi=DPI)
     if ascii:
         sys.stdout.write(os.linesep)
-        gp.plot((counts.index, counts.values, {'with': 'boxes'}),
+        gp.plot((read_lengths_counts.index, read_lengths_counts.values, {'with': 'boxes'}),
                 terminal='dumb 80,40',
                 unset='grid')
         sys.stdout.write(os.linesep)
