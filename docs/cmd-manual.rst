@@ -94,24 +94,23 @@ Mapping
          --outReadsUnmapped Fastx\
 
 
---runThreadN threads                  Number of threads to use
---genomeDir index_out_dir             Path to index directory
---outFilterMismatchNmax mismatches    Allow a maximum of mismatches=2
---alignIntronMin ALIGN_INTRON_Nmin    Minimum intron size. Any genomic gap
-                                      is considered intron if its
-                                      length >= alignIntronMin.
---alignIntronMax ALIGN_INTRON_Nmax    Maximum intron size
---outFileNamePrefix prefix            Prefix for output files
---readFilesIn input_fq_gz             Path to input fastq.gz
---outSAMtype outtype                  Output an unsorted BAM file (outtype=BAM Unsorted)
---readFilesCommand zcat               Since input is gzipped use zcat to
-                                      decompress it on the fly
---quantMode TranscriptomeSAM          Also output BAM aligned to the
-                                      transcriptome
---outTmpDir tpmdir                    Directory to use for writing 
-                                      temporary files
---outReadsUnmapped Fastx              Write unmapped reads to separate 
-                                      fastq file
+--runThreadN threads                Number of threads to use
+--genomeDir index_out_dir           Path to index directory
+--outFilterMismatchNmax mismatches  Allow a maximum of mismatches=2
+--alignIntronMin ALIGN_INTRON_Nmin  Minimum intron size. Any genomic gap
+                                    is considered intron if its
+                                    length >= alignIntronMin.
+--alignIntronMax ALIGN_INTRON_Nmax  Maximum intron size
+--outFileNamePrefix prefix          Prefix for output files
+--readFilesIn input_fq_gz           Path to input fastq.gz
+--outSAMtype outtype                Output an unsorted BAM file (outtype=BAM Unsorted)
+--readFilesCommand zcat             Since input is gzipped use zcat to
+                                    decompress it on the fly
+--quantMode TranscriptomeSAM        Also output BAM aligned to the transcriptome
+--outTmpDir tpmdir                  Directory to use for writing 
+                                    temporary files
+--outReadsUnmapped Fastx            Write unmapped reads to separate 
+                                    fastq file
 
 
 Sorting and Indexing
