@@ -12,6 +12,7 @@ import re
 import subprocess
 import sys
 
+
 import numpy as np
 import pandas as pd
 import pybedtools
@@ -187,7 +188,8 @@ def bam_to_bedgraph(bam, strand='both', end_type='5prime', saveto=None):
     return str(genome_cov)
 
 
-def count_reads_in_features(feature_bed, bam, force_strandedness=False, use_multiprocessing=False):
+def count_reads_in_features(feature_bed, bam,
+                            force_strandedness=False, use_multiprocessing=False):
     """Count reads overlapping features.
 
     Parameters
@@ -224,8 +226,42 @@ def count_reads_in_features(feature_bed, bam, force_strandedness=False, use_mult
     return count
 
 
-def count_utr5_utr3_cds(bam, utr5_bed=None, cds_bed=None,
-                        utr3_bed=None, genome=None, force_strandedness=False,
+def count_feature_genewise(feature_bed, bam,
+                           force_strandedness=False, use_multiprocessing=False):
+    """Count features genewise.
+
+    Parameters
+    ----------
+    bam : str
+          Path to bam file
+    feature_bed : str
+                   Path to features bed file
+
+    Returns
+    -------
+    counts : dict
+             Genewise feature counts
+    """
+    if not isinstance(feature_bed, pybedtools.BedTool):
+        feature_bed = pybedtools.BedTool()
+    feature_bed_df = feature_bed.to_dataframe()
+    feature_bed_df_grouped = feature_bed_df.groupby('name')
+    gene_wise_beds = OrderedDict()
+    for gene_name, gene_group in feature_bed_df_grouped:
+        gene_bed = pybedtools.BedTool.from_dataframe(
+            gene_group).sort().saveas().fn
+        gene_wise_beds[gene_name] = gene_bed
+    with _poolcontext(processes=3) as pool:
+        results = pool.map(partial(count_reads_in_features,
+                                   bam=bam,
+                                   force_strandedness=force_strandedness,
+                                   use_multiprocessing=True), list(gene_wise_beds.values()))
+    counts = OrderedDict(zip(list(gene_wise_beds.keys()), results))
+    return counts
+
+
+def count_utr5_utr3_cds(bam, utr5_bed=None, cds_bed=None, utr3_bed=None,
+                        genome=None, force_strandedness=False, genewise=False,
                         saveto=None, use_multiprocessing=False):
     """One shot counts over UTR5/UTR3/CDS.
 
@@ -261,17 +297,23 @@ def count_utr5_utr3_cds(bam, utr5_bed=None, cds_bed=None,
     for index, bed in enumerate(feature_beds):
         if bed is None:
             raise RuntimeError('{} cannot be none.'.format(order[index]))
-    if use_multiprocessing:
-        with _poolcontext(processes=3) as pool:
-            results = pool.map(
-                partial(count_reads_in_features, bam=bam, force_strandedness=force_strandedness,
-                        use_multiprocessing=True), feature_beds)
-        counts = OrderedDict(zip(order, results))
-    else:
+    if genewise:
         counts = OrderedDict()
         for index, bed in enumerate(feature_beds):
-            counts[order[index]] = count_reads_in_features(
+            counts[order[index]] = count_feature_genewise(
                 pybedtools.BedTool(bed), bam, force_strandedness)
+    else:
+        if use_multiprocessing:
+            with _poolcontext(processes=3) as pool:
+                results = pool.map(
+                    partial(count_reads_in_features, bam=bam, force_strandedness=force_strandedness,
+                            use_multiprocessing=True), feature_beds)
+            counts = OrderedDict(zip(order, results))
+        else:
+            counts = OrderedDict()
+            for index, bed in enumerate(feature_beds):
+                counts[order[index]] = count_reads_in_features(
+                    pybedtools.BedTool(bed), bam, force_strandedness)
     if saveto:
         mkdir_p(os.path.dirname(saveto))
         pickle.dump(counts,

@@ -43,8 +43,8 @@ We use trim_galore_ for trimming. It automates adapter trimming:
 
    trim_galore -o <out_dir> -q <min_quality> <input.fq.gz>
 
--o out_dir            Output directory
--q min_quality        Trim low-quality ends from reads in addition to adapter removal
+-o out_dir        Output directory
+-q min_quality    Trim low-quality ends from reads in addition to adapter removal
 
 Mapping Reads
 -------------
@@ -66,14 +66,14 @@ Creating Index
         --sjdbGTFfile <input.gtf>
 
 
---runThreadN <threads>                   Number of threads to use
---runMode genomeGenerate                 Flag to set for index mode
---genomeDir <index_out_dir>              Directory to write index files to
---genomeSAindexNbases <SA_INDEX_Nbases>  min(14, log2(GenomeLength)/2 - 1), 
-                                         this **must** be scaled down for 
-                                         small genomes
---genomeFastaFiles <input.fasta>         Path to reference fasta
---sjdbGTFfile <input.gtf>                Path to GTf file
+--runThreadN threads                    Number of threads to use
+--runMode genomeGenerate                Flag to set for index mode
+--genomeDir index_out_dir               Directory to write index files to
+--genomeSAindexNbases SA_INDEX_Nbases   min(14, log2(GenomeLength)/2 - 1),
+                                        this **must** be scaled down for
+                                        small genomes
+--genomeFastaFiles input_fasta          Path to reference fasta
+--sjdbGTFfile input_gtf                 Path to GTf file
 
 
 Mapping
@@ -94,24 +94,24 @@ Mapping
          --outReadsUnmapped Fastx\
 
 
---runThreadN <threads>                Number of threads to use
---genomeDir <index_out_dir>           Path to index directory
---outFilterMismatchNmax 2             Allow a maximum of 2 mismatches
---alignIntronMin <ALIGN_INTRON_Nmin>  Minimum intron size. Any genomic gap
-                                      is considered intron if its
-                                      length >= alignIntronMin.
---alignIntronMax <ALIGN_INTRON_Nmax>  Maximum intron size
---outFileNamePrefix <prefix>          Prefix for output files
---readFilesIn <input.fq.gz>           Path to input fastq.gz
---outSAMtype BAM Unsorted             Output an unsorted BAM file
---readFilesCommand zcat               Since input is gzipped use zcat to
-                                      decompress it on the fly
---quantMode TranscriptomeSAM          Also output BAM aligned to the
-                                      transcriptome
---outTmpDir <tpmdir>                  Directory to use for writing 
-                                      temporary files
---outReadsUnmapped Fastx              Write unmapped reads to separate 
-                                      fastq file
+--runThreadN threads                 Number of threads to use
+--genomeDir index_out_dir            Path to index directory
+--outFilterMismatchNmax mismatches   Allow a maximum of mismatches=2
+--alignIntronMin ALIGN_INTRON_Nmin   Minimum intron size. Any genomic gap
+                                       is considered intron if its
+                                       length >= alignIntronMin.
+--alignIntronMax ALIGN_INTRON_Nmax   Maximum intron size
+--outFileNamePrefix prefix           Prefix for output files
+--readFilesIn input_fq_gz            Path to input fastq.gz
+--outSAMtype outtype                 Output an unsorted BAM file (outtype=BAM Unsorted)
+--readFilesCommand zcat              Since input is gzipped use zcat to
+                                     decompress it on the fly
+--quantMode TranscriptomeSAM         Also output BAM aligned to the
+                                     transcriptome
+--outTmpDir tpmdir                   Directory to use for writing 
+                                     temporary files
+--outReadsUnmapped Fastx             Write unmapped reads to separate 
+                                     fastq file
 
 
 Sorting and Indexing
@@ -147,7 +147,7 @@ We recommend a minimum of 5 million reads for any downstream analysis.
 
     riboraptor uniq-mapping-count --bam <input.bam>
 
---bam <input.bam>    Path to bam file
+--bam input.bam    Path to bam file
 
 
 Example
@@ -188,7 +188,7 @@ one codon at a time during active translation.
 
 .. code-block:: console
 
-   $
+   $ riboraptor metagene 
 
 This is not likely a Ribo-seq sample.
 
@@ -224,8 +224,6 @@ Distributio of 5'UTR/CDS/3'UTR counts
 
 
 
-Auxiliary tools
-===============
 
 
 .. _trim_galore: https://www.bioinformatics.babraham.ac.uk/projects/trim_galore/

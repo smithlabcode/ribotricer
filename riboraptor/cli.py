@@ -97,13 +97,15 @@ def count_reads_in_features_cmd(bam, bed):
 @click.option('--utr3-bed', help='Path to 3\'UTR file')
 @click.option('--genome', '-g', help='Genome (for loading bed files internally)')
 @click.option('-s', help='Force strandedness', is_flag=True)
+@click.option('--genewise', help='Store genewise?', is_flag=True)
 @click.option('--prefix', help='Prefix to write pickled contents')
-@click.option('-use_multiprocessing', help='Should multiprocess?', is_flag=True)
+@click.option('--use_multiprocessing', help='Should multiprocess?',
+              is_flag=True)
 def count_utr5_utr3_cds_cmd(bam, utr5_bed, cds_bed, utr3_bed,
-                            genome, s, prefix, use_multiprocessing):
+                            genome, s, genewise, prefix, use_multiprocessing):
     counts = count_utr5_utr3_cds(bam=bam, utr5_bed=utr5_bed,
                                  cds_bed=cds_bed, utr3_bed=utr3_bed,
-                                 genome=genome, force_strandedness=s,
+                                 genome=genome, force_strandedness=s, genewise=genewise,
                                  saveto=prefix, use_multiprocessing=use_multiprocessing)
     for region, count in six.iteritems(dict(counts)):
         sys.stdout.write('{}\t{}'.format(region, count))
