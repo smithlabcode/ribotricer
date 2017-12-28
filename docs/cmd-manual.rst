@@ -69,9 +69,7 @@ Creating Index
 --runThreadN threads                     Number of threads to use
 --runMode genomeGenerate                 Flag to set for index mode
 --genomeDir index_out_dir                Directory to write index files to
---genomeSAindexNbases SA_INDEX_Nbases    min(14, log2(GenomeLength)/2 - 1),
-                                         this **must** be scaled down for
-                                         small genomes
+--genomeSAindexNbases SA_INDEX_Nbases    min(14, log2(GenomeLength)/2 - 1), this **must** be scaled down for small genomes
 --genomeFastaFiles input_fasta           Path to reference fasta
 --sjdbGTFfile input_gtf                  Path to GTf file
 
