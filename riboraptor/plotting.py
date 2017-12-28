@@ -5,7 +5,11 @@ from __future__ import (absolute_import, division,
 from collections import Counter
 from itertools import cycle
 from itertools import islice
+import os
+import pickle
+import sys
 
+import gnuplotlib as gp
 import matplotlib
 matplotlib.use('Agg')
 
@@ -21,6 +25,7 @@ import pycwt as wavelet
 from .helpers import identify_peaks
 from .helpers import millify
 from .helpers import round_to_nearest
+
 
 __FRAME_COLORS__ = ['#1b9e77', '#d95f02', '#7570b3']
 DPI = 300
@@ -83,7 +88,7 @@ def setup_axis(ax, axis='x', majorticks=5,
 
 def plot_read_length_dist(read_lengths, ax=None,
                           millify_labels=True, input_is_stream=False,
-                          saveto=None, **kwargs):
+                          saveto=None, ascii=True, **kwargs):
     """Plot read length distribution.
 
     Parameters
@@ -108,6 +113,12 @@ def plot_read_length_dist(read_lengths, ax=None,
             splitted = list(map(lambda x: int(x), line.strip().split('\t')))
             counter[splitted[0]] = splitted[1]
         read_lengths = Counter(counter)
+    else:
+        try:
+            # Try opening as a pickle first
+            read_lengths = pickle.load(open(read_lengths, 'r'))
+        except KeyError:
+            pass
     fig = None
     if ax is None:
         fig, ax = plt.subplots()
@@ -130,6 +141,12 @@ def plot_read_length_dist(read_lengths, ax=None,
     if saveto:
         fig.tight_layout()
         fig.savefig(saveto, dpi=DPI)
+    if ascii:
+        sys.stdout.write(os.linesep)
+        gp.plot((counts.index, counts.values, {'with': 'boxes'}),
+                terminal='dumb 80,40',
+                unset='grid')
+        sys.stdout.write(os.linesep)
     return ax, fig
 
 
@@ -177,6 +194,7 @@ def plot_read_counts(counts, ax=None,
                      marker=False, color='royalblue',
                      label=None, millify_labels=True,
                      identify_peak=True, saveto=None,
+                     ascii=True, input_is_stream=False,
                      **kwargs):
     """Plot RPF density around start/stop codons.
 
@@ -200,6 +218,18 @@ def plot_read_counts(counts, ax=None,
 
     """
     # setup_plot()
+    if input_is_stream:
+        counts_counter = {}
+        for line in counts:
+            splitted = list(map(lambda x: int(x), line.strip().split('\t')))
+            counts_counter[splitted[0]] = splitted[1]
+        counts = Counter(counts_counter)
+    else:
+        try:
+            # Try opening as a pickle first
+            counts = pickle.load(open(counts, 'r'))
+        except KeyError:
+            pass
     if isinstance(counts, Counter):
         counts = pd.Series(counts)
     fig = None
@@ -232,6 +262,12 @@ def plot_read_counts(counts, ax=None,
     if saveto:
         fig.tight_layout()
         fig.savefig(saveto, dpi=DPI)
+    if ascii:
+        sys.stdout.write(os.linesep)
+        gp.plot((counts.index, counts.values, {'with': 'lines'}),
+                terminal='dumb 80,40',
+                unset='grid')
+        sys.stdout.write(os.linesep)
     return ax, fig, peak
 
 

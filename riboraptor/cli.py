@@ -203,12 +203,7 @@ def metagene_coverage_cmd(bigwig,
 
 @cli.command('plot-read-counts', context_settings=CONTEXT_SETTINGS,
              help='Plot read counts distribution across a gene')
-@click.option('--millify_labels',
-              help='Convert labels on Y-axis to concise form?',
-              is_flag=True)
-@click.option('--identify_peak',
-              help='Identify Peak?',
-              is_flag=True)
+@click.option('--counts', help='Path to counts file (if not stdin)')
 @click.option('--marker',
               help='Marker (o/x) for plots',
               type=click.Choice(['o', 'x']),
@@ -216,31 +211,59 @@ def metagene_coverage_cmd(bigwig,
 @click.option('--color',
               help='Color',
               default='royalblue')
+@click.option('--millify_labels',
+              help='Convert labels on Y-axis to concise form?',
+              is_flag=True)
+@click.option('--identify_peak',
+              help='Identify Peak?',
+              is_flag=True)
 @click.option('--saveto',
               help='Path to file (png/pdf) to save to',
               required=True)
+@click.option('--no-ascii',
+              help='Do not plot ascii',
+              is_flag=True)
 def plot_read_counts_cmd(counts,
                          marker, color,
                          millify_labels,
                          identify_peak,
-                         saveto):
-    plot_read_counts(counts,
-                     marker=marker, color=color,
-                     millify_labels=millify_labels,
-                     identify_peak=identify_peak, saveto=saveto)
+                         saveto,
+                         no_ascii):
+    ascii = not no_ascii
+    if counts:
+        plot_read_counts(counts,
+                         marker=marker, color=color,
+                         millify_labels=millify_labels,
+                         identify_peak=identify_peak,
+                         saveto=saveto, ascii=ascii)
+    else:
+        plot_read_counts(sys.stdin.readlines(),
+                         marker=marker, color=color,
+                         millify_labels=millify_labels,
+                         identify_peak=identify_peak,
+                         saveto=saveto, ascii=ascii, input_is_stream=True)
 
 
 @cli.command('plot-read-dist', context_settings=CONTEXT_SETTINGS,
              help='Plot read length distribution')
+@click.option('--read-lengths', help='Path to read length pickle file')
 @click.option('--millify_labels',
               help='Convert labels on Y-axis to concise form?',
               is_flag=True)
 @click.option('--saveto',
               help='Path to file (png/pdf) to save to',
               required=True)
-def plot_read_length_dist_cmd(millify_labels, saveto):
-    plot_read_length_dist(sys.stdin.readlines(), millify_labels=millify_labels,
-                          input_is_stream=True, saveto=saveto)
+@click.option('--no-ascii',
+              help='Do not plot ascii',
+              is_flag=True)
+def plot_read_length_dist_cmd(read_lengths, millify_labels, saveto, no_ascii):
+    ascii = not no_ascii
+    if read_lengths:
+        plot_read_length_dist(read_lengths, millify_labels=millify_labels,
+                              input_is_stream=False, saveto=saveto, ascii=ascii)
+    else:
+        plot_read_length_dist(sys.stdin.readlines(), millify_labels=millify_labels,
+                              input_is_stream=True, saveto=saveto, ascii=ascii)
 
 
 @cli.command('read-enrichment', context_settings=CONTEXT_SETTINGS,

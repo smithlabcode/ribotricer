@@ -14,3 +14,4 @@ pycwt>=0.3.0a22
 six>=1.11.0
 Click>=6.0
 click-help-colors>=0.4
+gnuplotlib>=0.18
