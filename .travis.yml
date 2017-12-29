@@ -26,6 +26,7 @@ install:
   - conda create -q -n test-environment python=$TRAVIS_PYTHON_VERSION
   - source activate test-environment
   - pip install -r requirements.txt
+  - pip install gnuplotlib
   - pip install travis-sphinx numpydoc ipython sphinxcontrib-fulltoc
   - python setup.py install
 

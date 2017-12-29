@@ -9,7 +9,6 @@ import os
 import pickle
 import sys
 
-import gnuplotlib as gp
 import matplotlib
 matplotlib.use('Agg')
 
@@ -142,9 +141,10 @@ def plot_read_length_dist(read_lengths, ax=None,
         fig.tight_layout()
         fig.savefig(saveto, dpi=DPI)
     if ascii:
+        import gnuplotlib as gp
         sys.stdout.write(os.linesep)
         gp.plot((read_lengths_counts.index, read_lengths_counts.values, {'with': 'boxes'}),
-                terminal='dumb 80,40',
+                terminal='dumb 160, 40',
                 unset='grid')
         sys.stdout.write(os.linesep)
     return ax, fig
@@ -194,6 +194,7 @@ def plot_read_counts(counts, ax=None,
                      marker=False, color='royalblue',
                      label=None, millify_labels=True,
                      identify_peak=True, saveto=None,
+                     position_range=range(-60, 101),
                      ascii=True, input_is_stream=False,
                      **kwargs):
     """Plot RPF density around start/stop codons.
@@ -232,6 +233,12 @@ def plot_read_counts(counts, ax=None,
             pass
     if isinstance(counts, Counter):
         counts = pd.Series(counts)
+    if isinstance(position_range, unicode):
+        splitted = list(
+            map(lambda x: int(x), position_range.strip().split(':')))
+        position_range = range(splitted[0], splitted[1] + 1)
+
+    counts = counts[position_range]
     fig = None
     if ax is None:
         fig, ax = plt.subplots()
@@ -264,8 +271,11 @@ def plot_read_counts(counts, ax=None,
         fig.savefig(saveto, dpi=DPI)
     if ascii:
         sys.stdout.write(os.linesep)
-        gp.plot((counts.index, counts.values, {'with': 'lines'}),
-                terminal='dumb 80,40',
+        import gnuplotlib as gp
+        gp.plot(np.array(counts.index.tolist()),
+                np.array(counts.values.tolist()),
+                _with='lines',  # 'points pointtype 0',
+                terminal='dumb 200,40',
                 unset='grid')
         sys.stdout.write(os.linesep)
     return ax, fig, peak

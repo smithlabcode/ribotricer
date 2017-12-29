@@ -8,6 +8,7 @@ import click
 from click_help_colors import HelpColorsGroup
 import six
 
+from . import __version__
 from .count import bam_to_bedgraph
 from .count import bedgraph_to_bigwig
 from .count import count_reads_in_features
@@ -30,7 +31,7 @@ CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
 @click.group(cls=HelpColorsGroup,
              help_headers_color='yellow',
              help_options_color='green')
-@click.version_option(version='0.1.0')
+@click.version_option(version=__version__)
 def cli():
     """riboraptor: Tool for ribosome profiling analysis"""
     pass
@@ -80,7 +81,7 @@ def bedgraph_to_bigwig_cmd(bedgraph, sizes, saveto):
 
 
 @cli.command('count-in-feature', context_settings=CONTEXT_SETTINGS,
-               help='Count reads in given feature bed file')
+             help='Count reads in given feature bed file')
 @click.option('--bam', help='Path to bam file', required=True)
 @click.option('--bed', help='Path to 5\'utr file', required=True)
 def count_reads_in_features_cmd(bam, bed):
@@ -90,7 +91,7 @@ def count_reads_in_features_cmd(bam, bed):
 
 
 @cli.command('count-all-features', context_settings=CONTEXT_SETTINGS,
-               help='Count reads in 5\'UTr/CDs/3\'UTR regions')
+             help='Count reads in 5\'UTr/CDs/3\'UTR regions')
 @click.option('--bam', help='Path to bam file', required=True)
 @click.option('--utr5-bed', help='Path to 5\'utr file')
 @click.option('--cds-bed', help='Path to CDS file')
@@ -217,6 +218,9 @@ def metagene_coverage_cmd(bigwig,
 @click.option('--identify_peak',
               help='Identify Peak?',
               is_flag=True)
+@click.option('--positions',
+              help='Range of positions to plot',
+              default='-60:100')
 @click.option('--saveto',
               help='Path to file (png/pdf) to save to',
               default=None, show_default=True)
@@ -227,6 +231,7 @@ def plot_read_counts_cmd(counts,
                          marker, color,
                          millify_labels,
                          identify_peak,
+                         positions,
                          saveto,
                          no_ascii):
     ascii = not no_ascii
@@ -234,13 +239,13 @@ def plot_read_counts_cmd(counts,
         plot_read_counts(counts,
                          marker=marker, color=color,
                          millify_labels=millify_labels,
-                         identify_peak=identify_peak,
+                         position_range=positions, identify_peak=identify_peak,
                          saveto=saveto, ascii=ascii)
     else:
         plot_read_counts(sys.stdin.readlines(),
                          marker=marker, color=color,
                          millify_labels=millify_labels,
-                         identify_peak=identify_peak,
+                         identify_peak=identify_peak, position_range=positions,
                          saveto=saveto, ascii=ascii, input_is_stream=True)
 
 

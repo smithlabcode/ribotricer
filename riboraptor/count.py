@@ -6,6 +6,7 @@ from collections import Counter
 from collections import OrderedDict
 from contextlib import contextmanager
 from functools import partial
+import multiprocessing
 import os
 import pickle
 import re
@@ -18,8 +19,8 @@ import pandas as pd
 import pybedtools
 from pyfaidx import Fasta
 import pysam
+import six
 from scipy.stats import norm
-import multiprocessing
 
 from .wig import WigReader
 from .helpers import mkdir_p
@@ -194,11 +195,14 @@ def count_reads_in_features(feature_bed, bam,
 
     Parameters
     ----------
-    bam : str
-          Path to bam file
     feature_bed : str
                    Path to features bed file
-
+    bam : str
+          Path to bam file
+    force_strandedness : bool
+                         Should count feature only if on the same strand
+    use_multiprocessing : bool
+                          True if multiprocessing mode
     Returns
     -------
     counts : int
@@ -218,6 +222,8 @@ def count_reads_in_features(feature_bed, bam,
                                   stream=True).count()
 
     else:
+        if not isinstance(feature_bed, pybedtools.BedTool):
+            feature_bed = pybedtools.BedTool(feature_bed)
         if force_strandedness:
             count = bam.intersect(b=feature_bed,
                                   additional_args='-s').count()
@@ -246,17 +252,23 @@ def count_feature_genewise(feature_bed, bam,
         feature_bed = pybedtools.BedTool()
     feature_bed_df = feature_bed.to_dataframe()
     feature_bed_df_grouped = feature_bed_df.groupby('name')
-    gene_wise_beds = OrderedDict()
+    genewise_beds = OrderedDict()
     for gene_name, gene_group in feature_bed_df_grouped:
         gene_bed = pybedtools.BedTool.from_dataframe(
             gene_group).sort().saveas().fn
-        gene_wise_beds[gene_name] = gene_bed
+        genewise_beds[gene_name] = gene_bed
+    """
     with _poolcontext(processes=3) as pool:
         results = pool.map(partial(count_reads_in_features,
                                    bam=bam,
                                    force_strandedness=force_strandedness,
-                                   use_multiprocessing=True), list(gene_wise_beds.values()))
+                                   use_multiprocessing=True), list(genewise_beds.values()))
     counts = OrderedDict(zip(list(gene_wise_beds.keys()), results))
+    """
+    counts = OrderedDict()
+    for gene_name, gene_bed in six.iteritems(genewise_beds):
+        counts[gene_name] = count_reads_in_features(pybedtools.BedTool(gene_bed), bam,
+                                                    force_strandedness, False)
     return counts
 
 
