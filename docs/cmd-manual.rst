@@ -250,7 +250,6 @@ one codon at a time during active translation.
 
    $ ribocop bedgraph-to-bigwig -bg data/SRR5227310.bg -s hg38 -o data/SRR5227310.bw
 
-
 .. code-block:: console
 
    $  ribocop metagene-coverage -bw data/SRR5227310.bw \
@@ -271,8 +270,22 @@ one codon at a time during active translation.
     Metagene distribution for SRR5227310
 
 
+Since metagene gives a summary statistic, we can also look at the abolute counts distribution per frame:
 
-This is not likely a Ribo-seq sample. Let's try another sample: SRR5227306 and compare it with SRR5227310
+.. code-block:: console
+
+   $ riboraptor plot-framewise-counts --counts data/SRR5227310.metagene_metagene_raw.pickle\
+        --saveto data/SRR5227310.framewise.png
+
+.. figure:: images/SRR5227310.framewise.png
+    :align: center
+    :alt: Fragment length distribution SRR5227310
+    :figclass: align center
+
+    Framewise distribution for SRR5227310
+
+
+Let's try another sample: SRR5227306 and compare it with SRR5227310
 with respect to distribution of reads.
 
 
