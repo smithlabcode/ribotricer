@@ -1,6 +1,6 @@
 """Plotting methods."""
-from __future__ import (absolute_import, division,
-                        print_function, unicode_literals)
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
 
 from collections import Counter
 from itertools import cycle
@@ -25,9 +25,8 @@ from .helpers import identify_peaks
 from .helpers import millify
 from .helpers import round_to_nearest
 
-
 __FRAME_COLORS__ = ['#1b9e77', '#d95f02', '#7570b3']
-DPI = 300
+DPI = 1000
 
 
 def setup_plot():
@@ -47,8 +46,12 @@ def setup_plot():
     sns.set_context('paper', font_scale=2)
 
 
-def setup_axis(ax, axis='x', majorticks=5,
-               minorticks=1, xrotation=0, yrotation=0):
+def setup_axis(ax,
+               axis='x',
+               majorticks=5,
+               minorticks=1,
+               xrotation=0,
+               yrotation=0):
     """Setup axes defaults
 
     Parameters
@@ -85,9 +88,13 @@ def setup_axis(ax, axis='x', majorticks=5,
     ax.tick_params(which='minor', width=1, length=6)
 
 
-def plot_read_length_dist(read_lengths, ax=None,
-                          millify_labels=True, input_is_stream=False,
-                          saveto=None, ascii=True, **kwargs):
+def plot_read_length_dist(read_lengths,
+                          ax=None,
+                          millify_labels=True,
+                          input_is_stream=False,
+                          saveto=None,
+                          ascii=True,
+                          **kwargs):
     """Plot read length distribution.
 
     Parameters
@@ -132,8 +139,9 @@ def plot_read_length_dist(read_lengths, ax=None,
         read_lengths_counts = read_lengths.value_counts().sort_index()
 
     ax.bar(read_lengths_counts.index, read_lengths_counts)
-    ax.set_xlim(min(read_lengths_counts.index) - 0.5,
-                round_to_nearest(max(read_lengths_counts.index), 10) + 0.5)
+    ax.set_xlim(
+        min(read_lengths_counts.index) - 0.5,
+        round_to_nearest(max(read_lengths_counts.index), 10) + 0.5)
     if millify_labels:
         ax.set_yticklabels(list(map(lambda x: millify(x), ax.get_yticks())))
     sns.despine(trim=True, offset=20)
@@ -143,59 +151,115 @@ def plot_read_length_dist(read_lengths, ax=None,
     if ascii:
         import gnuplotlib as gp
         sys.stdout.write(os.linesep)
-        gp.plot((read_lengths_counts.index, read_lengths_counts.values, {'with': 'boxes'}),
-                terminal='dumb 160, 40',
-                unset='grid')
+        gp.plot(
+            (read_lengths_counts.index, read_lengths_counts.values, {
+                'with': 'boxes'
+            }),
+            terminal='dumb 160, 40',
+            unset='grid')
         sys.stdout.write(os.linesep)
     return ax, fig
 
 
-def plot_framewise_dist(counts, read_len_range,
-                        ax=None, saveto=None):
+def plot_framewise_counts(counts,
+                          frames_to_plot='all',
+                          ax=None,
+                          millify_labels=False,
+                          position_range=range(-60, 101),
+                          saveto=None,
+                          ascii=True,
+                          input_is_stream=False,
+                          **kwargs):
     """Plot framewise distribution of reads.
 
     Parameters
     ----------
     counts : Series
-            A series with position as index and value as counts
-    read_len_range: int or range
-        Range of read lengths to average counts over
+             A series with position as index and value as counts
+    frames_to_plot : str or range
+                     A comma seaprated list of frames to highlight or a range
     ax : matplotlib.Axes
-        Default none
+         Default none
     saveto : str
              Path to save output file to (<filename>.png/<filename>.pdf)
     """
     # setup_plot()
-    assert isinstance(counts, pd.Series)
+    if input_is_stream:
+        counts_counter = {}
+        for line in counts:
+            splitted = list(map(lambda x: int(x), line.strip().split('\t')))
+            counts_counter[splitted[0]] = splitted[1]
+        counts = Counter(counts_counter)
+    else:
+        try:
+            # Try opening as a pickle first
+            counts = pickle.load(open(counts, 'r'))
+        except KeyError:
+            pass
+    if isinstance(counts, Counter):
+        counts = pd.Series(counts)
+    # TODO
+    if isinstance(frames_to_plot, str) or isinstance(
+            frames_to_plot, unicode) and frames_to_plot != 'all':
+        frames_to_plot = list(
+            map(lambda x: int(x), frames_to_plot.rstrip().split(',')))
+    if isinstance(position_range, unicode):
+        splitted = list(
+            map(lambda x: int(x), position_range.strip().split(':')))
+        position_range = range(splitted[0], splitted[1] + 1)
+
+    counts = counts[position_range]
     fig = None
     if ax is None:
         fig, ax = plt.subplots()
     else:
         fig = ax.get_figure()
-    setup_axis(ax)
+    if 'majorticks' not in kwargs:
+        kwargs['majorticks'] = 10
+    if 'minorticks' not in kwargs:
+        kwargs['minorticks'] = 5
+    setup_axis(ax, **kwargs)
     ax.set_ylabel('Number of reads')
-    ax.set_xlim(min(counts.index) - 0.6,
-                round_to_nearest(max(counts.index), 10) + 0.6)
+    ax.set_xlim(
+        min(counts.index) - 0.6, round_to_nearest(max(counts.index), 10) + 0.6)
     barlist = ax.bar(counts.index, counts.values)
     barplot_colors = list(
         islice(cycle(__FRAME_COLORS__), None, len(counts.index)))
     for index, cbar in enumerate(barlist):
         cbar.set_color(barplot_colors[index])
-    ax.legend((barlist[0], barlist[1], barlist[2]),
-              ('Frame 1', 'Frame 2', 'Frame 3'))
+    ax.legend((barlist[0], barlist[1], barlist[2]), ('Frame 1', 'Frame 2',
+                                                     'Frame 3'))
     sns.despine(trim=True, offset=20)
+    if millify_labels:
+        ax.set_yticklabels(list(map(lambda x: millify(x), ax.get_yticks())))
     if saveto:
         fig.tight_layout()
         fig.savefig(saveto, dpi=DPI)
+    if ascii:
+        sys.stdout.write(os.linesep)
+        import gnuplotlib as gp
+        gp.plot(
+            np.array(counts.index.tolist()),
+            np.array(counts.values.tolist()),
+            _with='boxes',  # 'points pointtype 0',
+            terminal='dumb 200,40',
+            unset='grid')
+        sys.stdout.write(os.linesep)
     return ax
 
 
-def plot_read_counts(counts, ax=None,
-                     marker=False, color='royalblue',
-                     label=None, millify_labels=True,
-                     identify_peak=True, saveto=None,
+def plot_read_counts(counts,
+                     ax=None,
+                     marker=False,
+                     color='royalblue',
+                     label=None,
+                     millify_labels=True,
+                     identify_peak=True,
+                     saveto=None,
                      position_range=range(-60, 101),
-                     ascii=True, input_is_stream=False,
+                     ascii=True,
+                     input_is_stream=False,
+                     ylabel='Normalized RPF density',
                      **kwargs):
     """Plot RPF density around start/stop codons.
 
@@ -244,27 +308,42 @@ def plot_read_counts(counts, ax=None,
         fig, ax = plt.subplots()
     else:
         fig = ax.get_figure()
+    if 'majorticks' not in kwargs:
+        kwargs['majorticks'] = 10
+    if 'minorticks' not in kwargs:
+        kwargs['minorticks'] = 5
     setup_axis(ax, **kwargs)
-    ax.set_ylabel('Number of reads')
+    ax.set_ylabel(ylabel)
     if not marker:
-        ax.plot(counts.index, counts.values, color=color,
-                linewidth=2, label=label)
+        ax.plot(
+            counts.index,
+            counts.values,
+            color=color,
+            linewidth=1,
+            markersize=1.5,
+            label=label)
     else:
-        ax.plot(counts.index, counts.values, color=color,
-                marker='o', linewidth=2, label=label)
+        ax.plot(
+            counts.index,
+            counts.values,
+            color=color,
+            marker='o',
+            linewidth=1,
+            markersize=1.5,
+            label=label)
     # ax.set_xlim(round_to_nearest(ax.get_xlim()[0], 50) - 0.6,
     #            round_to_nearest(ax.get_xlim()[1], 50) + 0.6)
     peak = None
     if identify_peak:
         peak = identify_peaks(counts)
         ax.axvline(x=peak, color='r', linestyle='dashed')
-        ax.text(peak + 0.5, ax.get_ylim()[1]
-                * 0.9, '{}'.format(peak), color='r')
+        ax.text(
+            peak + 0.5, ax.get_ylim()[1] * 0.9, '{}'.format(peak), color='r')
 
     if millify_labels:
         ax.set_yticklabels(list(map(lambda x: millify(x), ax.get_yticks())))
-    ax.set_xlim(min(counts.index) - 0.5,
-                round_to_nearest(max(counts.index), 10) + 0.5)
+    ax.set_xlim(
+        min(counts.index) - 0.5, round_to_nearest(max(counts.index), 10) + 0.5)
     sns.despine(trim=True, offset=10)
     if saveto:
         fig.tight_layout()
@@ -272,17 +351,20 @@ def plot_read_counts(counts, ax=None,
     if ascii:
         sys.stdout.write(os.linesep)
         import gnuplotlib as gp
-        gp.plot(np.array(counts.index.tolist()),
-                np.array(counts.values.tolist()),
-                _with='lines',  # 'points pointtype 0',
-                terminal='dumb 200,40',
-                unset='grid')
+        gp.plot(
+            np.array(counts.index.tolist()),
+            np.array(counts.values.tolist()),
+            _with='lines',  # 'points pointtype 0',
+            terminal='dumb 200,40',
+            unset='grid')
         sys.stdout.write(os.linesep)
     return ax, fig, peak
 
 
-def plot_featurewise_barplot(utr5_counts, cds_counts,
-                             utr3_counts, ax=None,
+def plot_featurewise_barplot(utr5_counts,
+                             cds_counts,
+                             utr3_counts,
+                             ax=None,
                              saveto=None):
     """Plot barplots for 5'UTR/CDS/3'UTR counts.
 
@@ -315,9 +397,11 @@ def plot_featurewise_barplot(utr5_counts, cds_counts,
     ax.set_xticks([0, 1, 2])
     ax.set_xticklabels(["5'UTR", "CDS", "3'UTR"])
     max_counts = np.max(np.hstack([utr5_counts, cds_counts, utr3_counts]))
-    setup_axis(ax=ax, axis='y',
-               majorticks=max_counts // 10,
-               minorticks=max_counts // 20)
+    setup_axis(
+        ax=ax,
+        axis='y',
+        majorticks=max_counts // 10,
+        minorticks=max_counts // 20)
     ax.set_ylabel('# RPFs')
     sns.despine(trim=True, offset=10)
     if saveto:

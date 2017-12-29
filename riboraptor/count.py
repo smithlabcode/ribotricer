@@ -1,6 +1,6 @@
 """Utilities for read counting operations."""
-from __future__ import (absolute_import, division,
-                        print_function, unicode_literals)
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
 
 from collections import Counter
 from collections import OrderedDict
@@ -13,7 +13,7 @@ import re
 import subprocess
 import sys
 
-
+import HTSeq
 import numpy as np
 import pandas as pd
 import pybedtools
@@ -27,7 +27,6 @@ from .helpers import mkdir_p
 from .genome import _get_sizes
 from .genome import _get_bed
 from .genome import __GENOMES_DB__
-
 
 # Unmapped, Unmapped+Reverse strand, Not primary alignment,
 # Not primary alignment + reverse strand, supplementary alignment
@@ -95,8 +94,111 @@ def _is_read_uniq_mapping(read):
     return False
 
 
-def bedgraph_to_bigwig(bedgraph, sizes,
-                       saveto, input_is_stream=False):
+def _bed_to_genomic_interval(bed):
+    """ Converts bed file to genomic interval (htseq format) file
+
+    Parameters
+    ----------
+    bed : str
+          Path to bed file
+
+    Returns
+    -------
+    interval : HTSeq.GenomicPosition
+    """
+
+    for interval in bed:
+        yield HTSeq.GenomicPosition(
+            str(interval.chrom), interval.start, str(interval.strand))
+
+
+def get_closest(bam, regions, half_window_width=0):
+    """For each read in bam find nearest region in bed
+    Parameters
+    ----------
+    bam : str
+          Path to bam file
+    regions : HTseq.GenomicPosition
+              Genomic regions to get distance from
+    half_window_width : int
+                        Distance around region to record
+    """
+    profile = {}
+    sorted_bam = HTSeq.BAM_Reader(bam)
+    for x, tss in enumerate(_bed_to_genomic_interval(regions)):
+        window = HTSeq.GenomicInterval(
+            str(tss.chrom), tss.pos - half_window_width,
+            tss.pos + half_window_width, str(tss.strand))
+        for almnt in sorted_bam[window]:
+            if almnt.iv.strand == '+':
+                read_loc = almnt.iv.start - tss.pos
+            else:
+                read_loc = tss.pos - almnt.iv.end
+            length = sum(cigar.size for cigar in almnt.cigar
+                         if cigar.type == 'M')
+            profile[almnt.read.name] = {'dist': read_loc, 'length': length}
+    return pd.DataFrame(profile)
+
+
+def count_reads_per_gene(bam, bed, prefix=None):
+    """Count number of reads following in each region.
+
+    Parameters
+    ----------
+    bam : str
+          Path to bam file
+    bed : pybedtools.BedTool or str
+          Genomic regions to get distance from
+    prefix : str
+            Prefix to output pickle files
+    Returns
+    -------
+
+    counts_by_region : Series
+                       Series with counts indexed by gene id
+    region_lengths : Series
+                     Series with gene lengths
+    counts_normalized_by_length : Series
+                                  Series with normalized counts
+    """
+    counts_by_region = OrderedDict()
+    length_by_region = OrderedDict()
+    sorted_bam = HTSeq.BAM_Reader(bam)
+    if isinstance(bed, unicode) or isinstance(bed, str):
+        bed = pybedtools.BedTool(bed).sort()
+    for x, region in enumerate(bed):
+        counts = 0
+        window = HTSeq.GenomicInterval(
+            str(region.chrom), region.start, region.stop, str(region.strand))
+        length = region.stop - region.start
+        for almnt in sorted_bam[window]:
+            counts += 1
+        if region.name not in list(counts_by_region.keys()):
+            counts_by_region[region.name] = 0
+            length_by_region[region.name] = 0
+        counts_by_region[region.name] += counts
+        length_by_region[region.name] += length
+    counts_by_region = pd.Series(counts_by_region)
+    length_by_region = pd.Series(length_by_region)
+    counts_normalized_by_length = counts_by_region.div(length_by_region)
+    if prefix:
+        mkdir_p(os.path.dirname(prefix))
+        df = pd.concat([counts, lengths, normalized_counts], axis=1)
+        df.columns = ['counts', 'length', 'normalized_counts']
+        df.to_csv('{}.tsv'.format(prefix), index=True, header=True, sep='\t')
+        pickle.dump(counts_by_region,
+                    open('{}_counts.pickle'.format(prefix), 'wb'),
+                    __PICKLE_PROTOCOL__)
+        pickle.dump(length_by_region,
+                    open('{}_lengths.pickle'.format(prefix), 'wb'),
+                    __PICKLE_PROTOCOL__)
+        pickle.dump(counts_normalized_by_length,
+                    open('{}_counts_lengths_normalized.pickle'.format(prefix),
+                         'wb'), __PICKLE_PROTOCOL__)
+    return counts_by_region, length_by_region, counts_normalized_by_length
+
+
+def bedgraph_to_bigwig(bedgraph, sizes, saveto, input_is_stream=False):
     """Convert bedgraph to bigwig.
 
     Parameters
@@ -129,22 +231,30 @@ def bedgraph_to_bigwig(bedgraph, sizes,
             raise RuntimeError('Could not load size for {}'.format(sizes))
 
     cmds = ['bedSort', bedgraph, bedgraph]
-    p = subprocess.Popen(cmds, stdout=subprocess.PIPE,
-                         stderr=subprocess.PIPE, universal_newlines=True)
+    p = subprocess.Popen(
+        cmds,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        universal_newlines=True)
     stdout, stderr = p.communicate()
     rc = p.returncode
     if rc != 0:
         raise RuntimeError(
-            'Error running bedSort.\nstdout : {} \n stderr : {}'.format(stdout, stderr))
+            'Error running bedSort.\nstdout : {} \n stderr : {}'.format(
+                stdout, stderr))
 
     cmds = ['bedGraphToBigWig', bedgraph, sizes, saveto]
-    p = subprocess.Popen(cmds, stdout=subprocess.PIPE,
-                         stderr=subprocess.PIPE, universal_newlines=True)
+    p = subprocess.Popen(
+        cmds,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        universal_newlines=True)
     stdout, stderr = p.communicate()
     rc = p.returncode
     if rc != 0:
         raise RuntimeError(
-            'Error running bedSort.\nstdout : {} \n stderr : {}'.format(stdout, stderr))
+            'Error running bedSort.\nstdout : {} \n stderr : {}'.format(
+                stdout, stderr))
 
 
 def bam_to_bedgraph(bam, strand='both', end_type='5prime', saveto=None):
@@ -177,20 +287,20 @@ def bam_to_bedgraph(bam, strand='both', end_type='5prime', saveto=None):
         extra_args = ''
     bed = pybedtools.BedTool(bam)
     if strand != 'both':
-        genome_cov = bed.genome_coverage(bg=True,
-                                         strand=strand,
-                                         additional_args=extra_args)
+        genome_cov = bed.genome_coverage(
+            bg=True, strand=strand, additional_args=extra_args)
     else:
-        genome_cov = bed.genome_coverage(bg=True,
-                                         additional_args=extra_args)
+        genome_cov = bed.genome_coverage(bg=True, additional_args=extra_args)
     if saveto:
         with open(saveto, 'w') as outf:
             outf.write(str(genome_cov))
     return str(genome_cov)
 
 
-def count_reads_in_features(feature_bed, bam,
-                            force_strandedness=False, use_multiprocessing=False):
+def count_reads_in_features(feature_bed,
+                            bam,
+                            force_strandedness=False,
+                            use_multiprocessing=False):
     """Count reads overlapping features.
 
     Parameters
@@ -212,28 +322,26 @@ def count_reads_in_features(feature_bed, bam,
         bam = pybedtools.BedTool(bam)
     if use_multiprocessing:
         if force_strandedness:
-            count = bam.intersect(b=feature_bed,
-                                  bed=True,
-                                  stream=True,
-                                  additional_args='-s').count()
+            count = bam.intersect(
+                b=feature_bed, bed=True, stream=True,
+                additional_args='-s').count()
         else:
-            count = bam.intersect(b=feature_bed,
-                                  bed=True,
-                                  stream=True).count()
+            count = bam.intersect(b=feature_bed, bed=True, stream=True).count()
 
     else:
         if not isinstance(feature_bed, pybedtools.BedTool):
             feature_bed = pybedtools.BedTool(feature_bed)
         if force_strandedness:
-            count = bam.intersect(b=feature_bed,
-                                  additional_args='-s').count()
+            count = bam.intersect(b=feature_bed, additional_args='-s').count()
         else:
             count = bam.intersect(b=feature_bed, stream=False).count()
     return count
 
 
-def count_feature_genewise(feature_bed, bam,
-                           force_strandedness=False, use_multiprocessing=False):
+def count_feature_genewise(feature_bed,
+                           bam,
+                           force_strandedness=False,
+                           use_multiprocessing=False):
     """Count features genewise.
 
     Parameters
@@ -267,14 +375,20 @@ def count_feature_genewise(feature_bed, bam,
     """
     counts = OrderedDict()
     for gene_name, gene_bed in six.iteritems(genewise_beds):
-        counts[gene_name] = count_reads_in_features(pybedtools.BedTool(gene_bed), bam,
-                                                    force_strandedness, False)
+        counts[gene_name] = count_reads_in_features(
+            pybedtools.BedTool(gene_bed), bam, force_strandedness, False)
     return counts
 
 
-def count_utr5_utr3_cds(bam, utr5_bed=None, cds_bed=None, utr3_bed=None,
-                        genome=None, force_strandedness=False, genewise=False,
-                        saveto=None, use_multiprocessing=False):
+def count_utr5_utr3_cds(bam,
+                        utr5_bed=None,
+                        cds_bed=None,
+                        utr3_bed=None,
+                        genome=None,
+                        force_strandedness=False,
+                        genewise=False,
+                        saveto=None,
+                        use_multiprocessing=False):
     """One shot counts over UTR5/UTR3/CDS.
 
     Parameters
@@ -318,8 +432,11 @@ def count_utr5_utr3_cds(bam, utr5_bed=None, cds_bed=None, utr3_bed=None,
         if use_multiprocessing:
             with _poolcontext(processes=3) as pool:
                 results = pool.map(
-                    partial(count_reads_in_features, bam=bam, force_strandedness=force_strandedness,
-                            use_multiprocessing=True), feature_beds)
+                    partial(
+                        count_reads_in_features,
+                        bam=bam,
+                        force_strandedness=force_strandedness,
+                        use_multiprocessing=True), feature_beds)
             counts = OrderedDict(zip(order, results))
         else:
             counts = OrderedDict()
@@ -359,11 +476,11 @@ def read_enrichment(read_lengths,
     if input_is_file:
         if not _check_file_exists(read_lengths):
             raise RuntimeError('{} does not exist.'.format(read_lengths))
-        read_lengths = pd.read_table(read_lengths,
-                                     names=['frag_len', 'frag_count'],
-                                     sep='\t')
+        read_lengths = pd.read_table(
+            read_lengths, names=['frag_len', 'frag_count'], sep='\t')
         read_lengths = pd.Series(
-            read_lengths.frag_count.tolist(), index=read_lengths.frag_len.tolist())
+            read_lengths.frag_count.tolist(),
+            index=read_lengths.frag_len.tolist())
     elif input_is_stream:
         counter = {}
         for line in read_lengths:
@@ -445,8 +562,7 @@ def gene_coverage(gene_name, bed, bw, gene_group=None, offset=0):
             intervals[0][1] = intervals[0][1] - offset
             gene_offset = offset
         else:
-            sys.stderr.write(
-                'Cannot offset beyond 0 for interval: {}. \
+            sys.stderr.write('Cannot offset beyond 0 for interval: {}. \
                 Set to start of chromsome.\n'.format(intervals[0]))
             # Reset offset to minimum possible
             gene_offset = intervals[0][1]
@@ -478,8 +594,8 @@ def gene_coverage(gene_name, bed, bw, gene_group=None, offset=0):
 
     if len(interval_coverage_list) == 0:
         # Some genes might not be present in the bigwig at all
-        sys.stderr.write(
-            'Got empty list! intervals  for chr : {}\n'.format(intervals[0][0]))
+        sys.stderr.write('Got empty list! intervals  for chr : {}\n'.format(
+            intervals[0][0]))
         return ([], None)
 
     coverage_combined = interval_coverage_list[0]
@@ -487,8 +603,8 @@ def gene_coverage(gene_name, bed, bw, gene_group=None, offset=0):
         coverage_combined = coverage_combined.combine_first(interval_coverage)
     coverage_combined = coverage_combined.fillna(0)
     coverage_index = np.arange(len(coverage_combined)) - gene_offset
-    index_to_genomic_pos_map = pd.Series(coverage_combined.index.tolist(),
-                                         index=coverage_index)
+    index_to_genomic_pos_map = pd.Series(
+        coverage_combined.index.tolist(), index=coverage_index)
     intervals_for_fasta_read = []
     for pos in index_to_genomic_pos_map.values:
         intervals_for_fasta_read.append((chrom, pos, pos + 1, strand))
@@ -559,8 +675,8 @@ def get_region_sizes(bed):
                 region_sizes[gene_name] += interval[2] - interval[1]
     sizes_df = pd.DataFrame(region_sizes.items(), columns=['name', 'length'])
     sizes_df.sort_values(by='length', ascending=False, inplace=True)
-    region_sizes = OrderedDict([tuple(x)
-                                for x in sizes_df[['name', 'length']].values])
+    region_sizes = OrderedDict(
+        [tuple(x) for x in sizes_df[['name', 'length']].values])
     return region_sizes
 
 
@@ -585,8 +701,9 @@ def htseq_to_cpm(htseq_f, saveto=None):
     denom = rate.sum()
     cpm = rate / denom * 1e6
     if saveto:
-        pd.DataFrame(cpm, columns=['cpm']).to_csv(
-            saveto, sep='\t', index=True, header=False)
+        pd.DataFrame(
+            cpm, columns=['cpm']).to_csv(
+                saveto, sep='\t', index=True, header=False)
     cpm = pd.DataFrame(cpm)  # , columns=['cpm'])
     cpm.columns = ['cpm']
     cpm = cpm.sort_values(by='cpm', ascending=False)
@@ -618,8 +735,9 @@ def htseq_to_tpm(htseq_f, cds_bed_f, saveto=None):
     denom = np.log(np.sum(np.exp(rate)))
     tpm = np.exp(rate - denom + np.log(1e6))
     if saveto:
-        pd.DataFrame(tpm, columns=['tpm']).to_csv(
-            saveto, sep='\t', index=True, header=False)
+        pd.DataFrame(
+            tpm, columns=['tpm']).to_csv(
+                saveto, sep='\t', index=True, header=False)
     tpm = pd.DataFrame(tpm, columns=['tpm'])
     tpm = tpm.sort_values(by='tpm', ascending=False)
     return tpm
@@ -712,7 +830,8 @@ def metagene_coverage(bigwig,
         ranked_genes = read_htseq(htseq_f, region_sizes, prefix)
         # Only consider genes which are in cds_grouped.keys
         ranked_genes = [
-            gene for gene in ranked_genes if gene in cds_grouped.groups.keys()]
+            gene for gene in ranked_genes if gene in cds_grouped.groups.keys()
+        ]
     else:
         # Use all genes when no htseq present
         ranked_genes = list(cds_grouped.groups.keys())
@@ -743,16 +862,16 @@ def metagene_coverage(bigwig,
     for gene_name, gene_group in cds_grouped:
         if ignore_tx_version:
             gene_name = re.sub(r'\.[0-9]+', '', gene_name)
-        gene_cov, _, _, gene_offset = gene_coverage(gene_name, region_bed,
-                                                    bw, gene_group, offset)
+        gene_cov, _, _, gene_offset = gene_coverage(gene_name, region_bed, bw,
+                                                    gene_group, offset)
         if max_positions != -1:
             min_index = min(gene_cov.index.tolist())
             gene_length = max(gene_cov.index.tolist())
-            #gene_length = len(gene_cov.inex) + min_index
+            # gene_length = len(gene_cov.inex) + min_index
 
             # Keep only important positions
-            gene_cov = gene_cov[range(
-                min_index, min(gene_length, max_positions))]
+            gene_cov = gene_cov[range(min_index,
+                                      min(gene_length, max_positions))]
 
         # Generate individual plot for top genes
         if gene_name in top_genes and prefix:
@@ -765,7 +884,7 @@ def metagene_coverage(bigwig,
         if gene_name in top_meta_genes:
             norm_cov = gene_cov / gene_cov.mean()
             topgene_normalized_coverage = topgene_normalized_coverage.add(
-                norm_cov,  fill_value=0)
+                norm_cov, fill_value=0)
             topgene_position_counter += Counter(gene_cov.index.tolist())
 
         genewise_normalized_coverage = genewise_normalized_coverage.add(
@@ -798,8 +917,8 @@ def metagene_coverage(bigwig,
                     open('{}_ranked_genes.pickle'.format(prefix), 'wb'),
                     __PICKLE_PROTOCOL__)
         pickle.dump(gene_position_counter,
-                    open('{}_gene_position_counter.pickle'.format(prefix), 'wb'),
-                    __PICKLE_PROTOCOL__)
+                    open('{}_gene_position_counter.pickle'.format(prefix),
+                         'wb'), __PICKLE_PROTOCOL__)
         pickle.dump(metagene_normalized_coverage,
                     open('{}_metagene_normalized.pickle'.format(prefix), 'wb'),
                     __PICKLE_PROTOCOL__)
@@ -810,8 +929,8 @@ def metagene_coverage(bigwig,
                     open('{}_genewise_offsets.pickle'.format(prefix), 'wb'),
                     __PICKLE_PROTOCOL__)
         pickle.dump(topgene_position_counter,
-                    open('{}_topgene_position_counter.pickle'.format(prefix), 'wb'),
-                    __PICKLE_PROTOCOL__)
+                    open('{}_topgene_position_counter.pickle'.format(prefix),
+                         'wb'), __PICKLE_PROTOCOL__)
         pickle.dump(topgene_normalized_coverage,
                     open('{}_topgene_normalized.pickle'.format(prefix), 'wb'),
                     __PICKLE_PROTOCOL__)
@@ -833,7 +952,7 @@ def read_htseq(htseq_f):
     """
     htseq = pd.read_table(htseq_f, names=['name', 'counts']).set_index('name')
     htseq = htseq.iloc[:-5]
-    if(htseq.shape[0] <= 10):
+    if (htseq.shape[0] <= 10):
         sys.stderr.write('Empty dataframe for : {}\n'.format(htseq_f))
         return None
     return htseq
@@ -855,8 +974,10 @@ def read_length_distribution(bam):
     """
     _create_bam_index(bam)
     bam = pysam.AlignmentFile(bam, 'rb')
-    return Counter([read.query_length for read in bam.fetch()
-                    if _is_read_uniq_mapping(read)])
+    return Counter([
+        read.query_length for read in bam.fetch()
+        if _is_read_uniq_mapping(read)
+    ])
 
 
 def summarize_counters(samplewise_dict):
@@ -876,8 +997,8 @@ def summarize_counters(samplewise_dict):
     """
     totals = {}
     for key, sample_dict in samplewise_dict.iteritems():
-        totals[key] = np.nansum([np.nansum(d)
-                                 for d in list(sample_dict.values)])
+        totals[key] = np.nansum(
+            [np.nansum(d) for d in list(sample_dict.values)])
     return totals
 
 
