@@ -33,5 +33,5 @@ Installation
 Features
 --------
 
-* TODO
+See: http://saketkc.github.io/ribocop/cmd-manual.html
 
