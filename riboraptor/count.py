@@ -113,7 +113,8 @@ def _bed_to_genomic_interval(bed):
 
 
 def get_closest(bam, regions, half_window_width=0):
-    """For each read in bam find nearest region in bed
+    """For each read in bam find nearest region in bed.
+
     Parameters
     ----------
     bam : str
@@ -122,6 +123,10 @@ def get_closest(bam, regions, half_window_width=0):
               Genomic regions to get distance from
     half_window_width : int
                         Distance around region to record
+
+    Returns
+    -------
+    profile : dataframe
     """
     profile = {}
     sorted_bam = HTSeq.BAM_Reader(bam)

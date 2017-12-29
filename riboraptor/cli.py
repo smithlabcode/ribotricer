@@ -9,6 +9,7 @@ import six
 import pandas as pd
 
 from . import __version__
+from .coherence import get_periodicity
 from .count import bam_to_bedgraph
 from .count import bedgraph_to_bigwig
 from .count import count_reads_per_gene
@@ -221,6 +222,19 @@ def metagene_coverage_cmd(bigwig, region_bed, max_positions, htseq_f, prefix,
     for l, count in metagene_profile.iteritems():
         sys.stdout.write('{}\t{}'.format(l, count))
         sys.stdout.write(os.linesep)
+
+@cli.command(
+    'periodicity',
+    context_settings=CONTEXT_SETTINGS,
+    help='Calculate periodicity')
+@click.option('--counts', help='Path to counts file (if not stdin)')
+def periodicity_cmd(counts):
+    if counts:
+        periodicity, pval = get_periodicity(counts)
+    else:
+        periodicity, pval = get_periodicity(sys.stdin.readlines(), input_is_stream=True)
+    sys.stdout.write('Periodicity: {}({})'.format(periodicity, pval))
+    sys.stdout.write(os.linesep)
 
 
 @cli.command(

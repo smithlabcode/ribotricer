@@ -1,13 +1,6 @@
 riboraptor package
 ==================
 
-Subpackages
------------
-
-.. toctree::
-
-    riboraptor.periodicity
-
 Submodules
 ----------
 
@@ -15,6 +8,14 @@ riboraptor\.cli module
 ----------------------
 
 .. automodule:: riboraptor.cli
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+riboraptor\.coherence module
+----------------------------
+
+.. automodule:: riboraptor.coherence
     :members:
     :undoc-members:
     :show-inheritance:

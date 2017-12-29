@@ -24,7 +24,6 @@ setup(
     url='https://github.com/saketkc/riboraptor',
     packages=[
         'riboraptor',
-        'riboraptor.periodicity',
     ],
     package_dir={'riboraptor': 'riboraptor'},
     package_data={'riboraptor': ['annotation/hg38/*.*']},  # 'data/*.bw',
