@@ -23,12 +23,23 @@ Python package to analyse ribosome profiling data
 Installation
 ------------
 
+Using conda:
 .. code-block:: bash
 
    $ git clone git@github.com:saketkc/ribocop.git
-   $ conda install numpy scipy pandas matplotlib seaborn statsmodels pycwt mtspec
+   $ conda install numpy scipy pandas matplotlib seaborn statsmodels pycwt mtspec htseq six pybigwig click pysam
    $ cd ribocop
-   $ pip install -e .
+   $ python setup.py install --single-version-externally-managed --record=/tmp/record.txt
+
+
+Using pip only:
+.. code-block:: bash
+
+   $ git clone git@github.com:saketkc/ribocop.git
+   $ cd ribocop
+   $ pip install -r requirements.txt
+   $ python setup.py install
+
 
 Features
 --------
