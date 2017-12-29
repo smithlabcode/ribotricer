@@ -38,8 +38,8 @@ and "help wanted" is open to whoever wants to implement it.
 Write Documentation
 ~~~~~~~~~~~~~~~~~~~
 
-Riboraptor could always use more documentation, whether as part of the
-official Riboraptor docs, in docstrings, or even on the web in blog posts,
+ribocop could always use more documentation, whether as part of the
+official ribocop docs, in docstrings, or even on the web in blog posts,
 articles, and such.
 
 Submit Feedback

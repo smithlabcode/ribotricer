@@ -1,4 +1,4 @@
-Welcome to Riboraptor's documentation!
+Welcome to ribocop's documentation!
 ======================================
 
 ``ribocop`` library is a Python library for analysis of Ribo-seq data.
