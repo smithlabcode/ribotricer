@@ -24,6 +24,7 @@ Installation
 ------------
 
 Using conda:
+
 .. code-block:: bash
 
    $ git clone git@github.com:saketkc/ribocop.git
@@ -33,6 +34,7 @@ Using conda:
 
 
 Using pip only:
+
 .. code-block:: bash
 
    $ git clone git@github.com:saketkc/ribocop.git
