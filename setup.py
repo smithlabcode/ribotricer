@@ -26,15 +26,10 @@ setup(
         'riboraptor',
         'riboraptor.periodicity',
     ],
-    package_dir={'riboraptor':
-                 'riboraptor'},
-    package_data={'riboraptor': ['annotation/hg38/*.*']}, # 'data/*.bw',
+    package_dir={'riboraptor': 'riboraptor'},
+    package_data={'riboraptor': ['annotation/hg38/*.*']},  # 'data/*.bw',
     #data_files=[('riboraptor', ['annotation/*.*'])],
-    entry_points={
-        'console_scripts': [
-            'riboraptor=riboraptor.cli:cli'
-        ]
-    },
+    entry_points={'console_scripts': ['riboraptor=riboraptor.cli:cli']},
     include_package_data=True,
     install_requires=requirements,
     license="BSD license",
@@ -51,5 +46,4 @@ setup(
         'Programming Language :: Python :: 3.5',
     ],
     test_suite='tests',
-    tests_require=test_requirements
-)
+    tests_require=test_requirements)
