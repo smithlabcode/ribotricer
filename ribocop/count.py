@@ -190,7 +190,7 @@ def count_reads_per_gene(bam, bed, prefix=None):
         mkdir_p(os.path.dirname(prefix))
         df = pd.concat([counts_by_region, length_by_region, counts_normalized_by_length], axis=1)
         df.columns = ['counts', 'length', 'normalized_counts']
-        df.to_csv('{}.tsv'.format(prefix), index=True, header=True, sep='\t')
+        df.to_csv('{}.tsv'.format(prefix), index=True, header=True, sep=str('\t'))
         pickle.dump(counts_by_region,
                     open('{}_counts.pickle'.format(prefix), 'wb'),
                     __PICKLE_PROTOCOL__)

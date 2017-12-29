@@ -1,13 +1,13 @@
 ============================================================================
-Complete Pipeline
+Manual
 ============================================================================
 
 
 Contents
 ========
-The RiboPipe software package is a comprehensive pipeline and set of tools for
-analyzing Ribo-seq sequencing data. This manual explains
-the stages in our pipeline, how to use the analysis tools, and how to modify
+robocop is a comprehensive pipeline and set of tools for
+analyzing Ribo-seq data. This manual explains
+the stages in our pipeline, how to use the analysis tools and how to modify
 the pipeline for your specific context.
 
 
@@ -21,10 +21,10 @@ nodes will have several GB of memory available for processing.
 
 Translation profile construction
 ================================
-Ribo-seq experiments are always single-end sequenced. Ribosome protected fragments range
-from 28-31 nucleotides and hence most experiments involve 50 bp single end reads. Before mapping,
-we need to get rid of the adapters which are ligated at the 3' end of the fragments as part of the
-library protocol.
+Ribo-seq experiments are always single-end sequenced. Ribosome protected
+fragments range from 28-31 nucleotides and hence most experiments involve
+50 bp single end reads. Before mapping, we need to get rid of the adapters
+ligated at the 3' end of the fragments as part of the library protocol.
 
 
 Trimming Reads
@@ -41,9 +41,10 @@ We use trim_galore_ for trimming. It automates adapter trimming:
 
 Mapping Reads
 -------------
-We use STAR_ to map reads. The first step is to create an index, preferably
-using a GTF file. If the index step is run without a GTF file (which is optional), 
-STAR_ will not be splice-aware.
+We use STAR_ to map reads, though other splice-aware aligners can also be used.
+The first step is to create an index, preferably using a GTF file. 
+If the index step is run without a GTF file (which is optional),  STAR_ will 
+not be splice-aware.
 
 
 Creating Index
@@ -58,17 +59,21 @@ Creating Index
           --sjdbGTFfile <input.gtf>
 
 
---runThreadN threads                     Number of threads to use
---runMode genomeGenerate                 Flag to set for index mode
---genomeDir index_out_dir                Directory to write index files to
---genomeSAindexNbases SA_INDEX_Nbases    min(14, log2(GenomeLength)/2 - 1), 
-                                         this **must** be scaled down for small genomes
---genomeFastaFiles input_fasta           Path to reference fasta
---sjdbGTFfile input_gtf                  Path to GTf file
+--runThreadN              Number of threads to use
+--runMode                 Flag to set for index mode
+--genomeDir               Directory to write index files to
+--genomeSAindexNbases     min(14, log2(GenomeLength)/2 - 1), 
+                          this **must** be scaled down for small genomes
+--genomeFastaFiles        Path to reference fasta
+--sjdbGTFfile             Path to GTf file
 
 
 Mapping
 ~~~~~~~
+Often Ribo-seq experiments have a matching RNA-seq library. Ideally, the RNA-seq
+library should be as similar to Ribo-seq library and hence will often be single-ended.
+We recommend both RNA-seq and Ribo-seq samples be mapped using the following parameters:
+
 .. code-block:: console
 
     $ STAR --runThreadN <threads>\
@@ -84,23 +89,20 @@ Mapping
           --outReadsUnmapped Fastx\
 
 
---runThreadN threads                Number of threads to use
---genomeDir index_out_dir           Path to index directory
---outFilterMismatchNmax mismatches  Allow a maximum of mismatches=2
---alignIntronMin ALIGN_INTRON_Nmin  Minimum intron size. Any genomic gap
-                                    is considered intron if its
-                                    length >= alignIntronMin.
---alignIntronMax ALIGN_INTRON_Nmax  Maximum intron size
---outFileNamePrefix prefix          Prefix for output files
---readFilesIn input_fq_gz           Path to input fastq.gz
---outSAMtype outtype                Output an unsorted BAM file (outtype=BAM Unsorted)
---readFilesCommand zcat             Since input is gzipped use zcat to
-                                    decompress it on the fly
---quantMode TranscriptomeSAM        Also output BAM aligned to the transcriptome
---outTmpDir tpmdir                  Directory to use for writing 
-                                    temporary files
---outReadsUnmapped Fastx            Write unmapped reads to separate 
-                                    fastq file
+--runThreadN               Number of threads to use
+--genomeDir                Path to index directory
+--outFilterMismatchNmax    Allow a maximum of mismatches=2
+--alignIntronMin           Minimum intron size. Any genomic gap
+                           is considered intron if its
+                           length >= alignIntronMin. (Default = 20)
+--alignIntronMax           Maximum intron size (Default = 1000000)
+--outFileNamePrefix        Prefix for output files
+--readFilesIn              Path to input fastq.gz
+--outSAMtype               Output an unsorted BAM file (outtype=BAM Unsorted)
+--readFilesCommand         cat/zcat depending on input is fq/fq.gz
+--quantMode                Also output BAM aligned to the transcriptome
+--outTmpDir                Directory to use for writing temporary files
+--outReadsUnmapped         Write unmapped reads to separate fastq file
 
 
 Sorting and Indexing
@@ -124,8 +126,20 @@ Additionaly, we also need BAM file sorted by name, since htseq-counts_
 
 Translation profile analysis
 ============================
-Once we have the bams, we are ready for downstream analysis. We will use our ribocop_ tool 
-for all downstream analysis.
+Once we have the bams, we are ready for downstream analysis.
+The downstream step often involves a number of steps.
+The following list summarises these steps along with their recommended
+values (whereve applicable):
+
+
+* Quality Control
+    - Number of uniquely mapping reads : >=5M
+    - Periodicity : TODO
+    - Ratio of CDS/(5'UTR+3'UTR) : >1 after length normalization
+    - Fragment length distribution : Peak around 28-31 nt
+
+* Metagene analysis
+   - P-site offsets : Around 12-14 nt upstream of the start codon when counting based on 5'end
 
 
 Counting uniquely mapped reads
@@ -188,11 +202,11 @@ We now have `<output.bw>` ready for further downstream analysis.
 
 Distribution in 5'UTR/3'UTR/CDS regions
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-TODO
+TODO (See Example)
 
 Metagene plot
 ~~~~~~~~~~~~~
-TODO
+TODO (See Example)
 
 Example
 =======
@@ -219,11 +233,13 @@ This is a pretty deep library.
 
     Fragment length distribution for SRR5227310
 
+How enriched is it in 27-32 nt fragment range?
 
 .. code-block:: console
 
    $ ribocop read-length-dist --bam data/SRR5227310.bam\
         | ribocop read-enrichment
+    (Enrichment: 1.52768004237, pval: 0.458943823895)
 
 
 So the fragment length distribution doesn't seem to be enriched. We next perform metagene
@@ -232,11 +248,33 @@ one codon at a time during active translation.
 
 .. code-block:: console
 
-   $ ribocop metagene
+   $ ribocop bedgraph-to-bigwig -bg data/SRR5227310.bg -s hg38 -o data/SRR5227310.bw
 
-This is not likely a Ribo-seq sample.
 
-Let's try another sample: SRR5227306.
+.. code-block:: console
+
+   $  ribocop metagene-coverage -bw data/SRR5227310.bw \
+      --region_bed hg38_cds --max-positions 500 \
+      --prefix data/SRR5227310.metagene --offset 60 --ignore_tx_version
+
+.. code-block:: console
+
+   $ ribocop plot-read-counts \
+       --counts data/SRR5227310.metagene_metagene_normalized.pickle\
+       --saveto data/SRR5227310.metagene.png
+
+.. figure:: images/SRR5227310.metagene.png
+    :align: center
+    :alt: Metagene distribution for SRR5227310
+    :figclass: align center
+
+    Metagene distribution for SRR5227310
+
+
+
+This is not likely a Ribo-seq sample. Let's try another sample: SRR5227306 and compare it with SRR5227310
+with respect to distribution of reads.
+
 
 .. code-block:: console
 
@@ -246,44 +284,6 @@ Let's try another sample: SRR5227306.
 .. code-block:: console
 
    $ ribocop read-length-dist --bam data/SRR5227306.bam | ribocop plot-read-dist --saveto SRR5227306.png
-        4e+06 ++------+--------+-------+-------+-------+--------+-------+------++
-              +       +        +       +       +       +        +       +       +
-              |                                                                 |
-              |                     ***                                         |
-      3.5e+06 ++                    * *                                        ++
-              |                     * *                                         |
-              |                     * *                                         |
-              |                     * *                                         |
-              |                     * *                                         |
-        3e+06 ++                    * *                                        ++
-              |                     * *                                         |
-              |                     * *                                         |
-              |                    ** *                                         |
-      2.5e+06 ++                   ** *                                        ++
-              |                    ** *                                         |
-              |                    ** *                                         |
-              |                    ** *                                         |
-        2e+06 ++                   ** *                                        ++
-              |                    ** ***                                       |
-              |                    ** * *                                       |
-              |                    ** * *                                       |
-              |                    ** * *                                       |
-      1.5e+06 ++                   ** * *                                      ++
-              |                    ** * *                                       |
-              |                    ** * *                                       |
-              |                  **** * *                                       |
-        1e+06 ++                 * ** * *                                      ++
-              |                  * ** * *                                       |
-              |                  * ** * *                                       |
-              |                  * ** * *                                       |
-              |                  * ** * *                                       |
-       500000 ++                 * ** * **                                     ++
-              |                *** ** * **                                      |
-              |                * * ** * **                                      |
-              +       +       ** * ** *+*******+       +        +       +       +
-            0 ++-----******************************************************----++
-             15      20       25      30      35      40       45      50      55
-
 
 .. figure:: images/SRR5227306.png
     :align: center
@@ -295,10 +295,25 @@ Let's try another sample: SRR5227306.
 .. code-block:: console
 
    $ ribocop read-length-dist --bam data/SRR5227306.bam | ribocop read-enrichment
+   (Enrichment: 14.0292145986, pval: 0.135220082438)
+
+As compared to SRR5227310, the enrichment in this case is almost 10 times higher.
+
+.. code-block:: console
+
+   $ riboraptor plot-framewise-counts --counts data/SRR5227306.metagene_metagene_raw.pickle\
+        --saveto data/SRR5227306.framewise.png
+
+.. figure:: images/SRR5227306.framewise.png
+    :align: center
+    :alt: Fragment length distribution SRR5227306
+    :figclass: align center
+
+    Framewise distribution for SRR5227306
 
 
-Metagene counts : Calculate Periodicity
----------------------------------------
+We can see the framewise distribution of reads in SRR5227310 is more or less uniform, but not so in SRR5227306.
+
 
 .. code-block:: console
 
@@ -316,87 +331,23 @@ Metagene counts : Calculate Periodicity
    $ ribocop plot-read-counts \
        --counts data/SRR5227306.metagene_metagene_normalized.pickle\
        --saveto data/SRR5227306.metagene.png
-      6 ++----*-----+-----------+-----------+-----------+-----------+----------++
-        +     *     +           +           +           +           +           +
-        |     *                                                                 |
-        |     *                                                                 |
-        |     *                                                                 |
-        |     *                                                                 |
-      5 ++    *                                                                ++
-        |     *                                                                 |
-        |     *                                                                 |
-        |     *                                                                 |
-        |     *                                                                 |
-        |     *                                                                 |
-      4 ++    *                                                                ++
-        |     *                                                                 |
-        |     **                                                                |
-        |     **                                                                |
-        |     **                                                                |
-      3 ++    **                                                               ++
-        |     **                                                                |
-        |     **                                                                |
-        |     **                                                                |
-        |     **                                                                |
-        |     **                                                                |
-      2 ++    **                                                               ++
-        |     **                                                                |
-        |     **   *                                                            |
-        |     **   *                                                            |
-        |     **   *                                                            |
-        |     **  **                                         * *                |
-      1 ++    **  **        ********** * * ** ***********************************
-        |     ** *** *** ********************************************************
-        |     *******************************************************************
-        |     *******************************************************************
-        |     ***************************************************** ******    ***
-        +    ************ * *   +           +           +           +           +
-      0 ++----------+-----------+-----------+-----------+-----------+----------++
-      -100          0          100         200         300         400         500
 
-.. code-block:: console
+.. figure:: images/SRR5227306.metagene.png
+    :align: center
+    :alt: Metagene distribution for SRR5227306
+    :figclass: align center
 
- 1.1 ++----------+----------+-----------+-----------+----------+----------++
-      +           *          +           +           +          +           +
-      |           *                                                         |
-      |           *                                                 *       |
-      |           *               *            *                    *       |
-    1 ++          *               *            *                    *    * ++
-      |           *    *          *          * *       *            *    *  |
-      |           *    *          *          * *    *  *         *  *    *  |
-      |           *    *          * *    *   * *    *  **        *  ***  * *|
-      |           *    *          * *    ** ** **   * *** *  **  ******  * *|
-  0.9 ++          *    *   * **   * **   ***** **  ** *****  *** ******* * *+
-      |           * ****   **** *******  ***** **  ********* *** ************
-      |          ** *****  **** *******  ***** *** ************* ************
-      |        * ********* ************  ************************************
-      |        * ********* **************************************************
-  0.8 ++       * ************************************************************
-      |        **************************************************************
-      |        **************************************************************
-      |     * ***************************************************** *********
-      |    *********** ******************************** ****** **** ***** ***
-  0.7 ++   *********** *********** **** * * ******* *** ****** * ** ****   +*
-      |    ***********  **  **     * ** *   * **    *** *  ***   *  **      *
-      |    ******** *       *        *  *            **     *        *      |
-      |    ****** * *       *                                        *      |
-      |    **** * * *                                                       |
-  0.6 ++   **** * * *                                                      ++
-      |    **** * *                                                         |
-      |    ****   *                                                         |
-      |    ** *   *                                                         |
-      |    ** *                                                             |
-  0.5 ++   ** *                                                            ++
-      |    *                                                                |
-      |                                                                     |
-      |                                                                     |
-      +           +          +           +           +          +           +
-  0.4 ++----------+----------+-----------+-----------+----------+----------++
-    -100          0         100         200         300        400         500
+    Metagene distribution for SRR5227306
 
-Distributio of 5'UTR/CDS/3'UTR counts
--------------------------------------
+The metagene of a Ribo-seq sample will show periodicity as in the case of SRR5227306 sample.
+On the other hand a RNA-seq sample like SRR5227310 will tend to have a flat profile.
 
+
+
+Distribution of 5'UTR/CDS/3'UTR counts
+--------------------------------------
+
+TODO
 
 
 .. _trim_galore: https://www.bioinformatics.babraham.ac.uk/projects/trim_galore/
