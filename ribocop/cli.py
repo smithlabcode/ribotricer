@@ -37,7 +37,7 @@ CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
     help_options_color='green')
 @click.version_option(version=__version__)
 def cli():
-    """riboraptor: Tool for ribosome profiling analysis"""
+    """ribocop: Tool for ribosome profiling analysis"""
     pass
 
 

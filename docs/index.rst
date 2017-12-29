@@ -1,11 +1,11 @@
 Welcome to Riboraptor's documentation!
 ======================================
 
-``riboraptor`` library is a Python library for analysis of Ribo-seq data.
+``ribocop`` library is a Python library for analysis of Ribo-seq data.
 It assumes the reads have already been aligned to a reference and are available as BAM/SAM for input. Detailed
 instructions for mapping are available elsewhere [TODO: Instructions for mapping].
 
-Current capabilities of ``riboraptor`` include:
+Current capabilities of ``ribocop`` include:
 
 :Visualization:
     - Read length distribution
@@ -19,26 +19,30 @@ Current capabilities of ``riboraptor`` include:
 
 .. code-block:: console
 
-    $ riboraptor
+    $ ribocop
+      Usage: ribocop [OPTIONS] COMMAND [ARGS]...
 
-    Usage: riboraptor [OPTIONS] COMMAND [ARGS]...
-      riboraptor: Tool for ribosome profiling analysis
-    Options:
-      --version  Show the version and exit.
-      --help     Show this message and exit.
-    Commands:
-      bam-to-bedgraph     Convert bam to bedgraph
-      bedgraph-to-bigwig  Convert bedgraph to bigwig
-      count-all-features  Count reads in 5'UTr/CDs/3'UTR regions
-      count-in-feature    Count reads in given feature bed file
-      gene-coverage       Calculate coverage across a gene
-      mapping-summary     Mapping summary
-      metagene-coverage   Plot metagene plot
-      plot-read-counts    Plot read counts distribution across a gene
-      plot-read-dist      Plot read length distribution
-      read-enrichment     Calculate read length enrichment
-      read-length-dist    Calculate read length distribution
-      uniq-mapping-count  Count number of unique mapping reads
+      ribocop: Tool for ribosome profiling analysis
+
+      Options:
+        --version  Show the version and exit.
+        --help     Show this message and exit.
+
+      Commands:
+        bam-to-bedgraph        Convert bam to bedgraph
+        bedgraph-to-bigwig     Convert bedgraph to bigwig
+        count-all-features     Count reads in 5'UTR/CDS/3'UTR regions
+        count-in-feature       Count reads in given feature bed file
+        gene-coverage          Calculate coverage across a gene
+        mapping-summary        Mapping summary
+        metagene-coverage      Plot metagene plot
+        periodicity            Calculate periodicity
+        plot-framewise-counts  Plot read counts highlighting frames
+        plot-read-counts       Plot read counts distribution across a gene
+        plot-read-dist         Plot read length distribution
+        read-enrichment        Calculate read length enrichment
+        read-length-dist       Calculate read length distribution
+        uniq-mapping-count     Count number of unique mapping reads
 
 
 Contents:

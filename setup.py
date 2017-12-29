@@ -15,25 +15,25 @@ with open('requirements.txt') as reqs:
 test_requirements = requirements + ['pytest']
 
 setup(
-    name='riboraptor',
+    name='ribocop',
     version='0.1.0',
     description="Python package to analyse ribosome profiling data",
     long_description=readme + '\n\n' + history,
     author="Saket Choudhary",
     author_email='saketkc@gmail.com',
-    url='https://github.com/saketkc/riboraptor',
+    url='https://github.com/saketkc/ribocop',
     packages=[
-        'riboraptor',
+        'ribocop',
     ],
-    package_dir={'riboraptor': 'riboraptor'},
-    package_data={'riboraptor': ['annotation/hg38/*.*']},  # 'data/*.bw',
-    #data_files=[('riboraptor', ['annotation/*.*'])],
-    entry_points={'console_scripts': ['riboraptor=riboraptor.cli:cli']},
+    package_dir={'ribocop': 'ribocop'},
+    package_data={'ribocop': ['annotation/hg38/*.*']},  # 'data/*.bw',
+    #data_files=[('ribocop', ['annotation/*.*'])],
+    entry_points={'console_scripts': ['ribocop=ribocop.cli:cli']},
     include_package_data=True,
     install_requires=requirements,
     license="BSD license",
     zip_safe=False,
-    keywords='riboraptor',
+    keywords='ribocop',
     classifiers=[
         'Development Status :: 2 - Pre-Alpha',
         'Intended Audience :: Developers',

@@ -1,16 +1,16 @@
 ===============================
-Riboraptor
+Ribocop
 ===============================
 
 
-.. image:: https://img.shields.io/pypi/v/riboraptor.svg
-        :target: https://pypi.python.org/pypi/riboraptor
+.. image:: https://img.shields.io/pypi/v/ribocop.svg
+        :target: https://pypi.python.org/pypi/ribocop
 
-.. image:: https://travis-ci.com/saketkc/riboraptor.svg?token=GsuWFnsdqcXUSp8vzLip&branch=master
-        :target: https://travis-ci.com/saketkc/riboraptor
+.. image:: https://travis-ci.com/saketkc/ribocop.svg?token=GsuWFnsdqcXUSp8vzLip&branch=master
+    :target: https://travis-ci.com/saketkc/ribocop
 
-.. image:: https://pyup.io/repos/github/saketkc/riboraptor/shield.svg
-     :target: https://pyup.io/repos/github/saketkc/riboraptor/
+.. image:: https://pyup.io/repos/github/saketkc/ribocop/shield.svg
+     :target: https://pyup.io/repos/github/saketkc/ribocop/
      :alt: Updates
 
 
@@ -18,16 +18,16 @@ Python package to analyse ribosome profiling data
 
 
 * Free software: BSD license
-* Documentation: http://saketkc.github.io/riboraptor/
+* Documentation: http://saketkc.github.io/ribocop/
 
 Installation
 ------------
 
 .. code-block:: bash
 
-   $ git clone git@github.com:saketkc/riboraptor.git
+   $ git clone git@github.com:saketkc/ribocop.git
    $ conda install numpy scipy pandas matplotlib seaborn statsmodels pycwt mtspec
-   $ cd riboraptor
+   $ cd ribocop
    $ pip install -e .
 
 Features

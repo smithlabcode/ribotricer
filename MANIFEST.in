@@ -7,11 +7,11 @@ include LICENSE
 include README.rst
 include requirements.txt
 
-include riboraptor/annotation
-include riboraptor/annotation/hg38
-recursive-include riboraptor/annotation *
-recursive-include riboraptor/annotation *.bed.gz *.sizes
-recursive-include riboraptor/annotation/hg38 *.bed.gz *.sizes
+include ribocop/annotation
+include ribocop/annotation/hg38
+recursive-include ribocop/annotation *
+recursive-include ribocop/annotation *.bed.gz *.sizes
+recursive-include ribocop/annotation/hg38 *.bed.gz *.sizes
 recursive-include tests *
 recursive-exclude * __pycache__
 recursive-exclude * *.py[co]

@@ -2,10 +2,10 @@
 # -*- coding: utf-8 -*-
 
 """
-test_riboraptor
+test_ribocop
 ----------------------------------
 
-Tests for `riboraptor` module.
+Tests for `ribocop` module.
 """
 
 import pytest
@@ -13,7 +13,7 @@ import pytest
 from contextlib import contextmanager
 from click.testing import CliRunner
 
-from riboraptor import cli
+from ribocop import cli
 
 
 @pytest.fixture
@@ -36,7 +36,7 @@ def test_command_line_interface():
     runner = CliRunner()
     result = runner.invoke(cli.main)
     assert result.exit_code == 0
-    assert 'riboraptor.cli.main' in result.output
+    assert 'ribocop.cli.main' in result.output
     help_result = runner.invoke(cli.main, ['--help'])
     assert help_result.exit_code == 0
     assert '--help  Show this message and exit.' in help_result.output

@@ -4,7 +4,7 @@ set -euxo pipefail
 make clean
 make docs
 # commit and push
-#git add riboraptor docs
+#git add ribocop docs
 #git commit -m "building and pushing docs"
 #git push origin master
 # switch branches and pull the data we want
