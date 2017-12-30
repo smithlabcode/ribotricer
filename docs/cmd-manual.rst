@@ -228,6 +228,7 @@ This is a pretty deep library.
 
 .. figure:: images/SRR5227310.png
     :align: center
+    :width: 70%
     :alt: Fragment length distribution SRR5227310
     :figclass: align center
 
@@ -264,6 +265,7 @@ one codon at a time during active translation.
 
 .. figure:: images/SRR5227310.metagene.png
     :align: center
+    :width: 70%
     :alt: Metagene distribution for SRR5227310
     :figclass: align center
 
