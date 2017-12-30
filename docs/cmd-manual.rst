@@ -228,7 +228,7 @@ This is a pretty deep library.
 
 .. figure:: images/SRR5227310.png
     :align: center
-    :width: 70%
+    :width: 100%
     :alt: Fragment length distribution SRR5227310
     :figclass: align center
 
@@ -265,7 +265,7 @@ one codon at a time during active translation.
 
 .. figure:: images/SRR5227310.metagene.png
     :align: center
-    :width: 70%
+    :width: 100%
     :alt: Metagene distribution for SRR5227310
     :figclass: align center
 
@@ -281,6 +281,7 @@ Since metagene gives a summary statistic, we can also look at the abolute counts
 
 .. figure:: images/SRR5227310.framewise.png
     :align: center
+    :width: 100%
     :alt: Fragment length distribution SRR5227310
     :figclass: align center
 
@@ -302,6 +303,7 @@ with respect to distribution of reads.
 
 .. figure:: images/SRR5227306.png
     :align: center
+    :width: 100%
     :alt: Fragment length distribution SRR5227306
     :figclass: align center
 
@@ -321,6 +323,7 @@ As compared to SRR5227310, the enrichment in this case is almost 10 times higher
 
 .. figure:: images/SRR5227306.framewise.png
     :align: center
+    :width: 100%
     :alt: Fragment length distribution SRR5227306
     :figclass: align center
 
@@ -349,6 +352,7 @@ We can see the framewise distribution of reads in SRR5227310 is more or less uni
 
 .. figure:: images/SRR5227306.metagene.png
     :align: center
+    :width: 100%
     :alt: Metagene distribution for SRR5227306
     :figclass: align center
 
