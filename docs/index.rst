@@ -52,7 +52,7 @@ Contents:
 
    installation
    cmd-manual
-   quickstart
+   api-usage
    scores
    modules
    history

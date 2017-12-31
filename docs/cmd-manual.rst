@@ -59,13 +59,12 @@ Creating Index
           --sjdbGTFfile <input.gtf>
 
 
---runThreadN              Number of threads to use
---runMode                 Flag to set for index mode
---genomeDir               Directory to write index files to
---genomeSAindexNbases     min(14, log2(GenomeLength)/2 - 1), 
-                          this **must** be scaled down for small genomes
---genomeFastaFiles        Path to reference fasta
---sjdbGTFfile             Path to GTf file
+--runThreadN           Number of threads to use
+--runMode              Flag to set for index mode
+--genomeDir            Directory to write index files to
+--genomeSAindexNbases  min(14, log2(GenomeLength)/2 - 1), this **must** be scaled down for small genomes
+--genomeFastaFiles     Path to reference fasta
+--sjdbGTFfile          Path to GTf file
 
 
 Mapping
@@ -89,20 +88,20 @@ We recommend both RNA-seq and Ribo-seq samples be mapped using the following par
           --outReadsUnmapped Fastx\
 
 
---runThreadN               Number of threads to use
---genomeDir                Path to index directory
---outFilterMismatchNmax    Allow a maximum of mismatches=2
---alignIntronMin           Minimum intron size. Any genomic gap
-                           is considered intron if its
-                           length >= alignIntronMin. (Default = 20)
---alignIntronMax           Maximum intron size (Default = 1000000)
---outFileNamePrefix        Prefix for output files
---readFilesIn              Path to input fastq.gz
---outSAMtype               Output an unsorted BAM file (outtype=BAM Unsorted)
---readFilesCommand         cat/zcat depending on input is fq/fq.gz
---quantMode                Also output BAM aligned to the transcriptome
---outTmpDir                Directory to use for writing temporary files
---outReadsUnmapped         Write unmapped reads to separate fastq file
+--runThreadN             Number of threads to use
+--genomeDir              Path to index directory
+--outFilterMismatchNmax  Allow a maximum of mismatches=2
+--alignIntronMin         Minimum intron size. Any genomic gap
+                          is considered intron if its
+                          length >= alignIntronMin. (Default = 20)
+--alignIntronMax         Maximum intron size (Default = 1000000)
+--outFileNamePrefix      Prefix for output files
+--readFilesIn            Path to input fastq.gz
+--outSAMtype             Output an unsorted BAM file (outtype=BAM Unsorted)
+--readFilesCommand       cat/zcat depending on input is fq/fq.gz
+--quantMode              Also output BAM aligned to the transcriptome
+--outTmpDir              Directory to use for writing temporary files
+--outReadsUnmapped       Write unmapped reads to separate fastq file
 
 
 Sorting and Indexing

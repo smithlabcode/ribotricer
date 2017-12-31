@@ -1,5 +1,5 @@
-Quickstart
-==========
+API Usage
+=========
 
 .. code-block:: python
 
@@ -19,6 +19,7 @@ Counting Fragment Lengths
 
 .. figure:: images/fragment_length_distribution_ideal.png
     :align: center
+    :width: 100%
     :alt: fragment length distribution
     :figclass: align center
 
@@ -49,6 +50,7 @@ Let's compare this with a RNA-Seq sample from the same sample.
 
 .. figure:: images/fragment_length_distribution_rna.png
     :align: center
+    :width: 100%
     :alt: fragment length distribution
     :figclass: align center
 
@@ -111,6 +113,7 @@ We visualize only the first 100 bases:
 
 .. figure:: images/gene_coverage_ENSG00000080824.png
     :align: center
+    :width: 100%
     :alt: Gene coverage
     :figclass: align center
 
@@ -120,9 +123,10 @@ We visualize only the first 100 bases:
 Periodicity Index
 ~~~~~~~~~~~~~~~~~
 
+TODO
 
 5'UTR/CDS/3'UTR coverage
-------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~
 
 TODO
 
