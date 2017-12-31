@@ -32,7 +32,7 @@ install:
 
 # command to run tests, e.g. python setup.py test
 script:
-  - ribocop
+  - riboraptor
   - travis-sphinx build --source=$TRAVIS_BUILD_DIR/docs
 
 after_success:
@@ -46,5 +46,5 @@ deploy:
     secure: PLEASE_REPLACE_ME
   on:
     tags: true
-    repo: saketkc/ribocop
+    repo: saketkc/riboraptor
     condition: $TRAVIS_PYTHON_VERSION == "2.7"

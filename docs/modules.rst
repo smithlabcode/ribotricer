@@ -1,7 +1,7 @@
-ribocop
-=======
+riboraptor
+==========
 
 .. toctree::
    :maxdepth: 4
 
-   ribocop
+   riboraptor

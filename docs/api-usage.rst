@@ -3,10 +3,10 @@ API Usage
 
 .. code-block:: python
 
-   from ribocop import read_length_distribution
-   from ribocop import fragment_enrichment
-   from ribocop.plotting import  plot_read_counts
-   from ribocop.plotting import plot_fragment_dist
+   from riboraptor import read_length_distribution
+   from riboraptor import fragment_enrichment
+   from riboraptor.plotting import  plot_read_counts
+   from riboraptor.plotting import plot_fragment_dist
 
 Counting Fragment Lengths
 -------------------------
@@ -74,7 +74,7 @@ Creating bedgraph
 
 .. code-block:: python
 
-   from ribocop import create_bedgraph
+   from riboraptor import create_bedgraph
    create_bedgraph(ribo_bam_f, strand='both', end_type='5prime', outfile='../data/U251_ribo.bg')
 
 
@@ -83,7 +83,7 @@ Creating bigwig
 
 .. code-block:: python
 
-    from ribocop import bedgraph_to_bigwig
+    from riboraptor import bedgraph_to_bigwig
     bedgraph_f = '../data/U251_ribo.bg'
     chrom_sizes = '../data/hg38.sizes'
     bedgraph_to_bigwig(bedgraph_f, chrom_sizes, '../data/U251_ribo.bw')
@@ -93,7 +93,7 @@ Gene coverage plot
 
 .. code-block:: python
 
-   from ribocop import gene_coverage
+   from riboraptor import gene_coverage
    cds_bed = '../data/hg38.cds.bed'
    bw = '../data/U251_ribo.bw'
    coverage, _, _, _ = gene_coverage('ENSG00000080824', cds_bed, bw, 60)

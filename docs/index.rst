@@ -1,11 +1,11 @@
-Welcome to ribocop's documentation!
+Welcome to riboraptor's documentation!
 ======================================
 
-``ribocop`` library is a Python library for analysis of Ribo-seq data.
+``riboraptor`` library is a Python library for analysis of Ribo-seq data.
 It assumes the reads have already been aligned to a reference and are available as BAM/SAM for input. Detailed
 instructions for mapping are available elsewhere [TODO: Instructions for mapping].
 
-Current capabilities of ``ribocop`` include:
+Current capabilities of ``riboraptor`` include:
 
 :Visualization:
     - Read length distribution
@@ -19,10 +19,10 @@ Current capabilities of ``ribocop`` include:
 
 .. code-block:: console
 
-    $ ribocop
-      Usage: ribocop [OPTIONS] COMMAND [ARGS]...
+    $ riboraptor
+      Usage: riboraptor [OPTIONS] COMMAND [ARGS]...
 
-      ribocop: Tool for ribosome profiling analysis
+      riboraptor: Tool for ribosome profiling analysis
 
       Options:
         --version  Show the version and exit.

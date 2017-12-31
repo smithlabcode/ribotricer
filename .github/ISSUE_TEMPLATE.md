@@ -1,4 +1,4 @@
-* ribocop version:
+* riboraptor version:
 * Python version:
 * Operating System:
 

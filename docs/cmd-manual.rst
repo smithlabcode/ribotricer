@@ -148,7 +148,7 @@ We recommend a minimum of 5 million reads for any downstream analysis.
 
 .. code-block:: console
 
-   $ ribocop uniq-mapping-count --bam <input.bam>
+   $ riboraptor uniq-mapping-count --bam <input.bam>
 
 --bam input.bam    Path to bam file
 
@@ -156,21 +156,21 @@ We recommend a minimum of 5 million reads for any downstream analysis.
 Read length distribution
 ------------------------
 An ideal Ribo-seq library is expected to have 28-31 nt long fragments most enriched.
-We can calculate enrichment and plot the fragment size distribution using ribocop.
+We can calculate enrichment and plot the fragment size distribution using riboraptor.
 
 Readd length distribution can be calculated using the `read-length-dist` subcommand:
 
 .. code-block:: console
 
-   $ ribocop read-length-dist --bam <input.bam>
+   $ riboraptor read-length-dist --bam <input.bam>
 
 This will print out the read length and associated counts on the console. In order to
 visualize thhese counts as a barplot, we can use the `plot-read-dist` subcommand:
 
 .. code-block:: console
 
-   $ ribocop read-length-dist --bam <input.bam>\
-        | ribocop plot-read-dist --saveto <output.png>
+   $ riboraptor read-length-dist --bam <input.bam>\
+        | riboraptor plot-read-dist --saveto <output.png>
 
 
 Metagene Analysis
@@ -187,14 +187,14 @@ intermediate bedGraph_ file. This can be done using `bam-to-bedgraph` subcommand
 
 .. code-block:: console
 
-   $ ribocop bam-to-bedgraph --bam <input.bam> 
+   $ riboraptor bam-to-bedgraph --bam <input.bam> 
 
 This will print the bedGraph to console. this cna be piped to `bedgraph-to-bigwig` subcommand:
 
 .. code-block:: console
 
-   $ ribocop bam-to-bedgraph --bam <input.bam> \
-        | ribocop bedgraph-to-bigwig --sizes <genome.sizes> --saveto <output.bw>
+   $ riboraptor bam-to-bedgraph --bam <input.bam> \
+        | riboraptor bedgraph-to-bigwig --sizes <genome.sizes> --saveto <output.bw>
 
 We now have `<output.bw>` ready for further downstream analysis.
 
@@ -213,7 +213,7 @@ We will use two samples from GSE94454_ as examples for examples that follow.
 
 .. code-block:: console
 
-   $ ribocop uniq-mapping-count --bam data/SRR5227310.bam
+   $ riboraptor uniq-mapping-count --bam data/SRR5227310.bam
    28637667
    $
 
@@ -221,8 +221,8 @@ This is a pretty deep library.
 
 .. code-block:: console
 
-   $ ribocop read-length-dist --bam data/SRR5227310.bam\
-        | ribocop plot-read-dist --saveto SRR5227310.png
+   $ riboraptor read-length-dist --bam data/SRR5227310.bam\
+        | riboraptor plot-read-dist --saveto SRR5227310.png
 
 
 .. figure:: images/SRR5227310.png
@@ -237,8 +237,8 @@ How enriched is it in 27-32 nt fragment range?
 
 .. code-block:: console
 
-   $ ribocop read-length-dist --bam data/SRR5227310.bam\
-        | ribocop read-enrichment
+   $ riboraptor read-length-dist --bam data/SRR5227310.bam\
+        | riboraptor read-enrichment
     (Enrichment: 1.52768004237, pval: 0.458943823895)
 
 
@@ -248,17 +248,17 @@ one codon at a time during active translation.
 
 .. code-block:: console
 
-   $ ribocop bedgraph-to-bigwig -bg data/SRR5227310.bg -s hg38 -o data/SRR5227310.bw
+   $ riboraptor bedgraph-to-bigwig -bg data/SRR5227310.bg -s hg38 -o data/SRR5227310.bw
 
 .. code-block:: console
 
-   $  ribocop metagene-coverage -bw data/SRR5227310.bw \
+   $  riboraptor metagene-coverage -bw data/SRR5227310.bw \
       --region_bed hg38_cds --max-positions 500 \
       --prefix data/SRR5227310.metagene --offset 60 --ignore_tx_version
 
 .. code-block:: console
 
-   $ ribocop plot-read-counts \
+   $ riboraptor plot-read-counts \
        --counts data/SRR5227310.metagene_metagene_normalized.pickle\
        --saveto data/SRR5227310.metagene.png
 
@@ -293,12 +293,12 @@ with respect to distribution of reads.
 
 .. code-block:: console
 
-   $ ribocop uniq-mapping-count --bam data/SRR5227306.bam
+   $ riboraptor uniq-mapping-count --bam data/SRR5227306.bam
    10658208
 
 .. code-block:: console
 
-   $ ribocop read-length-dist --bam data/SRR5227306.bam | ribocop plot-read-dist --saveto SRR5227306.png
+   $ riboraptor read-length-dist --bam data/SRR5227306.bam | riboraptor plot-read-dist --saveto SRR5227306.png
 
 .. figure:: images/SRR5227306.png
     :align: center
@@ -310,7 +310,7 @@ with respect to distribution of reads.
 
 .. code-block:: console
 
-   $ ribocop read-length-dist --bam data/SRR5227306.bam | ribocop read-enrichment
+   $ riboraptor read-length-dist --bam data/SRR5227306.bam | riboraptor read-enrichment
    (Enrichment: 14.0292145986, pval: 0.135220082438)
 
 As compared to SRR5227310, the enrichment in this case is almost 10 times higher.
@@ -334,18 +334,18 @@ We can see the framewise distribution of reads in SRR5227310 is more or less uni
 
 .. code-block:: console
 
-   $ ribocop bedgraph-to-bigwig -bg data/SRR5227306.bg -s hg38 -o data/SRR5227306.bw
+   $ riboraptor bedgraph-to-bigwig -bg data/SRR5227306.bg -s hg38 -o data/SRR5227306.bw
 
 
 .. code-block:: console
 
-   $  ribocop metagene-coverage -bw data/SRR5227306.bw \
+   $  riboraptor metagene-coverage -bw data/SRR5227306.bw \
       --region_bed hg38_cds --max-positions 500 \
       --prefix data/SRR5227306.metagene --offset 60 --ignore_tx_version
 
 .. code-block:: console
 
-   $ ribocop plot-read-counts \
+   $ riboraptor plot-read-counts \
        --counts data/SRR5227306.metagene_metagene_normalized.pickle\
        --saveto data/SRR5227306.metagene.png
 
@@ -370,7 +370,7 @@ TODO
 
 .. _trim_galore: https://www.bioinformatics.babraham.ac.uk/projects/trim_galore/
 .. _STAR: https://github.com/alexdobin/STAR
-.. _ribocop: https://github.com/saketkc/ribocop
+.. _riboraptor: https://github.com/saketkc/riboraptor
 .. _GSE94454: https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE94454
 .. _htseq-counts: https://htseq.readthedocs.io/
 .. _featureCounts: http://bioinf.wehi.edu.au/featureCounts/
