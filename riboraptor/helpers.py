@@ -31,7 +31,7 @@ def create_ideal_periodic_signal(signal_length):
 
 def identify_peaks(coverage):
     """Given coverage array, find the site of maximum density"""
-    return np.argmax(coverage[range(-30, 0)])
+    return np.argmax(coverage[range(-20, -10)])
 
 
 def millify(n):

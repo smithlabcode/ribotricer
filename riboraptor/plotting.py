@@ -93,7 +93,7 @@ def plot_read_length_dist(read_lengths,
                           millify_labels=True,
                           input_is_stream=False,
                           saveto=None,
-                          ascii=True,
+                          ascii=False,
                           **kwargs):
     """Plot read length distribution.
 
@@ -119,7 +119,7 @@ def plot_read_length_dist(read_lengths,
             splitted = list(map(lambda x: int(x), line.strip().split('\t')))
             counter[splitted[0]] = splitted[1]
         read_lengths = Counter(counter)
-    else:
+    elif isinstance(read_lengths, str) or isinstance(read_lengths, unicode):
         try:
             # Try opening as a pickle first
             read_lengths = pickle.load(open(read_lengths, 'r'))
@@ -167,7 +167,7 @@ def plot_framewise_counts(counts,
                           millify_labels=False,
                           position_range=range(-60, 101),
                           saveto=None,
-                          ascii=True,
+                          ascii=False,
                           input_is_stream=False,
                           **kwargs):
     """Plot framewise distribution of reads.
@@ -190,7 +190,7 @@ def plot_framewise_counts(counts,
             splitted = list(map(lambda x: int(x), line.strip().split('\t')))
             counts_counter[splitted[0]] = splitted[1]
         counts = Counter(counts_counter)
-    else:
+    elif isinstance(counts, str) or isinstance(counts, unicode):
         try:
             # Try opening as a pickle first
             counts = pickle.load(open(counts, 'r'))
@@ -257,7 +257,7 @@ def plot_read_counts(counts,
                      identify_peak=True,
                      saveto=None,
                      position_range=range(-60, 101),
-                     ascii=True,
+                     ascii=False,
                      input_is_stream=False,
                      ylabel='Normalized RPF density',
                      **kwargs):
@@ -289,7 +289,7 @@ def plot_read_counts(counts,
             splitted = list(map(lambda x: int(x), line.strip().split('\t')))
             counts_counter[splitted[0]] = splitted[1]
         counts = Counter(counts_counter)
-    else:
+    elif isinstance(counts, str) or isinstance(counts, unicode):
         try:
             # Try opening as a pickle first
             counts = pickle.load(open(counts, 'r'))
