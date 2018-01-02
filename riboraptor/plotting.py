@@ -24,6 +24,7 @@ import pycwt as wavelet
 from .helpers import identify_peaks
 from .helpers import millify
 from .helpers import round_to_nearest
+from .helpers import set_xrotation
 
 __FRAME_COLORS__ = ['#1b9e77', '#d95f02', '#7570b3']
 DPI = 1000
@@ -50,7 +51,7 @@ def setup_axis(ax,
                axis='x',
                majorticks=5,
                minorticks=1,
-               xrotation=0,
+               xrotation=45,
                yrotation=0):
     """Setup axes defaults
 
@@ -86,6 +87,9 @@ def setup_axis(ax,
         setup_axis(ax, 'y', majorticks, minorticks, xrotation, yrotation)
     ax.tick_params(which='major', width=2, length=10)
     ax.tick_params(which='minor', width=1, length=6)
+    ax.tick_params(axis='x', labelrotation=xrotation)
+    ax.tick_params(axis='y', labelrotation=yrotation)
+    #set_xrotation(ax, xrotation)
 
 
 def plot_read_length_dist(read_lengths,
@@ -165,7 +169,7 @@ def plot_framewise_counts(counts,
                           frames_to_plot='all',
                           ax=None,
                           millify_labels=False,
-                          position_range=range(-60, 101),
+                          position_range=None,
                           saveto=None,
                           ascii=False,
                           input_is_stream=False,
@@ -208,7 +212,8 @@ def plot_framewise_counts(counts,
             map(lambda x: int(x), position_range.strip().split(':')))
         position_range = range(splitted[0], splitted[1] + 1)
 
-    counts = counts[position_range]
+    if position_range:
+        counts = counts[position_range]
     fig = None
     if ax is None:
         fig, ax = plt.subplots()
@@ -218,6 +223,9 @@ def plot_framewise_counts(counts,
         kwargs['majorticks'] = 10
     if 'minorticks' not in kwargs:
         kwargs['minorticks'] = 5
+    if 'xrotation' not in kwargs:
+        kwargs['xrotation'] = 45
+
     setup_axis(ax, **kwargs)
     ax.set_ylabel('Number of reads')
     ax.set_xlim(
@@ -245,6 +253,9 @@ def plot_framewise_counts(counts,
             terminal='dumb 200,40',
             unset='grid')
         sys.stdout.write(os.linesep)
+    plt.draw()
+    #if 'xrotation' in kwargs:
+    #    set_xrotation(ax, 45)#kwargs['xrotation'])
     return ax
 
 
@@ -256,7 +267,7 @@ def plot_read_counts(counts,
                      millify_labels=True,
                      identify_peak=True,
                      saveto=None,
-                     position_range=range(-60, 101),
+                     position_range=None,
                      ascii=False,
                      input_is_stream=False,
                      ylabel='Normalized RPF density',
@@ -301,8 +312,8 @@ def plot_read_counts(counts,
         splitted = list(
             map(lambda x: int(x), position_range.strip().split(':')))
         position_range = range(splitted[0], splitted[1] + 1)
-
-    counts = counts[position_range]
+    if position_range:
+        counts = counts[position_range]
     fig = None
     if ax is None:
         fig, ax = plt.subplots()
@@ -312,6 +323,10 @@ def plot_read_counts(counts,
         kwargs['majorticks'] = 10
     if 'minorticks' not in kwargs:
         kwargs['minorticks'] = 5
+    if 'xrotation' not in kwargs:
+        kwargs['xrotation'] = 0
+    if 'yrotation' not in kwargs:
+        kwargs['yrotation'] = 0
     setup_axis(ax, **kwargs)
     ax.set_ylabel(ylabel)
     if not marker:
@@ -365,7 +380,8 @@ def plot_featurewise_barplot(utr5_counts,
                              cds_counts,
                              utr3_counts,
                              ax=None,
-                             saveto=None):
+                             saveto=None,
+                             **kwargs):
     """Plot barplots for 5'UTR/CDS/3'UTR counts.
 
     Parameters

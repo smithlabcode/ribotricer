@@ -101,8 +101,8 @@ def round_to_nearest(x, base=5):
     return int(base * round(float(x) / base))
 
 
-def set_rotation(ax, degrees):
-    """Rotate labels on axis.
+def set_xrotation(ax, degrees):
+    """Rotate labels on x-axis.
 
     Parameters
     ----------
@@ -111,6 +111,5 @@ def set_rotation(ax, degrees):
     degrees : int
               Rotation degrees
     """
-    labels = ax.get_xticklabels()
-    for i in labels:
+    for i in ax.get_xticklabels():
         i.set_rotation(degrees)
