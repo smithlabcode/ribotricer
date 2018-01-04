@@ -96,6 +96,7 @@ def plot_read_length_dist(read_lengths,
                           ax=None,
                           millify_labels=True,
                           input_is_stream=False,
+                          title=None,
                           saveto=None,
                           ascii=False,
                           **kwargs):
@@ -142,10 +143,15 @@ def plot_read_length_dist(read_lengths,
         read_lengths = pd.Series(read_lengths)
         read_lengths_counts = read_lengths.value_counts().sort_index()
 
+    reads_total = millify(read_lengths_counts.sum())
     ax.bar(read_lengths_counts.index, read_lengths_counts)
     ax.set_xlim(
         min(read_lengths_counts.index) - 0.5,
         round_to_nearest(max(read_lengths_counts.index), 10) + 0.5)
+    if title:
+        ax.set_title('{}\n Total reads = {}'.format(title, reads_total))
+    else:
+        ax.set_title('Total reads = {}'.format(reads_total))
     if millify_labels:
         ax.set_yticklabels(list(map(lambda x: millify(x), ax.get_yticks())))
     sns.despine(trim=True, offset=20)
@@ -168,6 +174,7 @@ def plot_read_length_dist(read_lengths,
 def plot_framewise_counts(counts,
                           frames_to_plot='all',
                           ax=None,
+                          title=None,
                           millify_labels=False,
                           position_range=None,
                           saveto=None,
@@ -237,6 +244,8 @@ def plot_framewise_counts(counts,
         cbar.set_color(barplot_colors[index])
     ax.legend((barlist[0], barlist[1], barlist[2]), ('Frame 1', 'Frame 2',
                                                      'Frame 3'))
+    if title:
+        ax.set_title(title)
     sns.despine(trim=True, offset=20)
     if millify_labels:
         ax.set_yticklabels(list(map(lambda x: millify(x), ax.get_yticks())))
@@ -263,8 +272,9 @@ def plot_read_counts(counts,
                      ax=None,
                      marker=False,
                      color='royalblue',
+                     title=None,
                      label=None,
-                     millify_labels=True,
+                     millify_labels=False,
                      identify_peak=True,
                      saveto=None,
                      position_range=None,
@@ -359,6 +369,8 @@ def plot_read_counts(counts,
         ax.set_yticklabels(list(map(lambda x: millify(x), ax.get_yticks())))
     ax.set_xlim(
         min(counts.index) - 0.5, round_to_nearest(max(counts.index), 10) + 0.5)
+    if title:
+        ax.set_title(title)
     sns.despine(trim=True, offset=10)
     if saveto:
         fig.tight_layout()

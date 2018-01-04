@@ -12,8 +12,9 @@ import pandas as pd
 
 
 def features_to_df(feature_list):
-    features = map(lambda x: (x.chrom, x.start, x.end,
-                              x.strand, x.feature_type), feature_list)
+    features = map(
+        lambda x: (x.chrom, x.start, x.end, x.strand, x.feature_type),
+        feature_list)
     return features
 
 
@@ -37,8 +38,8 @@ def create_gene_dict(db):
         feature_type = feature.featuretype
         if feature_type == 'gene':
             if len(gene_ids) != 1:
-                logging.warning(
-                    'Found multiple gene_ids on line {} in gtf'.format(line_no))
+                logging.warning('Found multiple gene_ids on line {} in gtf'.
+                                format(line_no))
                 break
             else:
                 gene_id = gene_ids[0]
@@ -131,13 +132,10 @@ def create_bed(regions, bedtype='0'):
             start = region.start - 1
         else:
             start = region.start
-        bedstr += '{}\t{}\t{}\t{}\t{}\t{}\n'.format(region.chrom,
-                                                    start,
-                                                    region.stop,
-                                                    re.sub(
-                                                        '\.\d+', '', region.attributes['gene_id'][0]),
-                                                    '.',
-                                                    region.strand)
+        bedstr += '{}\t{}\t{}\t{}\t{}\t{}\n'.format(
+            region.chrom, start, region.stop,
+            re.sub('\.\d+', '',
+                   region.attributes['gene_id'][0]), '.', region.strand)
     return bedstr
 
 
@@ -212,11 +210,12 @@ def create_all_bed(gtf_file, prefix):
     -------
     beds : all beds
     '''
-    db = gffutils.create_db(gtf_file,
-                            dbfn='{}.gffutils.db'.format(gtf_file),
-                            merge_strategy='merge',
-                            disable_infer_genes=True,
-                            disable_infer_transcripts=True)
+    db = gffutils.create_db(
+        gtf_file,
+        dbfn='{}.gffutils.db'.format(gtf_file),
+        merge_strategy='merge',
+        disable_infer_genes=True,
+        disable_infer_transcripts=True)
     gene_dict = create_gene_dict(db)
     utr5_bed = ''
     utr3_bed = ''
@@ -246,8 +245,8 @@ def create_all_bed(gtf_file, prefix):
             exons = list(gene_dict[gene_id][feature]['exon'])
             merged_exons = merge_regions(db, exons)
             introns = db.interfeatures(merged_exons)
-            utr5_region, utr3_region = get_UTR_regions(
-                gene_dict, gene_id, feature, cds)
+            utr5_region, utr3_region = get_UTR_regions(gene_dict, gene_id,
+                                                       feature, cds)
             utr5_regions += utr5_region
             all_utr5 += utr5_region
             all_utr3 += utr3_region
@@ -278,8 +277,14 @@ def create_all_bed(gtf_file, prefix):
         cds_bed += create_bed(renamed_cds)
     all_utrs = all_utr5 + all_utr3
     all_utr_list = features_to_df(all_utrs)
-    df = pd.DataFrame(all_utr_list, columns=[
-                      'chrom', 'start', 'end', 'strand', 'name', ])
+    df = pd.DataFrame(
+        all_utr_list, columns=[
+            'chrom',
+            'start',
+            'end',
+            'strand',
+            'name',
+        ])
     df = df.drop_duplicates()
     df = df.set_index(['chrom', 'start', 'end', 'strand'])
     with open('{}.modified_UTRS.gtf'.format(prefix), 'w') as fout:
@@ -293,7 +298,8 @@ def create_all_bed(gtf_file, prefix):
                     feature.featuretype = str(
                         df.loc[(chrom, start, end, strand)].name[0])
                 except KeyError:
-                    print ('something went wrong with feature: {}'.format(feature))
+                    print('something went wrong with feature: {}'.format(
+                        feature))
             fout.write(str(feature) + '\n')
 
     gene_bed = create_bed(gene_list)
@@ -308,7 +314,8 @@ def create_all_bed(gtf_file, prefix):
     utr5_bedtool.remove_invalid().sort().saveas('{}.UTR5.bed'.format(prefix))
     utr3_bedtool.remove_invalid().sort().saveas('{}.UTR3.bed'.format(prefix))
     exon_bedtool.remove_invalid().sort().saveas('{}.exon.bed'.format(prefix))
-    intron_bedtool.remove_invalid().sort().saveas('{}.intron.bed'.format(prefix))
+    intron_bedtool.remove_invalid().sort().saveas(
+        '{}.intron.bed'.format(prefix))
     cds_bedtool.remove_invalid().sort().saveas('{}.cds.bed'.format(prefix))
 
     for gene_id in get_gene_list(gene_dict):

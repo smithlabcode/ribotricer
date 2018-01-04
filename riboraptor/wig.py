@@ -48,16 +48,19 @@ class WigReader(object):
         for chrom, chrom_start, chrom_end, strand in intervals:
             if chrom not in list(chrom_lengths.keys()):
                 warnings.warn(
-                    'Chromosome {} does not appear in the bigwig'.format(chrom), UserWarning)
+                    'Chromosome {} does not appear in the bigwig'.format(
+                        chrom), UserWarning)
                 continue
 
             chrom_length = chrom_lengths[chrom]
             if int(chrom_start) > chrom_length:
-                raise Exception('Chromsome start point exceeds chromosome length: {}>{}'.format(
-                    chrom_start, chrom_length))
+                raise Exception(
+                    'Chromsome start point exceeds chromosome length: {}>{}'.
+                    format(chrom_start, chrom_length))
             elif int(chrom_end) > chrom_length:
-                raise Exception('Chromsome end point exceeds chromosome length: {}>{}'.format(
-                    chrom_end, chrom_length))
+                raise Exception(
+                    'Chromsome end point exceeds chromosome length: {}>{}'.
+                    format(chrom_end, chrom_length))
             score = self.wig.values(chrom, int(chrom_start), int(chrom_end))
             if strand == '-':
                 score.reverse()

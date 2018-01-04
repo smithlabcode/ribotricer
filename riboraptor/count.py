@@ -188,9 +188,12 @@ def count_reads_per_gene(bam, bed, prefix=None):
     counts_normalized_by_length = counts_by_region.div(length_by_region)
     if prefix:
         mkdir_p(os.path.dirname(prefix))
-        df = pd.concat([counts_by_region, length_by_region, counts_normalized_by_length], axis=1)
+        df = pd.concat(
+            [counts_by_region, length_by_region, counts_normalized_by_length],
+            axis=1)
         df.columns = ['counts', 'length', 'normalized_counts']
-        df.to_csv('{}.tsv'.format(prefix), index=True, header=True, sep=str('\t'))
+        df.to_csv(
+            '{}.tsv'.format(prefix), index=True, header=True, sep=str('\t'))
         pickle.dump(counts_by_region,
                     open('{}_counts.pickle'.format(prefix), 'wb'),
                     __PICKLE_PROTOCOL__)
@@ -456,6 +459,34 @@ def count_utr5_utr3_cds(bam,
     return counts
 
 
+def diff_region_enrichment(numerator, denominator, prefix):
+    """Calculate enrichment of counts of one region over another.
+
+    Parameters
+    ----------
+    numerator : str
+                Path to pickle file
+    denominator : str
+                  Path to pickle file
+    prefix : str
+             Prefix to save pickles to
+
+    Returns
+    --------
+    enrichment : series
+    """
+    numerator = pickle.load(open(numerator, 'r'))
+    denominator = pickle.load(open(denominator, 'r'))
+
+    enrichment = numerator.divide(denominator)
+    if prefix:
+        mkdir_p(os.path.dirname(prefix))
+        pickle.dump(enrichment,
+                    open('{}.pickle'.format(prefix), 'wb'),
+                    __PICKLE_PROTOCOL__)
+    return enrichment
+
+
 def read_enrichment(read_lengths,
                     enrichment_range=range(28, 33),
                     input_is_stream=False,
@@ -481,11 +512,14 @@ def read_enrichment(read_lengths,
     if input_is_file:
         if not _check_file_exists(read_lengths):
             raise RuntimeError('{} does not exist.'.format(read_lengths))
-        read_lengths = pd.read_table(
-            read_lengths, names=['frag_len', 'frag_count'], sep='\t')
-        read_lengths = pd.Series(
-            read_lengths.frag_count.tolist(),
-            index=read_lengths.frag_len.tolist())
+        try:
+            read_lengths = pickle.load(open(read_lengths, 'r'))
+        except KeyError:
+            read_lengths = pd.read_table(
+                read_lengths, names=['frag_len', 'frag_count'], sep='\t')
+            read_lengths = pd.Series(
+                read_lengths.frag_count.tolist(),
+                index=read_lengths.frag_len.tolist())
     elif input_is_stream:
         counter = {}
         for line in read_lengths:
@@ -748,14 +782,15 @@ def htseq_to_tpm(htseq_f, cds_bed_f, saveto=None):
     return tpm
 
 
-def mapping_reads_summary(bam):
+def mapping_reads_summary(bam, prefix):
     """Count number of mapped reads.
 
     Parameters
     ----------
     bam : str
           Path to bam file
-
+    prefix : str
+             Prefix to save pickle to (optional)
     Returns
     -------
     counts : counter
@@ -773,6 +808,11 @@ def mapping_reads_summary(bam):
         except KeyError:
             nh_count = Counter([1])
         counts += nh_count
+    if prefix:
+        mkdir_p(os.path.dirname(prefix))
+        pickle.dump(counts,
+                    open('{}.pickle'.format(prefix), 'wb'),
+                    __PICKLE_PROTOCOL__)
     return counts
 
 
@@ -963,7 +1003,7 @@ def read_htseq(htseq_f):
     return htseq
 
 
-def read_length_distribution(bam):
+def read_length_distribution(bam, prefix):
     """Count read lengths.
 
     Parameters
@@ -979,10 +1019,17 @@ def read_length_distribution(bam):
     """
     _create_bam_index(bam)
     bam = pysam.AlignmentFile(bam, 'rb')
-    return Counter([
+    read_counts = Counter([
         read.query_length for read in bam.fetch()
         if _is_read_uniq_mapping(read)
     ])
+    if prefix:
+        mkdir_p(os.path.dirname(prefix))
+        pickle.dump(
+            pd.Series(read_counts),
+            open('{}.pickle'.format(prefix), 'wb'), __PICKLE_PROTOCOL__)
+
+    return read_counts
 
 
 def summarize_counters(samplewise_dict):

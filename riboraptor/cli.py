@@ -22,6 +22,7 @@ from .count import mapping_reads_summary
 from .count import metagene_coverage
 from .count import read_length_distribution
 from .count import unique_mapping_reads_count
+from .count import diff_region_enrichment
 
 from .plotting import plot_framewise_counts
 from .plotting import plot_read_counts
@@ -98,7 +99,7 @@ def bedgraph_to_bigwig_cmd(bedgraph, sizes, saveto):
     context_settings=CONTEXT_SETTINGS,
     help='Count reads in given feature bed file')
 @click.option('--bam', help='Path to bam file', required=True)
-@click.option('--bed', help='Path to 5\'utr file', required=True)
+@click.option('--bed', help='Path to feature file', required=True)
 @click.option('--prefix', help='Prefix to write pickled contents')
 def count_reads_in_features_cmd(bam, bed, prefix):
     counts, lengths, normalized_counts = count_reads_per_gene(bam, bed, prefix)
@@ -171,8 +172,9 @@ def gene_coverage_cmd(gene, bed, bigwig, offset):
     context_settings=CONTEXT_SETTINGS,
     help='Mapping summary')
 @click.option('--bam', help='Path to BAM file', required=True)
-def mapping_reads_summary_cmd(bam):
-    counts = mapping_reads_summary(bam)
+@click.option('--prefix', help='Save pickle files to')
+def mapping_reads_summary_cmd(bam, prefix):
+    counts = mapping_reads_summary(bam, prefix)
     for l, count in six.iteritems(dict(counts)):
         sys.stdout.write('{}\t{}'.format(l, count))
         sys.stdout.write(os.linesep)
@@ -181,7 +183,7 @@ def mapping_reads_summary_cmd(bam):
 @cli.command(
     'metagene-coverage',
     context_settings=CONTEXT_SETTINGS,
-    help='Plot metagene plot')
+    help='Calculate metagene coverage')
 @click.option('--bigwig', '-bw', help='Path to bigwig', required=True)
 @click.option('--region_bed', help='Path to CDS bed file', required=True)
 @click.option(
@@ -223,6 +225,7 @@ def metagene_coverage_cmd(bigwig, region_bed, max_positions, htseq_f, prefix,
         sys.stdout.write('{}\t{}'.format(l, count))
         sys.stdout.write(os.linesep)
 
+
 @cli.command(
     'periodicity',
     context_settings=CONTEXT_SETTINGS,
@@ -232,7 +235,8 @@ def periodicity_cmd(counts):
     if counts:
         periodicity, pval = get_periodicity(counts)
     else:
-        periodicity, pval = get_periodicity(sys.stdin.readlines(), input_is_stream=True)
+        periodicity, pval = get_periodicity(
+            sys.stdin.readlines(), input_is_stream=True)
     sys.stdout.write('Periodicity: {}({})'.format(periodicity, pval))
     sys.stdout.write(os.linesep)
 
@@ -242,6 +246,7 @@ def periodicity_cmd(counts):
     context_settings=CONTEXT_SETTINGS,
     help='Plot read counts distribution across a gene')
 @click.option('--counts', help='Path to counts file (if not stdin)')
+@click.option('--title', help='Plot Title', required=True)
 @click.option(
     '--marker',
     help='Marker (o/x) for plots',
@@ -260,29 +265,34 @@ def periodicity_cmd(counts):
     help='Path to file (png/pdf) to save to',
     default=None,
     show_default=True)
+@click.option('--ylabel', help='Y axix label')
 @click.option('--no-ascii', help='Do not plot ascii', is_flag=True)
-def plot_read_counts_cmd(counts, marker, color, millify_labels, identify_peak,
-                         positions, saveto, no_ascii):
+def plot_read_counts_cmd(counts, title, marker, color, millify_labels,
+                         identify_peak, positions, saveto, ylabel, no_ascii):
     ascii = not no_ascii
     if counts:
         plot_read_counts(
             counts,
+            title=title,
             marker=marker,
             color=color,
             millify_labels=millify_labels,
             position_range=positions,
             identify_peak=identify_peak,
+            ylabe=ylabel,
             saveto=saveto,
             ascii=ascii)
     else:
         plot_read_counts(
             sys.stdin.readlines(),
+            title=title,
             marker=marker,
             color=color,
             millify_labels=millify_labels,
             identify_peak=identify_peak,
             position_range=positions,
             saveto=saveto,
+            ylabel=ylabel,
             ascii=ascii,
             input_is_stream=True)
 
@@ -292,6 +302,7 @@ def plot_read_counts_cmd(counts, marker, color, millify_labels, identify_peak,
     context_settings=CONTEXT_SETTINGS,
     help='Plot read counts highlighting frames')
 @click.option('--counts', help='Path to counts file (if not stdin)')
+@click.option('--title', help='Plot Title', required=True)
 @click.option(
     '--millify_labels',
     help='Convert labels on Y-axis to concise form?',
@@ -304,12 +315,13 @@ def plot_read_counts_cmd(counts, marker, color, millify_labels, identify_peak,
     default=None,
     show_default=True)
 @click.option('--no-ascii', help='Do not plot ascii', is_flag=True)
-def plot_framewise_counts_cmd(counts, millify_labels, positions, saveto,
+def plot_framewise_counts_cmd(counts, title, millify_labels, positions, saveto,
                               no_ascii):
     ascii = not no_ascii
     if counts:
         plot_framewise_counts(
             counts,
+            title=title,
             millify_labels=millify_labels,
             position_range=positions,
             saveto=saveto,
@@ -317,6 +329,7 @@ def plot_framewise_counts_cmd(counts, millify_labels, positions, saveto,
     else:
         plot_framewise_counts(
             sys.stdin.readlines(),
+            title=title,
             millify_labels=millify_labels,
             position_range=positions,
             saveto=saveto,
@@ -329,6 +342,7 @@ def plot_framewise_counts_cmd(counts, millify_labels, positions, saveto,
     context_settings=CONTEXT_SETTINGS,
     help='Plot read length distribution')
 @click.option('--read-lengths', help='Path to read length pickle file')
+@click.option('--title', help='Plot Title', required=True)
 @click.option(
     '--millify_labels',
     help='Convert labels on Y-axis to concise form?',
@@ -339,11 +353,13 @@ def plot_framewise_counts_cmd(counts, millify_labels, positions, saveto,
     default=None,
     show_default=True)
 @click.option('--no-ascii', help='Do not plot ascii', is_flag=True)
-def plot_read_length_dist_cmd(read_lengths, millify_labels, saveto, no_ascii):
+def plot_read_length_dist_cmd(read_lengths, title, millify_labels, saveto,
+                              no_ascii):
     ascii = not no_ascii
     if read_lengths:
         plot_read_length_dist(
             read_lengths,
+            title=title,
             millify_labels=millify_labels,
             input_is_stream=False,
             saveto=saveto,
@@ -351,6 +367,7 @@ def plot_read_length_dist_cmd(read_lengths, millify_labels, saveto, no_ascii):
     else:
         plot_read_length_dist(
             sys.stdin.readlines(),
+            title=title,
             millify_labels=millify_labels,
             input_is_stream=True,
             saveto=saveto,
@@ -381,8 +398,9 @@ def read_enrichment_cmd(infile, lrange):
     context_settings=CONTEXT_SETTINGS,
     help='Calculate read length distribution')
 @click.option('--bam', help='Path to BAM file', required=True)
-def rld_cmd(bam):
-    counts = read_length_distribution(bam)
+@click.option('--prefix', help='Prefix to write pickled contents')
+def rld_cmd(bam, prefix):
+    counts = read_length_distribution(bam, prefix)
     for l, count in six.iteritems(dict(counts)):
         sys.stdout.write('{}\t{}'.format(l, count))
         sys.stdout.write(os.linesep)
@@ -397,3 +415,19 @@ def uniq_mapping_cmd(bam):
     count = unique_mapping_reads_count(bam)
     sys.stdout.write(str(count))
     sys.stdout.write(os.linesep)
+
+
+@cli.command(
+    'diff-region-enrichment',
+    context_settings=CONTEXT_SETTINGS,
+    help='Calculate enrichment of CDS over UTR3/UTR5 counts and alike')
+@click.option(
+    '--numerator', help='Path to counts file for numerator', required=True)
+@click.option(
+    '--denominator', help='Path to counts file for denominator', required=True)
+@click.option('--prefix', help='Prefix to write pickled contents')
+def diff_region_enrichment_cmd(numerator, denominator, prefix):
+    enrichment = diff_region_enrichment(numerator, denominator, prefix)
+    for l, e in six.iteritems(dict(enrichment)):
+        sys.stdout.write('{}\t{}'.format(l, e))
+        sys.stdout.write(os.linesep)

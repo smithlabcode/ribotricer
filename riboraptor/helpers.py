@@ -1,6 +1,6 @@
 """All functions that are not so useful, but still useful."""
-from __future__ import (absolute_import, division,
-                        print_function, unicode_literals)
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
 import math
 from scipy import stats
 import numpy as np
@@ -49,8 +49,11 @@ def millify(n):
     millnames = ['', ' K', ' M', ' B', ' T']
     # Source: http://stackoverflow.com/a/3155023/756986
     n = float(n)
-    millidx = max(0, min(len(millnames) - 1,
-                         int(math.floor(0 if n == 0 else math.log10(abs(n)) / 3))))
+    millidx = max(
+        0,
+        min(
+            len(millnames) - 1,
+            int(math.floor(0 if n == 0 else math.log10(abs(n)) / 3))))
 
     return '{:.0f}{}'.format(n / 10**(3 * millidx), millnames[millidx])
 
@@ -82,7 +85,7 @@ def r2(x, y):
     y : array_like
         Input
     '''
-    return stats.pearsonr(x, y)[0] ** 2
+    return stats.pearsonr(x, y)[0]**2
 
 
 def round_to_nearest(x, base=5):

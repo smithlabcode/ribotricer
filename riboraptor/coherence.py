@@ -78,7 +78,7 @@ def get_periodicity(values, input_is_stream=False):
         fcrit=0.9)
     p = 99
     base_fstat = np.percentile(fstatistics, p)
-    fstat = fstatistics[np.argmin(np.abs(freq-1/3.0))]
+    fstat = fstatistics[np.argmin(np.abs(freq - 1 / 3.0))]
     p_value = 'p < 0.05'
     if fstat < base_fstat:
         p_value = 'p > 0.05'
