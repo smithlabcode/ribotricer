@@ -169,7 +169,7 @@ def count_reads_per_gene(bam, bed, prefix=None):
     counts_by_region = OrderedDict()
     length_by_region = OrderedDict()
     sorted_bam = HTSeq.BAM_Reader(bam)
-    if isinstance(bed, unicode) or isinstance(bed, str):
+    if isinstance(bed, six.string_types):
         bed = pybedtools.BedTool(bed).sort()
     for x, region in enumerate(bed):
         counts = 0
@@ -528,10 +528,9 @@ def read_enrichment(read_lengths,
         read_lengths = Counter(counter)
     if isinstance(read_lengths, Counter):
         read_lengths = pd.Series(read_lengths)
-    if isinstance(enrichment_range, unicode) or\
-            isinstance(enrichment_range, str):
-        splitted = list(
-            map(lambda x: int(x), enrichment_range.strip().split('-')))
+        if isinstance(enrichment_range, six.string_types):
+            splitted = list(
+                map(lambda x: int(x), enrichment_range.strip().split('-')))
         enrichment_range = range(splitted[0], splitted[1] + 1)
     rpf_signal = read_lengths[enrichment_range].sum()
     total_signal = read_lengths.sum()

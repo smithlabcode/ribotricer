@@ -20,6 +20,7 @@ import numpy as np
 import pandas as pd
 import seaborn as sns
 import pycwt as wavelet
+import six
 
 from .helpers import identify_peaks
 from .helpers import millify
@@ -124,7 +125,7 @@ def plot_read_length_dist(read_lengths,
             splitted = list(map(lambda x: int(x), line.strip().split('\t')))
             counter[splitted[0]] = splitted[1]
         read_lengths = Counter(counter)
-    elif isinstance(read_lengths, str) or isinstance(read_lengths, unicode):
+    elif isinstance(read_lengths, six.string_types):
         try:
             # Try opening as a pickle first
             read_lengths = pickle.load(open(read_lengths, 'r'))
@@ -201,7 +202,7 @@ def plot_framewise_counts(counts,
             splitted = list(map(lambda x: int(x), line.strip().split('\t')))
             counts_counter[splitted[0]] = splitted[1]
         counts = Counter(counts_counter)
-    elif isinstance(counts, str) or isinstance(counts, unicode):
+    elif isinstance(counts, six.string_types):
         try:
             # Try opening as a pickle first
             counts = pickle.load(open(counts, 'r'))
@@ -210,11 +211,11 @@ def plot_framewise_counts(counts,
     if isinstance(counts, Counter):
         counts = pd.Series(counts)
     # TODO
-    if isinstance(frames_to_plot, str) or isinstance(
-            frames_to_plot, unicode) and frames_to_plot != 'all':
+    if isinstance(frames_to_plot,
+                  six.string_types) and frames_to_plot != 'all':
         frames_to_plot = list(
             map(lambda x: int(x), frames_to_plot.rstrip().split(',')))
-    if isinstance(position_range, unicode):
+    if isinstance(position_range, six.string_types):
         splitted = list(
             map(lambda x: int(x), position_range.strip().split(':')))
         position_range = range(splitted[0], splitted[1] + 1)
@@ -310,7 +311,7 @@ def plot_read_counts(counts,
             splitted = list(map(lambda x: int(x), line.strip().split('\t')))
             counts_counter[splitted[0]] = splitted[1]
         counts = Counter(counts_counter)
-    elif isinstance(counts, str) or isinstance(counts, unicode):
+    elif isinstance(counts, six.string_types):
         try:
             # Try opening as a pickle first
             counts = pickle.load(open(counts, 'r'))
@@ -318,7 +319,7 @@ def plot_read_counts(counts,
             pass
     if isinstance(counts, Counter):
         counts = pd.Series(counts)
-    if isinstance(position_range, unicode):
+    if isinstance(position_range, six.string_types):
         splitted = list(
             map(lambda x: int(x), position_range.strip().split(':')))
         position_range = range(splitted[0], splitted[1] + 1)
