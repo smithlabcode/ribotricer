@@ -475,8 +475,8 @@ def diff_region_enrichment(numerator, denominator, prefix):
     --------
     enrichment : series
     """
-    numerator = pickle.load(open(numerator, 'r'))
-    denominator = pickle.load(open(denominator, 'r'))
+    numerator = pickle.load(open(numerator, 'rb'))
+    denominator = pickle.load(open(denominator, 'rb'))
 
     enrichment = numerator.divide(denominator)
     if prefix:
@@ -513,7 +513,7 @@ def read_enrichment(read_lengths,
         if not _check_file_exists(read_lengths):
             raise RuntimeError('{} does not exist.'.format(read_lengths))
         try:
-            read_lengths = pickle.load(open(read_lengths, 'r'))
+            read_lengths = pickle.load(open(read_lengths, 'rb'))
         except KeyError:
             read_lengths = pd.read_table(
                 read_lengths, names=['frag_len', 'frag_count'], sep='\t')
@@ -711,7 +711,9 @@ def get_region_sizes(bed):
                 region_sizes[gene_name] = interval[2] - interval[1]
             else:
                 region_sizes[gene_name] += interval[2] - interval[1]
-    sizes_df = pd.DataFrame(region_sizes.items(), columns=['name', 'length'])
+    sizes_df = pd.DataFrame.from_dict(
+        region_sizes, orient='index').reset_index()
+    sizes_df.columns = ['name', 'length']
     sizes_df.sort_values(by='length', ascending=False, inplace=True)
     region_sizes = OrderedDict(
         [tuple(x) for x in sizes_df[['name', 'length']].values])
@@ -869,9 +871,9 @@ def metagene_coverage(bigwig,
     cds_grouped = region_bed.groupby('name')
 
     # Get region sizes
-    region_sizes = get_region_sizes(region_bed_f)
     if htseq_f:
-        ranked_genes = read_htseq(htseq_f, region_sizes, prefix)
+        ranked_genes = htseq_to_tpm(htseq_f, region_bed_f).index.tolist()
+        # region_sizes = get_region_sizes(region_bed_f)
         # Only consider genes which are in cds_grouped.keys
         ranked_genes = [
             gene for gene in ranked_genes if gene in cds_grouped.groups.keys()

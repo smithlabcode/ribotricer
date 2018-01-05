@@ -128,7 +128,7 @@ def plot_read_length_dist(read_lengths,
     elif isinstance(read_lengths, six.string_types):
         try:
             # Try opening as a pickle first
-            read_lengths = pickle.load(open(read_lengths, 'r'))
+            read_lengths = pickle.load(open(read_lengths, 'rb'))
         except KeyError:
             pass
     fig = None
@@ -205,7 +205,7 @@ def plot_framewise_counts(counts,
     elif isinstance(counts, six.string_types):
         try:
             # Try opening as a pickle first
-            counts = pickle.load(open(counts, 'r'))
+            counts = pickle.load(open(counts, 'rb'))
         except KeyError:
             pass
     if isinstance(counts, Counter):
@@ -314,7 +314,7 @@ def plot_read_counts(counts,
     elif isinstance(counts, six.string_types):
         try:
             # Try opening as a pickle first
-            counts = pickle.load(open(counts, 'r'))
+            counts = pickle.load(open(counts, 'rb'))
         except KeyError:
             pass
     if isinstance(counts, Counter):

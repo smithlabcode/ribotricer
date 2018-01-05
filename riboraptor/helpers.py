@@ -4,7 +4,10 @@ from __future__ import (absolute_import, division, print_function,
 import math
 from scipy import stats
 import numpy as np
+import pandas as pd
+import six
 
+from collections import defaultdict
 import errno
 import os
 
@@ -116,3 +119,150 @@ def set_xrotation(ax, degrees):
     """
     for i in ax.get_xticklabels():
         i.set_rotation(degrees)
+
+
+def summary_stats_two_arrays_welch(old_mean_array,
+                                   new_array,
+                                   old_var_array=None,
+                                   old_n_counter=None,
+                                   carried_forward_observations=None):
+    """Average two arrays using welch's method
+
+    Parameters
+    ----------
+    old_mean_array : Series
+                Series of previous means with index as positions
+    old_var_array : Series
+                Series of previous variances with index as positions
+    new_array : array like
+                Series of new observations
+                (Does noes
+                Ciunts of number of positions at a certain index
+
+    Returns
+    -------
+    m : array like
+        Column wise Mean array
+    var : array like
+         Column wise variance
+
+    Consider an example: [1,2,3], [1,2,3,4], [1,2,3,4,5]
+
+    old = [1,2,3]
+    new = [1,2,3,4]
+    counter = [1,1,1]
+    mean = [1,2,3,4] Var =[na, na, na, na], carried_fowrad = [[1,1], [2,2], [3,3], [4]]
+
+    old = [1,2,3,4]
+    new = [1,2,3,4,5]
+    couter = [2,2,2,1]
+
+    mean = [1,2,3,4,5]
+    var = [0,0,0, na, na]
+    carried_forward = [[], [], [], [4,4], [5]]
+    """
+    if not isinstance(old_mean_array, pd.Series):
+        old_mean_array = pd.Series(old_mean_array)
+    if not isinstance(new_array, pd.Series):
+        new_array = pd.Series(new_array)
+
+    len_old, len_new = len(old_mean_array), len(new_array)
+    if old_n_counter is None:
+        # Initlaized from current series
+        old_n_counter = pd.Series(
+            np.zeros(len(old_mean_array)) + 1, index=old_mean_array.index)
+    if not old_var_array:
+        # Initlaized from current series
+        old_var_array = pd.Series(
+            np.zeros(len(old_mean_array)) + np.nan, index=old_mean_array.index)
+    # Update positions counts based on new_array
+    new_n_counter = old_n_counter.add(
+        pd.Series(np.zeros(len(new_array)) + 1, index=new_array.index),
+        fill_value=0)
+    if len_old > len_new:
+        len_diff = len_old - len_new
+        # Pad the incoming array
+        # We append NAs to the end of new_array since it will mostly be in the metagene context
+        new_array = new_array.append(
+            pd.Series(np.zeros(len_diff)+np.nan),
+            ignore_index=True,
+            verify_integrity=True)
+    elif len_old < len_new:
+        len_diff = len_new - len_old
+        # Pad the old array
+        old_mean_array = old_mean_array.append(
+            pd.Series(np.zeros(len_diff)+np.nan),
+            ignore_index=True,
+            verify_integrity=True)
+
+    positions_with_less_than3_obs = defaultdict(list)
+    for index, counts in six.iteritems(new_n_counter):
+        # Which positions has <3 counts for calculating variance
+        if counts <= 3:
+            # Fetch the exact observations from history
+            try:
+                last_observations = carried_forward_observations[index]
+            except:
+                # No carreid forward passed
+                if not np.isnan(old_mean_array[index]):
+                    last_observations = [old_mean_array[index]]
+                else:
+                    last_observations = []
+            # Add entry from new_array only if it is not NAN
+            if not np.isnan(new_array[index]):
+                last_observations.append(new_array[index])
+            positions_with_less_than3_obs[index] = last_observations
+
+    # positions_with_less_than3_obs = pd.Series(positions_with_less_than3_obs)
+
+    # delta = x_n - mean(x_{n-1})
+    delta = new_array.fillna(0).subtract(old_mean_array.fillna(0))
+    # delta = delta/n
+    delta_normalized = delta.divide(new_n_counter)
+    # mean(x_n) = mean(x_{n-1}) + delta/n
+    new_mean_array = old_mean_array.fillna(0).add(delta_normalized)
+    # mean_difference_current = x_n - mean(x_n)
+    # mean_difference_previous = x_n - mean(x_{n-1})
+
+    mean_difference_current = new_array.fillna(0) - new_mean_array.fillna(0)
+    mean_difference_previous = new_array.fillna(0) - old_mean_array.fillna(0)
+
+    # (x_n-mean(x_n))(x_n-mean(x_{n-1})
+    product = np.multiply(mean_difference_current, mean_difference_previous)
+
+    # (n-1)S_n^2 - (n-2)S_{n-1}^2 = (x_n-mean(x_n)) (x_n-mean(x_{n-1}))
+
+    # old_ssq = (n-1)S_{n-1}^2
+    # (n-2)S_{n-1}^2
+    old_sum_of_sq = (old_n_counter.fillna(0) - 2).multiply(old_var_array.fillna(0))
+
+    # new_ssq = (old_ssq + product)
+    # (n-1) S_n^2
+    new_sum_of_sq = old_sum_of_sq + product
+
+    # if counts is less than 3, set sum of sq to NA
+    new_sum_of_sq[new_n_counter < 3] = np.nan
+
+    # if counts just became 3, compute the variance
+    for index, counts in six.iteritems(new_n_counter):
+        if counts == 3:
+            observations = positions_with_less_than3_obs[index]
+            variance = np.var(observations)
+            print(index, variance)
+            new_sum_of_sq[index] = variance
+            # delete it from the history
+            del positions_with_less_than3_obs[index]
+
+    new_var_array = new_sum_of_sq.divide(new_n_counter - 1)
+    new_var_array[new_var_array == np.inf] = np.nan
+    new_var_array[new_n_counter < 3] = np.nan
+    """
+    for index, counts in six.iteritems(new_n_counter):
+        if counts < 3:
+            if not np.isnan(new_array[index]):
+                if index not in list(positions_with_less_than3_obs.keys()):
+                    positions_with_less_than3_obs[index] = list()
+                assert index in positions_with_less_than3_obs.keys()
+                positions_with_less_than3_obs[index].append(new_array[index])
+    """
+    return new_mean_array, new_var_array, new_n_counter, positions_with_less_than3_obs
