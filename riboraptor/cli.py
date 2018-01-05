@@ -266,10 +266,9 @@ def periodicity_cmd(counts):
     default=None,
     show_default=True)
 @click.option('--ylabel', help='Y axix label')
-@click.option('--no-ascii', help='Do not plot ascii', is_flag=True)
+@click.option('--ascii', help='Do not plot ascii', is_flag=True)
 def plot_read_counts_cmd(counts, title, marker, color, millify_labels,
-                         identify_peak, positions, saveto, ylabel, no_ascii):
-    ascii = not no_ascii
+                         identify_peak, positions, saveto, ylabel, ascii):
     if counts:
         plot_read_counts(
             counts,
@@ -279,7 +278,7 @@ def plot_read_counts_cmd(counts, title, marker, color, millify_labels,
             millify_labels=millify_labels,
             position_range=positions,
             identify_peak=identify_peak,
-            ylabe=ylabel,
+            ylabel=ylabel,
             saveto=saveto,
             ascii=ascii)
     else:
@@ -314,10 +313,9 @@ def plot_read_counts_cmd(counts, title, marker, color, millify_labels,
     help='Path to file (png/pdf) to save to',
     default=None,
     show_default=True)
-@click.option('--no-ascii', help='Do not plot ascii', is_flag=True)
+@click.option('--ascii', help='Plot ascii', is_flag=True)
 def plot_framewise_counts_cmd(counts, title, millify_labels, positions, saveto,
-                              no_ascii):
-    ascii = not no_ascii
+                              ascii):
     if counts:
         plot_framewise_counts(
             counts,
@@ -352,10 +350,9 @@ def plot_framewise_counts_cmd(counts, title, millify_labels, positions, saveto,
     help='Path to file (png/pdf) to save to',
     default=None,
     show_default=True)
-@click.option('--no-ascii', help='Do not plot ascii', is_flag=True)
+@click.option('--ascii', help='Do not plot ascii', is_flag=True)
 def plot_read_length_dist_cmd(read_lengths, title, millify_labels, saveto,
-                              no_ascii):
-    ascii = not no_ascii
+                              ascii):
     if read_lengths:
         plot_read_length_dist(
             read_lengths,

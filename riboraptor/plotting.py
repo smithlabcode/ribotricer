@@ -15,6 +15,7 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 from matplotlib.ticker import MultipleLocator
 from matplotlib.ticker import FormatStrFormatter
+from matplotlib.ticker import LinearLocator
 
 import numpy as np
 import pandas as pd
@@ -28,7 +29,7 @@ from .helpers import round_to_nearest
 from .helpers import set_xrotation
 
 __FRAME_COLORS__ = ['#1b9e77', '#d95f02', '#7570b3']
-DPI = 1000
+DPI = 600
 
 
 def setup_plot():
@@ -90,6 +91,9 @@ def setup_axis(ax,
     ax.tick_params(which='minor', width=1, length=6)
     ax.tick_params(axis='x', labelrotation=xrotation)
     ax.tick_params(axis='y', labelrotation=yrotation)
+    ax.yaxis.set_major_locator(LinearLocator(10))
+    ax.yaxis.set_minor_locator(LinearLocator(10))
+
     #set_xrotation(ax, xrotation)
 
 
@@ -129,6 +133,10 @@ def plot_read_length_dist(read_lengths,
         try:
             # Try opening as a pickle first
             read_lengths = pickle.load(open(read_lengths, 'rb'))
+        except UnicodeDecodeError:
+            # Some randoom encoding error
+            read_lengths = pickle.load(
+                open(read_lengths, 'rb'), encoding='iso-8859-1')
         except KeyError:
             pass
     fig = None
@@ -136,19 +144,27 @@ def plot_read_length_dist(read_lengths,
         fig, ax = plt.subplots()
     else:
         fig = ax.get_figure()
+    if 'majorticks' not in kwargs:
+        kwargs['majorticks'] = 5
+    if 'minorticks' not in kwargs:
+        kwargs['minorticks'] = 1
+    if 'xrotation' not in kwargs:
+        kwargs['xrotation'] = 0
+
     setup_axis(ax, **kwargs)
-    if isinstance(read_lengths, Counter):
+    if isinstance(read_lengths, Counter) or isinstance(read_lengths,
+                                                       pd.Series):
         read_lengths = pd.Series(read_lengths)
-        read_lengths_counts = read_lengths.sort_index()
+        read_lengths_counts = read_lengths.values
     else:
         read_lengths = pd.Series(read_lengths)
         read_lengths_counts = read_lengths.value_counts().sort_index()
 
     reads_total = millify(read_lengths_counts.sum())
-    ax.bar(read_lengths_counts.index, read_lengths_counts)
+    ax.bar(read_lengths.index, read_lengths_counts)
     ax.set_xlim(
-        min(read_lengths_counts.index) - 0.5,
-        round_to_nearest(max(read_lengths_counts.index), 10) + 0.5)
+        min(read_lengths.index) - 0.5,
+        round_to_nearest(max(read_lengths.index), 10) + 0.5)
     if title:
         ax.set_title('{}\n Total reads = {}'.format(title, reads_total))
     else:
@@ -315,15 +331,20 @@ def plot_read_counts(counts,
         try:
             # Try opening as a pickle first
             counts = pickle.load(open(counts, 'rb'))
+        except UnicodeDecodeError:
+            # Some randoom encoding error
+            counts = pickle.load(open(counts, 'rb'), encoding='iso-8859-1')
         except KeyError:
             pass
-    if isinstance(counts, Counter):
+    if not isinstance(counts, pd.Series):
         counts = pd.Series(counts)
+    print(type(counts))
+    print(counts)
     if isinstance(position_range, six.string_types):
         splitted = list(
             map(lambda x: int(x), position_range.strip().split(':')))
-        position_range = range(splitted[0], splitted[1] + 1)
-    if position_range:
+        position_range = np.arange(splitted[0], splitted[1] + 1)
+    if position_range is not None:
         counts = counts[position_range]
     fig = None
     if ax is None:

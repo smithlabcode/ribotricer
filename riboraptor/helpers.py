@@ -165,13 +165,15 @@ def summary_stats_two_arrays_welch(old_mean_array,
         old_mean_array = pd.Series(old_mean_array)
     if not isinstance(new_array, pd.Series):
         new_array = pd.Series(new_array)
+    if old_n_counter is not None and not isinstance(old_n_counter, pd.Series):
+        old_n_counter = pd.Series(old_n_counter)
 
     len_old, len_new = len(old_mean_array), len(new_array)
     if old_n_counter is None:
         # Initlaized from current series
         old_n_counter = pd.Series(
             np.zeros(len(old_mean_array)) + 1, index=old_mean_array.index)
-    if not old_var_array:
+    if old_var_array is None:
         # Initlaized from current series
         old_var_array = pd.Series(
             np.zeros(len(old_mean_array)) + np.nan, index=old_mean_array.index)
@@ -183,18 +185,23 @@ def summary_stats_two_arrays_welch(old_mean_array,
         len_diff = len_old - len_new
         # Pad the incoming array
         # We append NAs to the end of new_array since it will mostly be in the metagene context
+        max_index = np.max(new_array.index.tolist())
+        new_index = np.arange(max_index + 1, max_index + 1 + len_diff)
         new_array = new_array.append(
-            pd.Series(np.zeros(len_diff)+np.nan),
-            ignore_index=True,
+            pd.Series(np.zeros(len_diff) + np.nan, index=new_index),
             verify_integrity=True)
     elif len_old < len_new:
         len_diff = len_new - len_old
         # Pad the old array
+        max_index = np.max(old_mean_array.index.tolist())
+        new_index = np.arange(max_index + 1, max_index + 1 + len_diff)
         old_mean_array = old_mean_array.append(
-            pd.Series(np.zeros(len_diff)+np.nan),
-            ignore_index=True,
+            pd.Series(np.zeros(len_diff) + np.nan, index=new_index),
             verify_integrity=True)
 
+    if not (old_mean_array.index == new_array.index).all():
+        print('old array index: {}'.format(old_mean_array))
+        print('new array index: {}'.format(new_array))
     positions_with_less_than3_obs = defaultdict(list)
     for index, counts in six.iteritems(new_n_counter):
         # Which positions has <3 counts for calculating variance
@@ -216,11 +223,30 @@ def summary_stats_two_arrays_welch(old_mean_array,
     # positions_with_less_than3_obs = pd.Series(positions_with_less_than3_obs)
 
     # delta = x_n - mean(x_{n-1})
-    delta = new_array.fillna(0).subtract(old_mean_array.fillna(0))
+    delta = new_array.subtract(old_mean_array)
+    """
+    for index, value in six.iteritems( delta ):
+        if np.isnan(value):
+            if not np.isnan(old_mean_array[index]):
+                delta[index] = old_mean_array[index]
+            else:
+                delta[index] = new_array[index]
+    """
+
     # delta = delta/n
     delta_normalized = delta.divide(new_n_counter)
     # mean(x_n) = mean(x_{n-1}) + delta/n
-    new_mean_array = old_mean_array.fillna(0).add(delta_normalized)
+    new_mean_array = old_mean_array.add(delta_normalized)
+    for index, value in six.iteritems(new_mean_array):
+        if np.isnan(value):
+            if not np.isnan(old_mean_array[index]):
+                new_mean_array[index] = old_mean_array[index]
+            else:
+                new_mean_array[index] = new_array[index]
+    #print(delta)
+    #print(new_n_counter)
+    #print(delta_normalized)
+    #print(new_mean_array)
     # mean_difference_current = x_n - mean(x_n)
     # mean_difference_previous = x_n - mean(x_{n-1})
 
@@ -234,7 +260,7 @@ def summary_stats_two_arrays_welch(old_mean_array,
 
     # old_ssq = (n-1)S_{n-1}^2
     # (n-2)S_{n-1}^2
-    old_sum_of_sq = (old_n_counter.fillna(0) - 2).multiply(old_var_array.fillna(0))
+    old_sum_of_sq = (old_n_counter - 2).multiply(old_var_array.fillna(0))
 
     # new_ssq = (old_ssq + product)
     # (n-1) S_n^2

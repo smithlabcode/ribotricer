@@ -24,6 +24,7 @@ from scipy.stats import norm
 
 from .wig import WigReader
 from .helpers import mkdir_p
+from .helpers import summary_stats_two_arrays_welch
 from .genome import _get_sizes
 from .genome import _get_bed
 from .genome import __GENOMES_DB__
@@ -589,35 +590,40 @@ def gene_coverage(gene_name, bed, bw, gene_group=None, offset=0):
     # Collect all intervals at once
     intervals = zip(gene_group['chrom'], gene_group['start'],
                     gene_group['end'], gene_group['strand'])
-    chrom_length = chromsome_lengths[str(intervals[0][0])]
+    intervals_list = [list(element) for element in list(intervals)[:]]
+    # intervals_list = list(intervals)[:]
+
+    first_interval = intervals_list[0]
+    last_interval = intervals_list[-1]
+    chrom_length = chromsome_lengths[str(first_interval[0])]
     # Need to convert to list instead frm tuples
     # TODO fix this?
-    intervals = map(list, intervals)
+    # intervals = list(map(list, list(intervals)))
     if strand == '+':
         # For positive strand shift
-        # start codon position intervals[0][1] by -offset
-        if intervals[0][1] - offset >= 0:
-            intervals[0][1] = intervals[0][1] - offset
+        # start codon position first_interval[1] by -offset
+        if first_interval[1] - offset >= 0:
+            first_interval[1] = first_interval[1] - offset
             gene_offset = offset
         else:
             sys.stderr.write('Cannot offset beyond 0 for interval: {}. \
-                Set to start of chromsome.\n'.format(intervals[0]))
+                Set to start of chromsome.\n'.format(first_interval))
             # Reset offset to minimum possible
-            gene_offset = intervals[0][1]
-            intervals[0][1] = 0
+            gene_offset = first_interval[1]
+            first_interval[1] = 0
     else:
         # Else shift cooridnate of last element in intervals stop by + offset
-        if (intervals[-1][2] + offset <= chrom_length):
-            intervals[-1][2] = intervals[-1][2] + offset
+        if (last_interval[2] + offset <= chrom_length):
+            last_interval[2] = last_interval[2] + offset
             gene_offset = offset
         else:
             sys.stderr.write('Cannot offset beyond 0 for interval: {}. \
-                             Set to end of chromsome.\n'.format(intervals[-1]))
-            gene_offset = chrom_length - intervals[-1][2]
+                             Set to end of chromsome.\n'.format(last_interval))
+            gene_offset = chrom_length - last_interval[2]
             # 1-end so chrom_length
-            intervals[-1][2] = chrom_length
+            last_interval[2] = chrom_length
 
-    intervals = map(tuple, intervals)
+    intervals = [tuple(element) for element in intervals_list]
 
     interval_coverage_list = []
     for index, coverage in enumerate(bw.query(intervals)):
@@ -633,7 +639,7 @@ def gene_coverage(gene_name, bed, bw, gene_group=None, offset=0):
     if len(interval_coverage_list) == 0:
         # Some genes might not be present in the bigwig at all
         sys.stderr.write('Got empty list! intervals  for chr : {}\n'.format(
-            intervals[0][0]))
+            first_interval[0]))
         return ([], None)
 
     coverage_combined = interval_coverage_list[0]
@@ -771,7 +777,7 @@ def htseq_to_tpm(htseq_f, cds_bed_f, saveto=None):
     """
     cds_bed_sizes = get_region_sizes(cds_bed_f)
     htseq = read_htseq(htseq_f)
-    rate = np.log(htseq['counts']).subtract(np.log(cds_bed_sizes))
+    rate = np.log(htseq['counts']).subtract(np.log(pd.Series(cds_bed_sizes)))
     denom = np.log(np.sum(np.exp(rate)))
     tpm = np.exp(rate - denom + np.log(1e6))
     if saveto:
@@ -904,7 +910,7 @@ def metagene_coverage(bigwig,
     else:
         # Top  genes individual plot
         top_genes = ranked_genes[:top_n_gene]
-
+    index = 0
     for gene_name, gene_group in cds_grouped:
         if ignore_tx_version:
             gene_name = re.sub(r'\.[0-9]+', '', gene_name)
@@ -916,8 +922,8 @@ def metagene_coverage(bigwig,
             # gene_length = len(gene_cov.inex) + min_index
 
             # Keep only important positions
-            gene_cov = gene_cov[range(min_index,
-                                      min(gene_length, max_positions))]
+            gene_cov = gene_cov[np.arange(min_index,
+                                          min(gene_length, max_positions))]
 
         # Generate individual plot for top genes
         if gene_name in top_genes and prefix:
@@ -927,18 +933,46 @@ def metagene_coverage(bigwig,
                         __PICKLE_PROTOCOL__)
 
         # Generate top gene version metagene plot
+        norm_cov = gene_cov / gene_cov.mean()
+        if index == 0:
+            previous_gene_coverage = norm_cov
+            previous_variance = None
+            old_n_counter = Counter(gene_cov.index.tolist())
+            welch_carried_forward = None
+        if index == 1:
+            old_n_counter += Counter(gene_cov.index.tolist())
+
+        if index >= 1:
+            new_gene_coverage = norm_cov
         if gene_name in top_meta_genes:
-            norm_cov = gene_cov / gene_cov.mean()
             topgene_normalized_coverage = topgene_normalized_coverage.add(
                 norm_cov, fill_value=0)
             topgene_position_counter += Counter(gene_cov.index.tolist())
 
         genewise_normalized_coverage = genewise_normalized_coverage.add(
             norm_cov, fill_value=0)
+        if index > 1:
+            welch_mean, welch_var, welch_n_obs, welch_carried_forward = summary_stats_two_arrays_welch(
+                old_mean_array=previous_gene_coverage,
+                new_array=new_gene_coverage,
+                old_var_array=previous_variance,
+                old_n_counter=old_n_counter,
+                carried_forward_observations=welch_carried_forward)
+            previous_gene_coverage = welch_mean.copy()
+            previous_variance = welch_var.copy()
+            old_n_counter = welch_n_obs.copy()
+
         genewise_raw_coverage = genewise_raw_coverage.add(
             gene_cov, fill_value=0)
         gene_position_counter += Counter(gene_cov.index.tolist())
+        if index > 1:
+            if not (pd.Series(welch_n_obs) == pd.Series(gene_position_counter)
+                    ).all():
+                print('welch_n_ob n obs :{}'.format(pd.Series(welch_n_obs)))
+                print('gene pos obs :{}'.format(
+                    pd.Series(gene_position_counter)))
         genewise_offsets[gene_name] = gene_offset
+        index += 1
 
     if len(gene_position_counter) != len(genewise_normalized_coverage):
         raise RuntimeError('Gene normalizaed counter mismatch')
@@ -970,6 +1004,9 @@ def metagene_coverage(bigwig,
                     __PICKLE_PROTOCOL__)
         pickle.dump(metagene_raw_coverage,
                     open('{}_metagene_raw.pickle'.format(prefix), 'wb'),
+                    __PICKLE_PROTOCOL__)
+        pickle.dump(welch_var,
+                    open('{}_metagene_var.pickle'.format(prefix), 'wb'),
                     __PICKLE_PROTOCOL__)
         pickle.dump(genewise_offsets,
                     open('{}_genewise_offsets.pickle'.format(prefix), 'wb'),
