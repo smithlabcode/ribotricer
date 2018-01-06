@@ -16,6 +16,8 @@ import matplotlib.pyplot as plt
 from matplotlib.ticker import MultipleLocator
 from matplotlib.ticker import FormatStrFormatter
 from matplotlib.ticker import LinearLocator
+from matplotlib.ticker import MaxNLocator
+from matplotlib.ticker import AutoMinorLocator
 
 import numpy as np
 import pandas as pd
@@ -87,12 +89,14 @@ def setup_axis(ax,
     elif axis == 'both':
         setup_axis(ax, 'x', majorticks, minorticks, xrotation, yrotation)
         setup_axis(ax, 'y', majorticks, minorticks, xrotation, yrotation)
+    ax.yaxis.set_major_locator(MaxNLocator(integer=True))
+    #ax.yaxis.set_minor_locator(AutoMinorLocator())#integer=True))
     ax.tick_params(which='major', width=2, length=10)
     ax.tick_params(which='minor', width=1, length=6)
     ax.tick_params(axis='x', labelrotation=xrotation)
     ax.tick_params(axis='y', labelrotation=yrotation)
-    ax.yaxis.set_major_locator(LinearLocator(10))
-    ax.yaxis.set_minor_locator(LinearLocator(10))
+    #ax.yaxis.set_major_locator(LinearLocator(10))
+    #ax.yaxis.set_minor_locator(LinearLocator(10))
 
     #set_xrotation(ax, xrotation)
 
@@ -150,6 +154,13 @@ def plot_read_length_dist(read_lengths,
         kwargs['minorticks'] = 1
     if 'xrotation' not in kwargs:
         kwargs['xrotation'] = 0
+    ax.set_ylim(
+        min(read_lengths_counts),
+        round_to_nearest(max(read_lengths_counts), 5) + 0.5)
+    ax.set_xlim(
+        min(read_lengths.index) - 0.5,
+        round_to_nearest(max(read_lengths.index), 10) + 0.5)
+    ax.bar(read_lengths.index, read_lengths_counts)
 
     setup_axis(ax, **kwargs)
     if isinstance(read_lengths, Counter) or isinstance(read_lengths,
@@ -161,10 +172,6 @@ def plot_read_length_dist(read_lengths,
         read_lengths_counts = read_lengths.value_counts().sort_index()
 
     reads_total = millify(read_lengths_counts.sum())
-    ax.bar(read_lengths.index, read_lengths_counts)
-    ax.set_xlim(
-        min(read_lengths.index) - 0.5,
-        round_to_nearest(max(read_lengths.index), 10) + 0.5)
     if title:
         ax.set_title('{}\n Total reads = {}'.format(title, reads_total))
     else:
@@ -338,8 +345,6 @@ def plot_read_counts(counts,
             pass
     if not isinstance(counts, pd.Series):
         counts = pd.Series(counts)
-    print(type(counts))
-    print(counts)
     if isinstance(position_range, six.string_types):
         splitted = list(
             map(lambda x: int(x), position_range.strip().split(':')))
@@ -359,8 +364,6 @@ def plot_read_counts(counts,
         kwargs['xrotation'] = 0
     if 'yrotation' not in kwargs:
         kwargs['yrotation'] = 0
-    setup_axis(ax, **kwargs)
-    ax.set_ylabel(ylabel)
     if not marker:
         ax.plot(
             counts.index,
@@ -390,7 +393,10 @@ def plot_read_counts(counts,
     if millify_labels:
         ax.set_yticklabels(list(map(lambda x: millify(x), ax.get_yticks())))
     ax.set_xlim(
-        min(counts.index) - 0.5, round_to_nearest(max(counts.index), 10) + 0.5)
+        round_to_nearest(min(counts.index) - 15, 10) - 1,
+        round_to_nearest(max(counts.index), 10) + 1)
+    setup_axis(ax, **kwargs)
+    ax.set_ylabel(ylabel)
     if title:
         ax.set_title(title)
     sns.despine(trim=True, offset=10)

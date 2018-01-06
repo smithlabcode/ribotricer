@@ -825,7 +825,7 @@ def mapping_reads_summary(bam, prefix):
 
 def metagene_coverage(bigwig,
                       region_bed_f,
-                      max_positions=200,
+                      max_positions=None,
                       htseq_f=None,
                       prefix=None,
                       offset=60,
@@ -916,7 +916,7 @@ def metagene_coverage(bigwig,
             gene_name = re.sub(r'\.[0-9]+', '', gene_name)
         gene_cov, _, _, gene_offset = gene_coverage(gene_name, region_bed, bw,
                                                     gene_group, offset)
-        if max_positions != -1:
+        if max_positions is not None:
             min_index = min(gene_cov.index.tolist())
             gene_length = max(gene_cov.index.tolist())
             # gene_length = len(gene_cov.inex) + min_index
