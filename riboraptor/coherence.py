@@ -4,7 +4,7 @@ import pickle
 import numpy as np
 import pandas as pd
 from mtspec import mtspec, mt_coherence
-
+import six
 
 def _shift_bit_length(x):
     """Shift bit"""
@@ -37,10 +37,11 @@ def get_periodicity(values, input_is_stream=False):
     p = 0.90
     if input_is_stream:
         values = list(map(lambda x: float(x.rstrip()), values))
-    try:
-        values = pickle.load(open(values))
-    except KeyError:
-        pass
+    if isinstance(values, six.string_types):
+        try:
+            values = pickle.load(open(values))
+        except KeyError:
+            pass
     values = pd.Series(values)
     values = values[0:max(values.index)]
     length = len(values)

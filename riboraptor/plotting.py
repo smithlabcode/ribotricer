@@ -154,9 +154,6 @@ def plot_read_length_dist(read_lengths,
         kwargs['minorticks'] = 1
     if 'xrotation' not in kwargs:
         kwargs['xrotation'] = 0
-    ax.set_ylim(
-        min(read_lengths_counts),
-        round_to_nearest(max(read_lengths_counts), 5) + 0.5)
     ax.set_xlim(
         min(read_lengths.index) - 0.5,
         round_to_nearest(max(read_lengths.index), 10) + 0.5)
