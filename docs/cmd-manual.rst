@@ -22,7 +22,7 @@ nodes will have several GB of memory available for processing.
 Translation profile construction
 ================================
 Ribo-seq experiments are always single-end sequenced. Ribosome protected
-fragments range from 28-31 nucleotides and hence most experiments involve
+fragments range from 28-32 nucleotides and hence most experiments involve
 50 bp single end reads. Before mapping, we need to get rid of the adapters
 ligated at the 3' end of the fragments as part of the library protocol.
 
