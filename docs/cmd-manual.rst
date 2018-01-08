@@ -19,7 +19,7 @@ Much of this analysis is computationally intensive. We assume that individual
 nodes will have several GB of memory available for processing.
 
 
-Translation profile construction
+Translatome construction
 ================================
 Ribo-seq experiments are always single-end sequenced. Ribosome protected
 fragments range from 28-32 nucleotides and hence most experiments involve
@@ -123,7 +123,7 @@ Additionaly, we also need BAM file sorted by name, since htseq-counts_
    $ samtools index <output.bam>
 
 
-Translation profile analysis
+Translatome analysis
 ============================
 Once we have the bams, we are ready for downstream analysis.
 The downstream step often involves a number of steps.
