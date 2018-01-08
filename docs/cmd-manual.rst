@@ -5,7 +5,7 @@ Manual
 
 Contents
 ========
-robocop is a comprehensive pipeline and set of tools for
+roboraptor is a comprehensive pipeline and set of tools for
 analyzing Ribo-seq data. This manual explains
 the stages in our pipeline, how to use the analysis tools and how to modify
 the pipeline for your specific context.
