@@ -132,7 +132,7 @@ values (wherever applicable):
 
 
 * Quality Control
-    - Number of uniquely mapping reads : >=5M
+    - Number of uniquely mapped reads : >=5M
     - Periodicity : TODO
     - Ratio of CDS/(5'UTR+3'UTR) : >1 after length normalization
     - Fragment length distribution : Peak around 28-32 nt
@@ -143,8 +143,9 @@ values (wherever applicable):
 
 Counting uniquely mapped reads
 ------------------------------
-The first step is to simply caculate number of uniquely mapping reads.
+The first step is to simply caculate the number of uniquely mapped reads.
 We recommend a minimum of 5 million reads for any downstream analysis.
+TODO: list different recommendation for different species
 
 .. code-block:: console
 
