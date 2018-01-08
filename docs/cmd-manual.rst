@@ -210,13 +210,13 @@ TODO (See Example)
 
 Example
 =======
-We will use two samples from GSE94454_ as examples for examples that follow.
+We will use two samples from GSE94454_ , one RNA-seq sample (SRR5227310) and
+one Ribo-seq sample (SRR5227306) as examples for examples that follow.
 
 .. code-block:: console
 
    $ riboraptor uniq-mapping-count --bam data/SRR5227310.bam
    28637667
-   $
 
 This is a pretty deep library.
 
