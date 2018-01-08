@@ -64,7 +64,7 @@ Creating Index
 --genomeDir            Directory to write index files to
 --genomeSAindexNbases  min(14, log2(GenomeLength)/2 - 1), this **must** be scaled down for small genomes
 --genomeFastaFiles     Path to reference fasta
---sjdbGTFfile          Path to GTf file
+--sjdbGTFfile          Path to GTF file
 
 
 Mapping
