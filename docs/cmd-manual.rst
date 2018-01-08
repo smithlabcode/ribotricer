@@ -156,7 +156,7 @@ TODO: list different recommendation for different species
 
 Read length distribution
 ------------------------
-An ideal Ribo-seq library is expected to have 28-31 nt long fragments most enriched.
+An ideal Ribo-seq library is expected to have 28-32 nt long fragments most enriched.
 We can calculate enrichment and plot the fragment size distribution using riboraptor.
 
 Readd length distribution can be calculated using the `read-length-dist` subcommand:
