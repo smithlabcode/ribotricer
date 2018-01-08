@@ -128,14 +128,14 @@ Translatome analysis
 Once we have the bams, we are ready for downstream analysis.
 The downstream step often involves a number of steps.
 The following list summarises these steps along with their recommended
-values (whereve applicable):
+values (wherever applicable):
 
 
 * Quality Control
     - Number of uniquely mapping reads : >=5M
     - Periodicity : TODO
     - Ratio of CDS/(5'UTR+3'UTR) : >1 after length normalization
-    - Fragment length distribution : Peak around 28-31 nt
+    - Fragment length distribution : Peak around 28-32 nt
 
 * Metagene analysis
    - P-site offsets : Around 12-14 nt upstream of the start codon when counting based on 5'end
