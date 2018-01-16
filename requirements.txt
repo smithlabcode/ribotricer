@@ -13,5 +13,5 @@ seaborn>=0.8.1
 pycwt>=0.3.0a22
 six>=1.11.0
 Click>=6.0
-click-help-colors>=0.4
+click-help-colors>=0.3
 HTSeq>=0.9.1
