@@ -507,7 +507,7 @@ def read_enrichment(read_lengths,
     Returns
     -------
     ratio : float
-            Enrichment in this range
+            Enrichment in this range (Scae 0-1)
 
     """
     if input_is_file:
@@ -544,7 +544,7 @@ def read_enrichment(read_lengths,
     cdf_min = norm.cdf(min(enrichment_range), mean_length, std_dev_length)
     sf_max = norm.sf(max(enrichment_range), mean_length, std_dev_length)
     pvalue = cdf_min + sf_max
-    ratio = rpf_signal / float(total_signal - rpf_signal)
+    ratio = rpf_signal / float(total_signal)
     return ratio, pvalue
 
 

@@ -18,6 +18,26 @@ def _padwithzeros(vector, pad_width, iaxis, kwargs):
     return vector
 
 
+def naive_periodicity(values):
+    '''Calculate periodicity in a naive manner
+
+    Take ratio of frame1 over avg(frame2+frame3) counts. By default
+    the first value is treated as the first frame as well
+    '''
+    frame1_total = 0
+    frame2_total = 0
+    frame3_total = 0
+    values = list(values)[0:len(values)-len(values)%3]
+    for i in range(0, len(values), 3):
+        frame1_total += values[i]
+    for i in range(1, len(values), 3):
+        frame2_total += values[i]
+    for i in range(2, len(values), 3):
+        frame3_total += values[i]
+    return frame1_total/(frame1_total+frame2_total+frame3_total)
+
+
+
 def get_periodicity(values, input_is_stream=False):
     """Calculate periodicty wrt 1-0-0 signal.
 
