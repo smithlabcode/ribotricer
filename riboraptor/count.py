@@ -658,6 +658,66 @@ def gene_coverage(gene_name, bed, bw, gene_group=None, offset=0):
             index_to_genomic_pos_map, gene_offset)
 
 
+def export_gene_coverages(bigwig,
+                          region_bed_f,
+                          prefix,
+                          offset=60,
+                          ignore_tx_version=True):
+    """Export all gene coverages.
+
+    Parameters
+    ----------
+    bigwig : str
+             Path to bigwig file
+    region_bed_f : str
+                   Path to region bed file (CDS/3'UTR/5'UTR)
+                   with bed name column as gene
+    prefix : str
+             Prefix to write output file
+    offset : int
+             Number of bases to count upstream
+
+    Returns
+    -------
+    gene_profiles: file
+                   with the following format:
+                   sample_name="SRX0123456"
+                   offset=60
+                   gene1\tcnt1_1 cnt1_2 cnt1_3 ...\n
+                   gene2\tcnt2_1 cnt2_2 cnt2_3 cnt2_4 ...\n
+    """
+    bw = WigReader(bigwig)
+    if region_bed_f.lower().split('_')[0] in __GENOMES_DB__:
+
+        genome, region_type = region_bed_f.lower().split('_')
+        region_bed_f = _get_bed(region_type, genome)
+
+    region_bed = pybedtools.BedTool(region_bed_f).sort().to_dataframe()
+    # Group intervals by gene name
+    cds_grouped = region_bed.groupby('name')
+
+    coverages = {}
+
+    count = 0
+    for gene_name, gene_group in cds_grouped:
+        if ignore_tx_version:
+            gene_name = re.sub(r'\.[0-9]+', '', gene_name)
+        gene_cov, _, _, gene_offset = gene_coverage(gene_name, region_bed, bw,
+                                                    gene_group, offset)
+        coverages[gene_name] = gene_cov.tolist()
+        if count > 5:
+            break
+    sample = os.path.basename(bigwig).split('.')[0]
+    with open('{}_gene_coverages.txt'.format(prefix), 'w') as outfile:
+        outfile.write("sample: " + sample + "\n")
+        outfile.write("offset: " + str(offset))
+        for gene_name in coverages:
+            outfile.write(gene_name + "\t")
+            for count in coverages[gene_name]:
+                outfile.write(str(count) + " ")
+            outfile.write("\n")
+
+
 def get_fasta_sequence(fasta, intervals):
     """Extract fasta sequence given a list of intervals.
 
