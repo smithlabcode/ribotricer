@@ -676,6 +676,8 @@ def export_gene_coverages(bigwig,
              Prefix to write output file
     offset : int
              Number of bases to count upstream
+    ignore_tx_version : bool
+                        Should versions be ignored for gene names
 
     Returns
     -------
