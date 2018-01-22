@@ -700,19 +700,17 @@ def export_gene_coverages(bigwig,
 
     coverages = {}
 
-    count = 0
     for gene_name, gene_group in cds_grouped:
         if ignore_tx_version:
             gene_name = re.sub(r'\.[0-9]+', '', gene_name)
         gene_cov, _, _, gene_offset = gene_coverage(gene_name, region_bed, bw,
                                                     gene_group, offset)
         coverages[gene_name] = gene_cov.tolist()
-        if count > 5:
-            break
+
     sample = os.path.basename(bigwig).split('.')[0]
     with open('{}_gene_coverages.txt'.format(prefix), 'w') as outfile:
         outfile.write("sample: " + sample + "\n")
-        outfile.write("offset: " + str(offset))
+        outfile.write("offset: " + str(offset) + "\n")
         for gene_name in coverages:
             outfile.write(gene_name + "\t")
             for count in coverages[gene_name]:
