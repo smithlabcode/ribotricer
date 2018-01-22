@@ -17,6 +17,7 @@ from .count import count_reads_per_gene
 from .count import count_utr5_utr3_cds
 from .count import read_enrichment
 from .count import gene_coverage
+from .count import export_gene_coverages
 # from .count import htseq_to_cpm
 from .count import mapping_reads_summary
 from .count import metagene_coverage
@@ -165,6 +166,25 @@ def gene_coverage_cmd(gene, bed, bigwig, offset):
     for l, count in six.iteritems(dict(coverage_combined)):
         sys.stdout.write('{}\t{}'.format(l, count))
         sys.stdout.write(os.linesep)
+
+
+@cli.command(
+        'export-gene-coverages',
+        context_settings=CONTEXT_SETTINGS,
+        help='Export gene coverages')
+@click.option('--bigwig', '-bw', help='Path to bigwig', required=True)
+@click.option('--region_bed', help='Path to CDS bed file', required=True)
+@click.option('--prefix', help='Save gene coverages file to')
+@click.option(
+    '--offset', help='Number of upstream bases to count', type=int, default=60)
+@click.option(
+    '--ignore_tx_version',
+    help='Ignore version (.xyz) in gene names',
+    is_flag=True)
+def export_gene_coverages_cmd(bigwig, region_bed, prefix,
+                              offset, ignore_tx_version):
+    export_gene_coverages(bigwig, region_bed, prefix,
+                          offset, ignore_tx_version)
 
 
 @cli.command(
