@@ -709,8 +709,8 @@ def export_gene_coverages(bigwig,
 
     sample = os.path.basename(bigwig).split('.')[0]
     with open('{}_gene_coverages.txt'.format(prefix), 'w') as outfile:
-        outfile.write("sample: " + sample + "\n")
-        outfile.write("offset: " + str(offset) + "\n")
+        outfile.write("sample:" + sample + "\n")
+        outfile.write("offset:" + str(offset) + "\n")
         for gene_name in coverages:
             outfile.write(gene_name + "\t")
             for count in coverages[gene_name]:
