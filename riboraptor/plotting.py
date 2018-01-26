@@ -154,12 +154,6 @@ def plot_read_length_dist(read_lengths,
         kwargs['minorticks'] = 1
     if 'xrotation' not in kwargs:
         kwargs['xrotation'] = 0
-    ax.set_xlim(
-        min(read_lengths.index) - 0.5,
-        round_to_nearest(max(read_lengths.index), 10) + 0.5)
-    ax.bar(read_lengths.index, read_lengths_counts)
-
-    setup_axis(ax, **kwargs)
     if isinstance(read_lengths, Counter) or isinstance(read_lengths,
                                                        pd.Series):
         read_lengths = pd.Series(read_lengths)
@@ -168,6 +162,15 @@ def plot_read_length_dist(read_lengths,
         read_lengths = pd.Series(read_lengths)
         read_lengths_counts = read_lengths.value_counts().sort_index()
 
+    ax.set_ylim(
+        min(read_lengths_counts),
+        round_to_nearest(max(read_lengths_counts), 5) + 0.5)
+    ax.set_xlim(
+        min(read_lengths.index) - 0.5,
+        round_to_nearest(max(read_lengths.index), 10) + 0.5)
+    ax.bar(read_lengths.index, read_lengths_counts)
+
+    setup_axis(ax, **kwargs)
     reads_total = millify(read_lengths_counts.sum())
     if title:
         ax.set_title('{}\n Total reads = {}'.format(title, reads_total))

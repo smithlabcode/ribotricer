@@ -717,6 +717,54 @@ def export_gene_coverages(bigwig,
                 outfile.write(str(count) + " ")
             outfile.write("\n")
 
+def export_single_gene_coverage(bigwig,
+                                region_bed_f,
+                                gene_name,
+                                prefix,
+                                offset=60,
+                                ignore_tx_version=True):
+    """Export single gene coverage to tsv
+
+    Parameters
+    ----------
+    bigwig : str
+             Path to bigwig file
+    region_bed_f : str
+                   Path to region bed file (CDS/3'UTR/5'UTR)
+                   with bed name column as gene
+    prefix : str
+             Prefix to write output file
+    offset : int
+             Number of bases to count upstream
+    ignore_tx_version : bool
+                        Should versions be ignored for gene names
+
+    Returns
+    -------
+    gene_profile: tsv with first column as index, next coumn as value
+    """
+    bw = WigReader(bigwig)
+    if region_bed_f.lower().split('_')[0] in __GENOMES_DB__:
+
+        genome, region_type = region_bed_f.lower().split('_')
+        region_bed_f = _get_bed(region_type, genome)
+
+    region_bed = pybedtools.BedTool(region_bed_f).sort().to_dataframe()
+    # Group intervals by gene name
+    cds_grouped = region_bed.groupby('name')
+    if ignore_tx_version:
+        gene_name = re.sub(r'\.[0-9]+', '', gene_name)
+    if gene_name not in region_bed['name'].tolist():
+        print(region_bed['name'])
+        raise RuntimeError('{} not in bed'.format(gene_name))
+
+    gene_group = cds_grouped.get_group(gene_name)
+    gene_cov, _, _, gene_offset = gene_coverage(gene_name, region_bed, bw,
+                                                gene_group, offset)
+    gene_cov.to_csv(path='{}_coverage.tsv'.format(prefix), sep=str(u'\t'), index=True)
+
+
+
 
 def get_fasta_sequence(fasta, intervals):
     """Extract fasta sequence given a list of intervals.
