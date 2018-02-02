@@ -6,6 +6,7 @@ import pandas as pd
 from mtspec import mtspec, mt_coherence
 import six
 
+
 def _shift_bit_length(x):
     """Shift bit"""
     return 1 << (x - 1).bit_length()
@@ -27,15 +28,14 @@ def naive_periodicity(values):
     frame1_total = 0
     frame2_total = 0
     frame3_total = 0
-    values = list(values)[0:len(values)-len(values)%3]
+    values = list(values)[0:len(values) - len(values) % 3]
     for i in range(0, len(values), 3):
         frame1_total += values[i]
     for i in range(1, len(values), 3):
         frame2_total += values[i]
     for i in range(2, len(values), 3):
         frame3_total += values[i]
-    return frame1_total/(frame1_total+frame2_total+frame3_total)
-
+    return frame1_total / (frame1_total + frame2_total + frame3_total)
 
 
 def get_periodicity(values, input_is_stream=False):

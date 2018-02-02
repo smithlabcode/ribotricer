@@ -548,7 +548,12 @@ def read_enrichment(read_lengths,
     return ratio, pvalue
 
 
-def gene_coverage(gene_name, bed, bw, gene_group=None, offset=0):
+def gene_coverage(gene_name,
+                  bed,
+                  bw,
+                  gene_group=None,
+                  offset_5p=0,
+                  offset_3p=0):
     """Get gene coverage.
 
     Parameters
@@ -559,8 +564,10 @@ def gene_coverage(gene_name, bed, bw, gene_group=None, offset=0):
           Path to CDS or 5'UTR or 3'UTR bed
     bw : str
          Path to bigwig to fetch the scores from
-    offset : int
-                    Number of bases to count upstream
+    offset_5p : int (positive)
+                Number of bases to count upstream (5')
+    offset_3p : int (positive)
+                Number of bases to count downstream (3')
 
     Returns
     -------
@@ -573,6 +580,8 @@ def gene_coverage(gene_name, bed, bw, gene_group=None, offset=0):
     gene_offset : int
                 Gene wise offsets
     """
+    assert (offset_5p >= 0)
+    assert (offset_3p >= 0)
     if not isinstance(bw, WigReader):
         bw = WigReader(bw)
     chromsome_lengths = bw.get_chromosomes
@@ -602,26 +611,45 @@ def gene_coverage(gene_name, bed, bw, gene_group=None, offset=0):
     if strand == '+':
         # For positive strand shift
         # start codon position first_interval[1] by -offset
-        if first_interval[1] - offset >= 0:
-            first_interval[1] = first_interval[1] - offset
-            gene_offset = offset
+        if first_interval[1] - offset_5p >= 0:
+            first_interval[1] = first_interval[1] - offset_5p
+            gene_offset_5p = offset_5p
         else:
             sys.stderr.write('Cannot offset beyond 0 for interval: {}. \
                 Set to start of chromsome.\n'.format(first_interval))
             # Reset offset to minimum possible
-            gene_offset = first_interval[1]
+            gene_offset_5p = first_interval[1]
             first_interval[1] = 0
-    else:
-        # Else shift cooridnate of last element in intervals stop by + offset
-        if (last_interval[2] + offset <= chrom_length):
-            last_interval[2] = last_interval[2] + offset
-            gene_offset = offset
+
+        if (last_interval[2] + offset_3p <= chrom_length):
+            last_interval[2] = last_interval[2] + offset_3p
+            gene_offset_3p = offset_3p
         else:
             sys.stderr.write('Cannot offset beyond 0 for interval: {}. \
                              Set to end of chromsome.\n'.format(last_interval))
-            gene_offset = chrom_length - last_interval[2]
+            gene_offset_3p = chrom_length - last_interval[2]
             # 1-end so chrom_length
             last_interval[2] = chrom_length
+    else:
+        # Else shift cooridnate of last element in intervals stop by + offset
+        if (last_interval[2] + offset_5p <= chrom_length):
+            last_interval[2] = last_interval[2] + offset_5p
+            gene_offset_5p = offset_5p
+        else:
+            sys.stderr.write('Cannot offset beyond 0 for interval: {}. \
+                             Set to end of chromsome.\n'.format(last_interval))
+            gene_offset_5p = chrom_length - last_interval[2]
+            # 1-end so chrom_length
+            last_interval[2] = chrom_length
+        if first_interval[1] - offset_3p >= 0:
+            first_interval[1] = first_interval[1] - offset_3p
+            gene_offset_3p = offset_3p
+        else:
+            sys.stderr.write('Cannot offset beyond 0 for interval: {}. \
+                Set to start of chromsome.\n'.format(first_interval))
+            # Reset offset to minimum possible
+            gene_offset_5p = first_interval[1]
+            first_interval[1] = 0
 
     intervals = [tuple(element) for element in intervals_list]
 
@@ -646,16 +674,16 @@ def gene_coverage(gene_name, bed, bw, gene_group=None, offset=0):
     for interval_coverage in interval_coverage_list[1:]:
         coverage_combined = coverage_combined.combine_first(interval_coverage)
     coverage_combined = coverage_combined.fillna(0)
-    coverage_index = np.arange(len(coverage_combined)) - gene_offset
+    coverage_index = np.arange(len(coverage_combined)) - gene_offset_5p
     index_to_genomic_pos_map = pd.Series(
         coverage_combined.index.tolist(), index=coverage_index)
     intervals_for_fasta_read = []
     for pos in index_to_genomic_pos_map.values:
         intervals_for_fasta_read.append((chrom, pos, pos + 1, strand))
     coverage_combined = coverage_combined.reset_index(drop=True)
-    coverage_combined = coverage_combined.rename(lambda x: x - gene_offset)
+    coverage_combined = coverage_combined.rename(lambda x: x - gene_offset_5p)
     return (coverage_combined, intervals_for_fasta_read,
-            index_to_genomic_pos_map, gene_offset)
+            index_to_genomic_pos_map, gene_offset_5p, gene_offset_3p)
 
 
 def export_gene_coverages(bigwig,
@@ -717,6 +745,7 @@ def export_gene_coverages(bigwig,
                 outfile.write(str(count) + " ")
             outfile.write("\n")
 
+
 def export_single_gene_coverage(bigwig,
                                 region_bed_f,
                                 gene_name,
@@ -761,9 +790,8 @@ def export_single_gene_coverage(bigwig,
     gene_group = cds_grouped.get_group(gene_name)
     gene_cov, _, _, gene_offset = gene_coverage(gene_name, region_bed, bw,
                                                 gene_group, offset)
-    gene_cov.to_csv(path='{}_coverage.tsv'.format(prefix), sep=str(u'\t'), index=True)
-
-
+    gene_cov.to_csv(
+        path='{}_coverage.tsv'.format(prefix), sep=str(u'\t'), index=True)
 
 
 def get_fasta_sequence(fasta, intervals):

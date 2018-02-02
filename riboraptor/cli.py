@@ -170,9 +170,9 @@ def gene_coverage_cmd(gene, bed, bigwig, offset):
 
 
 @cli.command(
-        'export-gene-coverages',
-        context_settings=CONTEXT_SETTINGS,
-        help='Export gene coverages')
+    'export-gene-coverages',
+    context_settings=CONTEXT_SETTINGS,
+    help='Export gene coverages')
 @click.option('--bigwig', '-bw', help='Path to bigwig', required=True)
 @click.option('--region_bed', help='Path to CDS bed file', required=True)
 @click.option('--prefix', help='Save gene coverages file to')
@@ -182,16 +182,16 @@ def gene_coverage_cmd(gene, bed, bigwig, offset):
     '--ignore_tx_version',
     help='Ignore version (.xyz) in gene names',
     is_flag=True)
-def export_gene_coverages_cmd(bigwig, region_bed, prefix,
-                              offset, ignore_tx_version):
-    export_gene_coverages(bigwig, region_bed, prefix,
-                          offset, ignore_tx_version)
+def export_gene_coverages_cmd(bigwig, region_bed, prefix, offset,
+                              ignore_tx_version):
+    export_gene_coverages(bigwig, region_bed, prefix, offset,
+                          ignore_tx_version)
 
 
 @cli.command(
-        'export-single-gene-coverage',
-        context_settings=CONTEXT_SETTINGS,
-        help='Export coverage for a gene')
+    'export-single-gene-coverage',
+    context_settings=CONTEXT_SETTINGS,
+    help='Export coverage for a gene')
 @click.option('--bigwig', '-bw', help='Path to bigwig', required=True)
 @click.option('--region_bed', help='Path to CDS bed file', required=True)
 @click.option('--gene', help='Gene id', required=True)
@@ -202,10 +202,10 @@ def export_gene_coverages_cmd(bigwig, region_bed, prefix,
     '--ignore_tx_version',
     help='Ignore version (.xyz) in gene names',
     is_flag=True)
-def export_single_gene_coverage_cmd(bigwig, region_bed, gene, prefix,
-                              offset, ignore_tx_version):
-    export_single_gene_coverage(bigwig, region_bed, gene, prefix,
-                                offset, ignore_tx_version)
+def export_single_gene_coverage_cmd(bigwig, region_bed, gene, prefix, offset,
+                                    ignore_tx_version):
+    export_single_gene_coverage(bigwig, region_bed, gene, prefix, offset,
+                                ignore_tx_version)
 
 
 @cli.command(
