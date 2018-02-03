@@ -689,7 +689,8 @@ def gene_coverage(gene_name,
 def export_gene_coverages(bigwig,
                           region_bed_f,
                           prefix,
-                          offset=60,
+                          offset_5p=60,
+                          offset_3p=0,
                           ignore_tx_version=True):
     """Export all gene coverages.
 
@@ -702,8 +703,10 @@ def export_gene_coverages(bigwig,
                    with bed name column as gene
     prefix : str
              Prefix to write output file
-    offset : int
-             Number of bases to count upstream
+    offset_5p : int
+             number of bases to count upstream (5')
+    offset_30 : int
+                number of bases to count downstream (3')
     ignore_tx_version : bool
                         Should versions be ignored for gene names
 
@@ -731,14 +734,14 @@ def export_gene_coverages(bigwig,
     for gene_name, gene_group in cds_grouped:
         if ignore_tx_version:
             gene_name = re.sub(r'\.[0-9]+', '', gene_name)
-        gene_cov, _, _, gene_offset = gene_coverage(gene_name, region_bed, bw,
-                                                    gene_group, offset)
+        gene_cov, _, _, gene_offset_5p, gene_offset_3p = gene_coverage(
+            gene_name, region_bed, bw, gene_group, offset_5p, offset_3p)
         coverages[gene_name] = gene_cov.tolist()
 
     sample = os.path.basename(bigwig).split('.')[0]
     with open('{}_gene_coverages.txt'.format(prefix), 'w') as outfile:
         outfile.write("sample:" + sample + "\n")
-        outfile.write("offset:" + str(offset) + "\n")
+        outfile.write("offset:" + str(offset_5p) + "\n")
         for gene_name in coverages:
             outfile.write(gene_name + "\t")
             for count in coverages[gene_name]:
@@ -750,7 +753,8 @@ def export_single_gene_coverage(bigwig,
                                 region_bed_f,
                                 gene_name,
                                 prefix,
-                                offset=60,
+                                offset_5p=60,
+                                offset_3p=0,
                                 ignore_tx_version=True):
     """Export single gene coverage to tsv
 
@@ -788,8 +792,8 @@ def export_single_gene_coverage(bigwig,
         raise RuntimeError('{} not in bed'.format(gene_name))
 
     gene_group = cds_grouped.get_group(gene_name)
-    gene_cov, _, _, gene_offset = gene_coverage(gene_name, region_bed, bw,
-                                                gene_group, offset)
+    gene_cov, _, _, gene_offset_5p, gene_offset_3p = gene_coverage(
+        gene_name, region_bed, bw, gene_group, offset_5p, offset_3p)
     gene_cov.to_csv(
         path='{}_coverage.tsv'.format(prefix), sep=str(u'\t'), index=True)
 
@@ -964,7 +968,8 @@ def metagene_coverage(bigwig,
                       max_positions=None,
                       htseq_f=None,
                       prefix=None,
-                      offset=60,
+                      offset_5p=60,
+                      offset_3p=0,
                       top_n_meta=-1,
                       top_n_gene=10,
                       ignore_tx_version=True):
@@ -987,8 +992,10 @@ def metagene_coverage(bigwig,
               Path to htseq-counts file
     prefix : str
              Prefix to write output files
-    offset : int
-             Number of bases to offset upstream
+    offset_5p : int
+                Number of bases to offset upstream(5')
+    offset_3p : int
+                Number of bases to offset downstream(3')
     top_n_meta : int
                  Total number of top expressed genes
                  to use for calculating metagene profile
@@ -1050,8 +1057,8 @@ def metagene_coverage(bigwig,
     for gene_name, gene_group in cds_grouped:
         if ignore_tx_version:
             gene_name = re.sub(r'\.[0-9]+', '', gene_name)
-        gene_cov, _, _, gene_offset = gene_coverage(gene_name, region_bed, bw,
-                                                    gene_group, offset)
+        gene_cov, _, _, gene_offset_5p, gene_offset_3p = gene_coverage(
+            gene_name, region_bed, bw, gene_group, offset_5p, offset_3p)
         if max_positions is not None:
             min_index = min(gene_cov.index.tolist())
             gene_length = max(gene_cov.index.tolist())
@@ -1107,7 +1114,7 @@ def metagene_coverage(bigwig,
                 print('welch_n_ob n obs :{}'.format(pd.Series(welch_n_obs)))
                 print('gene pos obs :{}'.format(
                     pd.Series(gene_position_counter)))
-        genewise_offsets[gene_name] = gene_offset
+        genewise_offsets[gene_name] = gene_offset_5p
         index += 1
 
     if len(gene_position_counter) != len(genewise_normalized_coverage):

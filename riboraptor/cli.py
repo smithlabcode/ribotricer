@@ -197,15 +197,23 @@ def export_gene_coverages_cmd(bigwig, region_bed, prefix, offset,
 @click.option('--gene', help='Gene id', required=True)
 @click.option('--prefix', help='Save gene coverages file to', required=True)
 @click.option(
-    '--offset', help='Number of upstream bases to count', type=int, default=60)
+    '--offset_5p',
+    help='Number of upstream bases to count(5\')',
+    type=int,
+    default=60)
+@click.option(
+    '--offset_3p',
+    help='Number of upstream bases to count(3\')',
+    type=int,
+    default=0)
 @click.option(
     '--ignore_tx_version',
     help='Ignore version (.xyz) in gene names',
     is_flag=True)
-def export_single_gene_coverage_cmd(bigwig, region_bed, gene, prefix, offset,
-                                    ignore_tx_version):
-    export_single_gene_coverage(bigwig, region_bed, gene, prefix, offset,
-                                ignore_tx_version)
+def export_single_gene_coverage_cmd(bigwig, region_bed, gene, prefix,
+                                    offset_5p, offset_3p, ignore_tx_version):
+    export_single_gene_coverage(bigwig, region_bed, gene, prefix, offset_5p,
+                                offset_3p, ignore_tx_version)
 
 
 @cli.command(
@@ -235,7 +243,15 @@ def mapping_reads_summary_cmd(bam, prefix):
 @click.option('--htseq_f', help='Path to htseq counts file')
 @click.option('--prefix', help='Save pickle files to')
 @click.option(
-    '--offset', help='Number of upstream bases to count', type=int, default=60)
+    '--offset_5p',
+    help='Number of upstream bases to count(5\')',
+    type=int,
+    default=60)
+@click.option(
+    '--offset_3p',
+    help='Number of upstream bases to count(3\')',
+    type=int,
+    default=0)
 @click.option(
     '--n-meta',
     help='Number of genes to use for calculating metagene average',
@@ -251,14 +267,16 @@ def mapping_reads_summary_cmd(bam, prefix):
     help='Ignore version (.xyz) in gene names',
     is_flag=True)
 def metagene_coverage_cmd(bigwig, region_bed, max_positions, htseq_f, prefix,
-                          offset, n_meta, n_save_gene, ignore_tx_version):
+                          offset_5p, offset_3p, n_meta, n_save_gene,
+                          ignore_tx_version):
     metagene_profile = metagene_coverage(
         bigwig=bigwig,
         region_bed_f=region_bed,
         max_positions=max_positions,
         htseq_f=htseq_f,
         prefix=prefix,
-        offset=offset,
+        offset_5p=offset_5p,
+        offset_3p=offset_3p,
         top_n_meta=n_meta,
         top_n_gene=n_save_gene,
         ignore_tx_version=ignore_tx_version)
