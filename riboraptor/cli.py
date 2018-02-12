@@ -19,7 +19,7 @@ from .count import read_enrichment
 from .count import gene_coverage
 from .count import export_gene_coverages
 from .count import export_single_gene_coverage
-# from .count import htseq_to_cpm
+from .count import htseq_to_tpm
 from .count import mapping_reads_summary
 from .count import metagene_coverage
 from .count import read_length_distribution
@@ -299,6 +299,22 @@ def periodicity_cmd(counts):
     sys.stdout.write('Periodicity: {}({})'.format(periodicity, pval))
     sys.stdout.write(os.linesep)
 
+
+
+@cli.command('htseq-to-tpm',
+             context_settings=CONTEXT_SETTINGS,
+             help='Convert HTSeq counts file to TPMs sorted descending')
+@click.option('--htseq_f',
+              help='Path to input htseq file',
+              required=True)
+@click.option('--cds',
+              help='Path to CDS bed file or genome name',
+              required=True)
+@click.option('--saveto',
+              help='Path to file tosave to',
+              required=True)
+def htseq_to_tpm_cmd(htseq_f, cds, saveto):
+    htseq_to_tpm(htseq_f, cds, saveto)
 
 @cli.command(
     'plot-read-counts',

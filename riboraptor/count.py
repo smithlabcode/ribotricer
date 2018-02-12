@@ -915,17 +915,17 @@ def htseq_to_tpm(htseq_f, cds_bed_f, saveto=None):
           TPM
 
     """
+    if cds_bed_f.lower().split('_')[0] in __GENOMES_DB__:
+        cds_bed_f = _get_bed('cds', cds_bed_f)
     cds_bed_sizes = get_region_sizes(cds_bed_f)
     htseq = read_htseq(htseq_f)
     rate = np.log(htseq['counts']).subtract(np.log(pd.Series(cds_bed_sizes)))
     denom = np.log(np.sum(np.exp(rate)))
     tpm = np.exp(rate - denom + np.log(1e6))
-    if saveto:
-        pd.DataFrame(
-            tpm, columns=['tpm']).to_csv(
-                saveto, sep='\t', index=True, header=False)
     tpm = pd.DataFrame(tpm, columns=['tpm'])
     tpm = tpm.sort_values(by='tpm', ascending=False)
+    if saveto:
+        tpm.to_csv(saveto, sep=str('\t'), index=True, header=False)
     return tpm
 
 
