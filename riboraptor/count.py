@@ -548,6 +548,56 @@ def read_enrichment(read_lengths,
     return ratio, pvalue
 
 
+def interval_coverage(bw,
+                      intervals):
+    """Get coverage at custom intervals
+
+    Parameters
+    ----------
+    bw : str
+         Path to bigwig file
+    intervals : list of tuples
+                [(chrom, start, stop, strand)]
+
+    Returns
+    -------
+    coverage : list of series
+               Coverage for each interval, so that
+               it is sorted oritentation wise
+    """
+    if not isinstance(bw, WigReader):
+        bw = WigReader(bw)
+    if isinstance(intervals, tuple):
+        # Only empty interval
+        intervals = [intervals]
+    interval_coverage_list = []
+    chrom = intervals[0][0]
+    for index, coverage in enumerate(bw.query(intervals)):
+        strand = intervals[index][3]
+        if strand == '+':
+            series_range = range(intervals[index][1], intervals[index][2])
+        elif strand == '-':
+            series_range = range(intervals[index][2], intervals[index][1], -1)
+        series = pd.Series(coverage, index=series_range)
+        interval_coverage_list.append(series)
+    coverage_combined = interval_coverage_list[0]
+    for interval_coverage in interval_coverage_list[1:]:
+        coverage_combined = coverage_combined.combine_first(interval_coverage)
+    coverage_combined = coverage_combined.fillna(0)
+    coverage_index = np.arange(len(coverage_combined))
+    index_to_genomic_pos_map = pd.Series(coverage_combined.index.tolist(),
+                                         index=coverage_index)
+    intervals_for_fasta_read = []
+    for pos in index_to_genomic_pos_map.values:
+        intervals_for_fasta_read.append((chrom, pos, pos + 1, strand))
+    if strand == '+':
+        coverage_combined = coverage_combined.reset_index(drop=True)
+    else:
+        coverage_combined = coverage_combined.sort_index(ascending=False).reset_index(drop=True)
+
+    return (coverage_combined, intervals_for_fasta_read,
+            index_to_genomic_pos_map)
+
 def gene_coverage(gene_name,
                   bed,
                   bw,
