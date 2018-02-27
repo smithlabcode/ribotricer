@@ -654,7 +654,11 @@ def gene_coverage(gene_name,
 
     first_interval = intervals_list[0]
     last_interval = intervals_list[-1]
-    chrom_length = chromsome_lengths[str(first_interval[0])]
+    try:
+        chrom_length = chromsome_lengths[str(first_interval[0])]
+    except KeyError:
+        # for some reason this chromosome is ont part of the bigiwig, so just skip i ([], None)
+        return ([], [], [], 0, 0)
     # Need to convert to list instead frm tuples
     # TODO fix this?
     # intervals = list(map(list, list(intervals)))
@@ -718,7 +722,7 @@ def gene_coverage(gene_name,
         # Some genes might not be present in the bigwig at all
         sys.stderr.write('Got empty list! intervals  for chr : {}\n'.format(
             first_interval[0]))
-        return ([], None)
+        return ([], [], [], 0, 0)
 
     coverage_combined = interval_coverage_list[0]
     for interval_coverage in interval_coverage_list[1:]:
@@ -764,10 +768,8 @@ def export_gene_coverages(bigwig,
     -------
     gene_profiles: file
                    with the following format:
-                   sample_name="SRX0123456"
-                   offset=60
-                   gene1\tcnt1_1 cnt1_2 cnt1_3 ...\n
-                   gene2\tcnt2_1 cnt2_2 cnt2_3 cnt2_4 ...\n
+                   gene1\t5poffset1\t3poffset1\tlength1\tmean1\tmedian1\tstdev1\tcnt1_1 cnt1_2 cnt1_3 ...\n
+                   gene2\t5poffset2\t3poffset2\tlength2\tmean2\tmedian2\tstdev2\tcnt2_1 cnt2_2 cnt2_3 cnt2_4 ...\n
     """
     bw = WigReader(bigwig)
     if region_bed_f.lower().split('_')[0] in __GENOMES_DB__:
@@ -779,24 +781,24 @@ def export_gene_coverages(bigwig,
     # Group intervals by gene name
     cds_grouped = region_bed.groupby('name')
 
-    coverages = {}
-
-    for gene_name, gene_group in cds_grouped:
-        if ignore_tx_version:
-            gene_name = re.sub(r'\.[0-9]+', '', gene_name)
-        gene_cov, _, _, gene_offset_5p, gene_offset_3p = gene_coverage(
-            gene_name, region_bed, bw, gene_group, offset_5p, offset_3p)
-        coverages[gene_name] = gene_cov.tolist()
-
-    sample = os.path.basename(bigwig).split('.')[0]
-    with open('{}_gene_coverages.txt'.format(prefix), 'w') as outfile:
-        outfile.write("sample:" + sample + "\n")
-        outfile.write("offset:" + str(offset_5p) + "\n")
-        for gene_name in coverages:
-            outfile.write(gene_name + "\t")
-            for count in coverages[gene_name]:
-                outfile.write(str(count) + " ")
-            outfile.write("\n")
+    with open('{}_gene_coverages.tsv'.format(prefix), 'w') as outfile:
+        outfile.write('gene_name\toffset_5p\toffset_3p\tlength\tmean\tmedian\tstdev\tcount\n')
+        for gene_name, gene_group in cds_grouped:
+            if ignore_tx_version:
+                gene_name = re.sub(r'\.[0-9]+', '', gene_name)
+            gene_cov, _, _, gene_offset_5p, gene_offset_3p = gene_coverage(
+                gene_name, region_bed, bw, gene_group, offset_5p, offset_3p)
+            gene_cov = gene_cov.fillna(0)
+            count = gene_cov.tolist()
+            length = len(count)
+            count_array = np.array(count)
+            mean = np.nanmean(count_array)
+            median = np.nanmedian(count_array)
+            stdev = np.nanstd(count_array)
+            # Write olny useful etnries which has mean > 0.5
+            if mean>0:
+                outfile.write('{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\n'.format(gene_name, gene_offset_5p, int(gene_offset_3p),
+                                                                        length, mean, median, stdev, count))
 
 
 def export_single_gene_coverage(bigwig,
