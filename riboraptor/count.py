@@ -548,8 +548,7 @@ def read_enrichment(read_lengths,
     return ratio, pvalue
 
 
-def interval_coverage(bw,
-                      intervals):
+def interval_coverage(bw, intervals):
     """Get coverage at custom intervals
 
     Parameters
@@ -585,18 +584,20 @@ def interval_coverage(bw,
         coverage_combined = coverage_combined.combine_first(interval_coverage)
     coverage_combined = coverage_combined.fillna(0)
     coverage_index = np.arange(len(coverage_combined))
-    index_to_genomic_pos_map = pd.Series(coverage_combined.index.tolist(),
-                                         index=coverage_index)
+    index_to_genomic_pos_map = pd.Series(
+        coverage_combined.index.tolist(), index=coverage_index)
     intervals_for_fasta_read = []
     for pos in index_to_genomic_pos_map.values:
         intervals_for_fasta_read.append((chrom, pos, pos + 1, strand))
     if strand == '+':
         coverage_combined = coverage_combined.reset_index(drop=True)
     else:
-        coverage_combined = coverage_combined.sort_index(ascending=False).reset_index(drop=True)
+        coverage_combined = coverage_combined.sort_index(
+            ascending=False).reset_index(drop=True)
 
     return (coverage_combined, intervals_for_fasta_read,
             index_to_genomic_pos_map)
+
 
 def gene_coverage(gene_name,
                   bed,
@@ -658,7 +659,7 @@ def gene_coverage(gene_name,
         chrom_length = chromsome_lengths[str(first_interval[0])]
     except KeyError:
         # for some reason this chromosome is ont part of the bigiwig, so just skip i ([], None)
-        return ([], [], [], 0, 0)
+        return (np.array([]), np.array([]), np.array([]), 0, 0)
     # Need to convert to list instead frm tuples
     # TODO fix this?
     # intervals = list(map(list, list(intervals)))
@@ -722,7 +723,7 @@ def gene_coverage(gene_name,
         # Some genes might not be present in the bigwig at all
         sys.stderr.write('Got empty list! intervals  for chr : {}\n'.format(
             first_interval[0]))
-        return ([], [], [], 0, 0)
+        return (np.array([]), np.array([]), np.array([]), 0, 0)
 
     coverage_combined = interval_coverage_list[0]
     for interval_coverage in interval_coverage_list[1:]:
@@ -782,7 +783,9 @@ def export_gene_coverages(bigwig,
     cds_grouped = region_bed.groupby('name')
 
     with open('{}_gene_coverages.tsv'.format(prefix), 'w') as outfile:
-        outfile.write('gene_name\toffset_5p\toffset_3p\tlength\tmean\tmedian\tstdev\tcount\n')
+        outfile.write(
+            'gene_name\toffset_5p\toffset_3p\tlength\tmean\tmedian\tstdev\tcount\n'
+        )
         for gene_name, gene_group in cds_grouped:
             if ignore_tx_version:
                 gene_name = re.sub(r'\.[0-9]+', '', gene_name)
@@ -796,9 +799,10 @@ def export_gene_coverages(bigwig,
             median = np.nanmedian(count_array)
             stdev = np.nanstd(count_array)
             # Write olny useful etnries which has mean > 0.5
-            if mean>0:
-                outfile.write('{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\n'.format(gene_name, gene_offset_5p, int(gene_offset_3p),
-                                                                        length, mean, median, stdev, count))
+            if mean > 0:
+                outfile.write('{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\n'.format(
+                    gene_name, gene_offset_5p,
+                    int(gene_offset_3p), length, mean, median, stdev, count))
 
 
 def export_single_gene_coverage(bigwig,
@@ -1111,7 +1115,7 @@ def metagene_coverage(bigwig,
             gene_name = re.sub(r'\.[0-9]+', '', gene_name)
         gene_cov, _, _, gene_offset_5p, gene_offset_3p = gene_coverage(
             gene_name, region_bed, bw, gene_group, offset_5p, offset_3p)
-        if max_positions is not None:
+        if max_positions is not None and gene_cov:
             min_index = min(gene_cov.index.tolist())
             gene_length = max(gene_cov.index.tolist())
             # gene_length = len(gene_cov.inex) + min_index
