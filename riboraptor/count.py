@@ -659,7 +659,7 @@ def gene_coverage(gene_name,
         chrom_length = chromsome_lengths[str(first_interval[0])]
     except KeyError:
         # for some reason this chromosome is ont part of the bigiwig, so just skip i ([], None)
-        return (np.array([]), np.array([]), np.array([]), 0, 0)
+        return (pd.Series([]), pd.Series([]), pd.Series([]), 0, 0)
     # Need to convert to list instead frm tuples
     # TODO fix this?
     # intervals = list(map(list, list(intervals)))
@@ -723,7 +723,7 @@ def gene_coverage(gene_name,
         # Some genes might not be present in the bigwig at all
         sys.stderr.write('Got empty list! intervals  for chr : {}\n'.format(
             first_interval[0]))
-        return (np.array([]), np.array([]), np.array([]), 0, 0)
+        return (pd.Series([]), pd.Series([]), pd.Series([]), 0, 0)
 
     coverage_combined = interval_coverage_list[0]
     for interval_coverage in interval_coverage_list[1:]:
