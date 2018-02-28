@@ -193,11 +193,14 @@ def summary_stats_two_arrays_welch(old_mean_array,
     elif len_old < len_new:
         len_diff = len_new - len_old
         # Pad the old array
-        max_index = np.max(old_mean_array.index.tolist())
-        new_index = np.arange(max_index + 1, max_index + 1 + len_diff)
-        old_mean_array = old_mean_array.append(
-            pd.Series(np.zeros(len_diff) + np.nan, index=new_index),
-            verify_integrity=True)
+        if len_old == 0:
+            old_mean_array = pd.Series([])
+        else:
+            max_index = np.max(old_mean_array.index.tolist())
+            new_index = np.arange(max_index + 1, max_index + 1 + len_diff)
+            old_mean_array = old_mean_array.append(
+                pd.Series(np.zeros(len_diff) + np.nan, index=new_index),
+                verify_integrity=True)
 
     if not (old_mean_array.index == new_array.index).all():
         print('old array index: {}'.format(old_mean_array))

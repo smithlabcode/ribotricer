@@ -1115,7 +1115,7 @@ def metagene_coverage(bigwig,
             gene_name = re.sub(r'\.[0-9]+', '', gene_name)
         gene_cov, _, _, gene_offset_5p, gene_offset_3p = gene_coverage(
             gene_name, region_bed, bw, gene_group, offset_5p, offset_3p)
-        if max_positions is not None and gene_cov:
+        if max_positions is not None and len(gene_cov.index)>0:
             min_index = min(gene_cov.index.tolist())
             gene_length = max(gene_cov.index.tolist())
             # gene_length = len(gene_cov.inex) + min_index
