@@ -1065,6 +1065,7 @@ def metagene_coverage(bigwig,
     metagene_profile : series
                        Metagene profile
     """
+    welch_var = None
     bw = WigReader(bigwig)
     if region_bed_f.lower().split('_')[0] in __GENOMES_DB__:
 
@@ -1150,7 +1151,7 @@ def metagene_coverage(bigwig,
 
         genewise_normalized_coverage = genewise_normalized_coverage.add(
             norm_cov, fill_value=0)
-        if index > 1:
+        if index > 1 and len(new_gene_coverage) > 1 and len(previous_gene_coverage) > 1:
             welch_mean, welch_var, welch_n_obs, welch_carried_forward = summary_stats_two_arrays_welch(
                 old_mean_array=previous_gene_coverage,
                 new_array=new_gene_coverage,
@@ -1164,12 +1165,14 @@ def metagene_coverage(bigwig,
         genewise_raw_coverage = genewise_raw_coverage.add(
             gene_cov, fill_value=0)
         gene_position_counter += Counter(gene_cov.index.tolist())
+        """
         if index > 1:
             if not (pd.Series(welch_n_obs) == pd.Series(gene_position_counter)
                     ).all():
                 print('welch_n_ob n obs :{}'.format(pd.Series(welch_n_obs)))
                 print('gene pos obs :{}'.format(
                     pd.Series(gene_position_counter)))
+        """
         genewise_offsets[gene_name] = gene_offset_5p
         index += 1
 
@@ -1204,9 +1207,10 @@ def metagene_coverage(bigwig,
         pickle.dump(metagene_raw_coverage,
                     open('{}_metagene_raw.pickle'.format(prefix), 'wb'),
                     __PICKLE_PROTOCOL__)
-        pickle.dump(welch_var,
-                    open('{}_metagene_var.pickle'.format(prefix), 'wb'),
-                    __PICKLE_PROTOCOL__)
+        if welch_var is not None:
+            pickle.dump(welch_var,
+                        open('{}_metagene_var.pickle'.format(prefix), 'wb'),
+                        __PICKLE_PROTOCOL__)
         pickle.dump(genewise_offsets,
                     open('{}_genewise_offsets.pickle'.format(prefix), 'wb'),
                     __PICKLE_PROTOCOL__)
