@@ -1028,7 +1028,8 @@ def metagene_coverage(bigwig,
                       offset_3p=0,
                       top_n_meta=-1,
                       top_n_gene=10,
-                      ignore_tx_version=True):
+                      ignore_tx_version=True,
+                      calculate_welch=False):
     """Calculate metagene coverage.
 
     Parameters
@@ -1116,7 +1117,7 @@ def metagene_coverage(bigwig,
             gene_name = re.sub(r'\.[0-9]+', '', gene_name)
         gene_cov, _, _, gene_offset_5p, gene_offset_3p = gene_coverage(
             gene_name, region_bed, bw, gene_group, offset_5p, offset_3p)
-        if max_positions is not None and len(gene_cov.index)>0:
+        if max_positions is not None and len(gene_cov.index) > 0:
             min_index = min(gene_cov.index.tolist())
             gene_length = max(gene_cov.index.tolist())
             # gene_length = len(gene_cov.inex) + min_index
@@ -1151,7 +1152,8 @@ def metagene_coverage(bigwig,
 
         genewise_normalized_coverage = genewise_normalized_coverage.add(
             norm_cov, fill_value=0)
-        if index > 1 and len(new_gene_coverage) > 1 and len(previous_gene_coverage) > 1:
+        if index > 1 and len(new_gene_coverage) > 1 and len(
+                previous_gene_coverage) > 1 and calculate_welch:
             welch_mean, welch_var, welch_n_obs, welch_carried_forward = summary_stats_two_arrays_welch(
                 old_mean_array=previous_gene_coverage,
                 new_array=new_gene_coverage,

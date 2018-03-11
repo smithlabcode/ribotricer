@@ -26,6 +26,8 @@ from .count import read_length_distribution
 from .count import unique_mapping_reads_count
 from .count import diff_region_enrichment
 
+from .fasta import export_all_fasta
+
 from .plotting import plot_framewise_counts
 from .plotting import plot_read_counts
 from .plotting import plot_read_length_dist
@@ -499,3 +501,36 @@ def diff_region_enrichment_cmd(numerator, denominator, prefix):
     for l, e in six.iteritems(dict(enrichment)):
         sys.stdout.write('{}\t{}'.format(l, e))
         sys.stdout.write(os.linesep)
+
+
+@cli.command(
+    'export-fasta',
+    context_settings=CONTEXT_SETTINGS,
+    help='Export gene level fasta from specified bed regions')
+@click.option('--region_bed', help='Path to bed file', required=True)
+@click.option('--fasta', help='Path to fasta file', required=True)
+@click.option(
+    '--prefix',
+    '-o',
+    help='Path to write output',
+    default=None,
+    show_default=True)
+@click.option('--chrom_sizes', help='Path to chrom.sizes', required=True)
+@click.option(
+    '--offset_5p',
+    help='Number of upstream bases to count(5\')',
+    type=int,
+    default=60)
+@click.option(
+    '--offset_3p',
+    help='Number of downstream bases to count(3\')',
+    type=int,
+    default=0)
+@click.option(
+    '--ignore_tx_version',
+    help='Ignore version (.xyz) in gene names',
+    is_flag=True)
+def export_all_fasta_cmd(region_bed, chrom_sizes, fasta, prefix, offset_5p,
+                         offset_3p, ignore_tx_version):
+    export_all_fasta(region_bed, chrom_sizes, fasta, prefix, offset_5p, offset_3p,
+                     ignore_tx_version)

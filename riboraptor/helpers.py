@@ -9,7 +9,32 @@ import six
 
 from collections import defaultdict
 import errno
+import itertools
 import os
+
+
+def list_to_ranges(list_of_int):
+    """Convert a list to a list of ragne object
+
+    Parameters
+    ----------
+
+    list_of_int: list
+        List of integers to be squeezed into range
+
+    Returns
+    -------
+
+    list_of_range: list
+        List of range objects
+
+
+    """
+    sorted_list = sorted(set(list_of_int))
+    for key, group in itertools.groupby(
+            enumerate(sorted_list), lambda x: x[1] - x[0]):
+        group = list(group)
+        yield group[0][1], group[-1][1]
 
 
 def create_ideal_periodic_signal(signal_length):
