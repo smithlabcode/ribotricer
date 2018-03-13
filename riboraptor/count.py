@@ -368,6 +368,9 @@ def count_feature_genewise(feature_bed,
     if not isinstance(feature_bed, pybedtools.BedTool):
         feature_bed = pybedtools.BedTool()
     feature_bed_df = feature_bed.to_dataframe()
+    feature_bed_df['chrom'] = feature_bed_df['chrom'].astype(str)
+    feature_bed_df['name'] = feature_bed_df['name'].astype(str)
+
     feature_bed_df_grouped = feature_bed_df.groupby('name')
     genewise_beds = OrderedDict()
     for gene_name, gene_group in feature_bed_df_grouped:
@@ -638,12 +641,16 @@ def gene_coverage(gene_name,
     chromsome_lengths = bw.get_chromosomes
     if not isinstance(bed, pd.DataFrame):
         bed = pybedtools.BedTool(bed).to_dataframe()
+        bed['chrom'] = bed['chrom'].astype(str)
+        bed['name'] = bed['name'].astype(str)
     assert gene_name in bed['name'].tolist()
     if gene_group is None:
         gene_group = bed[bed['name'] == gene_name]
 
-    assert len(gene_group['strand'].unique()) == 1
-    assert len(gene_group['chrom'].unique()) == 1
+    if len(gene_group['strand'].unique()) != 1:
+        raise RuntimeError('Multiple strands?: {}'.format(gene_group))
+    if len(gene_group['chrom'].unique()) != 1:
+        raise RuntimeError('Chrom not unique for: {}'.format(gene_group))
     chrom = gene_group['chrom'].unique()[0]
     strand = gene_group['strand'].unique()[0]
 
@@ -779,6 +786,8 @@ def export_gene_coverages(bigwig,
         region_bed_f = _get_bed(region_type, genome)
 
     region_bed = pybedtools.BedTool(region_bed_f).sort().to_dataframe()
+    region_bed['chrom'] = region_bed['chrom'].astype(str)
+    region_bed['name'] = region_bed['name'].astype(str)
     # Group intervals by gene name
     cds_grouped = region_bed.groupby('name')
 
@@ -839,6 +848,8 @@ def export_single_gene_coverage(bigwig,
         region_bed_f = _get_bed(region_type, genome)
 
     region_bed = pybedtools.BedTool(region_bed_f).sort().to_dataframe()
+    region_bed['chrom'] = region_bed['chrom'].astype(str)
+    region_bed['name'] = region_bed['name'].astype(str)
     # Group intervals by gene name
     cds_grouped = region_bed.groupby('name')
     if ignore_tx_version:
@@ -897,6 +908,8 @@ def get_region_sizes(bed):
                    and value as size of this named region
     """
     bed = pybedtools.BedTool(bed).to_dataframe()
+    bed['chrom'] = bed['chrom'].astype(str)
+    bed['name'] = bed['name'].astype(str)
     region_bed_grouped = bed.groupby('name')
     region_sizes = {}
     for gene_name, gene_group in region_bed_grouped:
@@ -1074,6 +1087,8 @@ def metagene_coverage(bigwig,
         region_bed_f = _get_bed(region_type, genome)
 
     region_bed = pybedtools.BedTool(region_bed_f).sort().to_dataframe()
+    region_bed['chrom'] = region_bed['chrom'].astype(str)
+    region_bed['name'] = region_bed['name'].astype(str)
     # Group intervals by gene name
     cds_grouped = region_bed.groupby('name')
 
@@ -1238,7 +1253,9 @@ def read_htseq(htseq_f):
     htseq_df : dataframe
                HTseq counts as in a dataframe
     """
-    htseq = pd.read_table(htseq_f, names=['name', 'counts']).set_index('name')
+    htseq = pd.read_table(htseq_f, names=['name', 'counts'])
+    htseq['name'] = htseq['name'].astype(str)
+    htseq = htseq.set_index('name')
     htseq = htseq.iloc[:-5]
     if (htseq.shape[0] <= 10):
         sys.stderr.write('Empty dataframe for : {}\n'.format(htseq_f))
