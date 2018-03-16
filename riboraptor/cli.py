@@ -27,6 +27,7 @@ from .count import unique_mapping_reads_count
 from .count import diff_region_enrichment
 
 from .fasta import export_all_fasta
+from .fasta import complete_gene_fasta
 
 from .plotting import plot_framewise_counts
 from .plotting import plot_read_counts
@@ -504,7 +505,7 @@ def diff_region_enrichment_cmd(numerator, denominator, prefix):
 
 
 @cli.command(
-    'export-fasta',
+    'export-bed-fasta',
     context_settings=CONTEXT_SETTINGS,
     help='Export gene level fasta from specified bed regions')
 @click.option('--region_bed', help='Path to bed file', required=True)
@@ -532,5 +533,23 @@ def diff_region_enrichment_cmd(numerator, denominator, prefix):
     is_flag=True)
 def export_all_fasta_cmd(region_bed, chrom_sizes, fasta, prefix, offset_5p,
                          offset_3p, ignore_tx_version):
-    export_all_fasta(region_bed, chrom_sizes, fasta, prefix, offset_5p, offset_3p,
-                     ignore_tx_version)
+    export_all_fasta(region_bed, chrom_sizes, fasta, prefix, offset_5p,
+                     offset_3p, ignore_tx_version)
+
+
+@cli.command(
+    'export-complete-fasta',
+    context_settings=CONTEXT_SETTINGS,
+    help='Export gene level fasta from specified bed regions')
+@click.option('--utr5_bed', help='Path to  UTR5 bed file', required=True)
+@click.option('--cds_bed', help='Path to  UTR5 bed file', required=True)
+@click.option('--utr3_bed', help='Path to  UTR5 bed file', required=True)
+@click.option('--fasta', help='Path to fasta file', required=True)
+@click.option(
+    '--prefix',
+    '-o',
+    help='Path to write output',
+    default=None,
+    show_default=True)
+def export_complete_fasta_cmd(utr5_bed, cds_bed, utr3_bed, fasta, prefix):
+    complete_gene_fasta(utr5_bed, cds_bed, utr3_bed, fasta, prefix)

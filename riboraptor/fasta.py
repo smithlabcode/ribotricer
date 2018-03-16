@@ -1,9 +1,9 @@
 import os
+import re
 import sys
 import pybedtools
 import pandas as pd
 import numpy as np
-
 
 from pyfaidx import Fasta
 from Bio.Seq import Seq
@@ -14,9 +14,17 @@ from .genome import __GENOMES_DB__
 from .helpers import list_to_ranges
 from .helpers import mkdir_p
 
-def collapse_interval(gene_name,
-                      bed,
-                      gene_group=None):
+def _fix_bed_coltype(bed):
+    """Fix bed chrom and name columns to be string
+
+    This is necessary since the chromosome numbers are often interpreted as int
+    """
+    bed['chrom'] = bed['chrom'].astype(str)
+    bed['name'] = bed['name'].astype(str)
+    return bed
+
+
+def collapse_intervals(gene_name, bed, gene_group=None):
     """Extract fasta genewise given coordinates in bed file
 
     Parameters
@@ -39,9 +47,9 @@ def collapse_interval(gene_name,
     gene_offset : int
                 Gene wise offsets
     """
-    fasta = Fasta(fasta)
     if not isinstance(bed, pd.DataFrame):
         bed = pybedtools.BedTool(bed).to_dataframe()
+        bed = _fix_bed_coltype(bed)
     assert gene_name in bed['name'].tolist()
     if gene_group is None:
         gene_group = bed[bed['name'] == gene_name]
@@ -117,6 +125,7 @@ def export_gene_fasta(gene_name,
         chrom_sizes, names=['chrom', 'size']).set_index('chrom')
     if not isinstance(bed, pd.DataFrame):
         bed = pybedtools.BedTool(bed).to_dataframe()
+        bed = _fix_bed_coltype(bed)
     assert gene_name in bed['name'].tolist()
     if gene_group is None:
         gene_group = bed[bed['name'] == gene_name]
@@ -217,6 +226,8 @@ def export_gene_fasta(gene_name,
     intervals_for_fasta_read = list_to_ranges(interval_combined.index.tolist())
     seq = ''
     for interval in intervals_for_fasta_read:
+        # Fetching is 1-based for both start and stop and since we are
+        # fetching from ranges, there is additional +1
         seq += str(fasta.get_seq(chrom, interval[0] + 1, interval[1] + 1))
     if rc:
         seq = str(Seq(seq, generic_dna).reverse_complement())
@@ -257,6 +268,7 @@ def export_all_fasta(region_bed_f,
         region_bed_f = _get_bed(region_type, genome)
 
     region_bed = pybedtools.BedTool(region_bed_f).sort().to_dataframe()
+    region_bed = _fix_bed_coltype(region_bed)
     # Group intervals by gene name
     cds_grouped = region_bed.groupby('name')
 
@@ -267,21 +279,22 @@ def export_all_fasta(region_bed_f,
             if ignore_tx_version:
                 gene_name = re.sub(r'\.[0-9]+', '', gene_name)
             gene_offset_5p, gene_offset_3p, seq = export_gene_fasta(
-                gene_name, region_bed, chrom_sizes, fasta, gene_group, offset_5p,
-                offset_3p)
-            with open('{}_{}.fasta'.format(prefix, gene_name), 'w') as fh_fasta:
-                fh_fasta.write('>{}_5poffset-{}_3poffset-{}\n{}'.format(gene_name, gene_offset_5p,
-                                                                        gene_offset_3p, seq))
+                gene_name, region_bed, chrom_sizes, fasta, gene_group,
+                offset_5p, offset_3p)
+            with open('{}_{}.fasta'.format(prefix, gene_name),
+                      'w') as fh_fasta:
+                fh_fasta.write('>{}_5poffset-{}_3poffset-{}\n{}'.format(
+                    gene_name, gene_offset_5p, gene_offset_3p, seq))
             outfile.write('{}\t{}\t{}\t{}\n'.format(
                 gene_name, int(gene_offset_5p), int(gene_offset_3p), seq))
 
 
-def get_fasta_sequence(fasta, intervals):
+def get_fasta_sequence(fasta_f, intervals):
     """Extract fasta sequence given a list of intervals.
 
     Parameters
     ----------
-    fasta : str
+    fasta_f : str
             Path to fasta file
 
     intervals : list(tuple)
@@ -292,14 +305,83 @@ def get_fasta_sequence(fasta, intervals):
     seq : list
           List of sequences at intervals
     """
-    fasta = Fasta(fasta)
-    sequence = []
+    fasta = Fasta(fasta_f)
+    chrom = intervals[0][0]
+    strand = intervals[0][-1]
+    seq = ''
     for interval in intervals:
-        chrom, start, stop, strand = interval
-        if strand == '+':
-            seq = fasta[chrom][int(start):int(stop)].seq
-        elif strand == '-':
-            seq = fasta[chrom][int(start):int(stop)].reverse.seq
-        sequence.append(seq)
-    return sequence
+        # Fetching is 1-based for both start and stop and since we are
+        # fetching from ranges, there is additional +1
+        seq += str(fasta.get_seq(chrom, int(interval[1]) + 1, int(interval[2]) + 1))
+    if strand == '-':
+        seq = str(Seq(seq, generic_dna).reverse_complement())
+    return seq
 
+
+def _get_interval(coordinates, chrom, strand):
+    intervals = []
+    for coord in coordinates:
+        start = coord[0]
+        end = coord[1]
+        intervals.append((chrom, start, end, strand))
+    return intervals
+
+
+
+
+def complete_gene_fasta(utr5_bed_f, cds_bed_f, utr3_bed_f, fasta_f, prefix):
+    """Merge Utr5, CDS, UTR3 coordinates to get one fasta.
+
+    Parameters
+    ----------
+    utr5_bed : str
+               Path to 5'UTR bed
+    cds_bed : str
+              Path to CDS bed
+    utr3_bed : str
+               Path to 3'UTR bed
+    """
+    utr5_bed = _fix_bed_coltype(pybedtools.BedTool(utr5_bed_f).sort().to_dataframe())
+    cds_bed = _fix_bed_coltype(pybedtools.BedTool(cds_bed_f).sort().to_dataframe())
+    utr3_bed = _fix_bed_coltype(pybedtools.BedTool(utr3_bed_f).sort().to_dataframe())
+    # Group intervals by gene namei
+
+
+    utr5_grouped = utr5_bed.groupby('name')
+    cds_grouped = cds_bed.groupby('name')
+    utr3_grouped = utr3_bed.groupby('name')
+
+    mkdir_p(os.path.dirname(prefix))
+
+    # For now just write records where wll three annotations are complete
+    utr5_genes = set(list(utr5_grouped.groups))
+    cds_genes = set(list(cds_grouped.groups))
+    utr3_genes = set(list(utr3_grouped.groups))
+
+    common_genes = utr5_genes.intersection(cds_genes).intersection(utr3_genes)
+
+    for gene_name in common_genes:
+        chrom = cds_grouped.get_group(gene_name)['chrom'].unique()[0]
+        utr5_coordinates, strand = collapse_intervals(
+            gene_name, utr5_bed, utr5_grouped.get_group(gene_name))
+        cds_coordinates, strand = collapse_intervals(
+            gene_name, cds_bed, cds_grouped.get_group(gene_name))
+        utr3_coordinates, strand = collapse_intervals(
+            gene_name, utr3_bed, utr3_grouped.get_group(gene_name))
+
+        utr5_intervals = _get_interval(utr5_coordinates, chrom, strand)
+        cds_intervals = _get_interval(cds_coordinates, chrom, strand)
+        utr3_intervals = _get_interval(utr3_coordinates, chrom, strand)
+
+        utr5seq = get_fasta_sequence(fasta_f, list(utr5_intervals))
+        cdsseq = get_fasta_sequence(fasta_f, list(cds_intervals))
+        utr3seq = get_fasta_sequence(fasta_f, list(utr3_intervals))
+        utr5len = len(utr5seq)
+        cdslen = len(cdsseq)
+        utr3len = len(utr3seq)
+
+        intervals = list(utr5_intervals) + list(cds_intervals) + list(utr3_intervals)
+        seq = get_fasta_sequence(fasta_f, intervals)
+        with open('{}_{}.fasta'.format(prefix, gene_name), 'w') as fh_fasta:
+            fh_fasta.write('>{}_utr5len={};cdslen={};utr3len={}\n{}'.format(
+                gene_name, utr5len, cdslen, utr3len, seq))
