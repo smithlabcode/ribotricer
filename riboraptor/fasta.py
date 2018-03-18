@@ -14,6 +14,7 @@ from .genome import __GENOMES_DB__
 from .helpers import list_to_ranges
 from .helpers import mkdir_p
 
+
 def _fix_bed_coltype(bed):
     """Fix bed chrom and name columns to be string
 
@@ -312,7 +313,8 @@ def get_fasta_sequence(fasta_f, intervals):
     for interval in intervals:
         # Fetching is 1-based for both start and stop and since we are
         # fetching from ranges, there is additional +1
-        seq += str(fasta.get_seq(chrom, int(interval[1]) + 1, int(interval[2]) + 1))
+        seq += str(
+            fasta.get_seq(chrom, int(interval[1]) + 1, int(interval[2]) + 1))
     if strand == '-':
         seq = str(Seq(seq, generic_dna).reverse_complement())
     return seq
@@ -327,8 +329,6 @@ def _get_interval(coordinates, chrom, strand):
     return intervals
 
 
-
-
 def complete_gene_fasta(utr5_bed_f, cds_bed_f, utr3_bed_f, fasta_f, prefix):
     """Merge Utr5, CDS, UTR3 coordinates to get one fasta.
 
@@ -341,11 +341,13 @@ def complete_gene_fasta(utr5_bed_f, cds_bed_f, utr3_bed_f, fasta_f, prefix):
     utr3_bed : str
                Path to 3'UTR bed
     """
-    utr5_bed = _fix_bed_coltype(pybedtools.BedTool(utr5_bed_f).sort().to_dataframe())
-    cds_bed = _fix_bed_coltype(pybedtools.BedTool(cds_bed_f).sort().to_dataframe())
-    utr3_bed = _fix_bed_coltype(pybedtools.BedTool(utr3_bed_f).sort().to_dataframe())
+    utr5_bed = _fix_bed_coltype(
+        pybedtools.BedTool(utr5_bed_f).sort().to_dataframe())
+    cds_bed = _fix_bed_coltype(
+        pybedtools.BedTool(cds_bed_f).sort().to_dataframe())
+    utr3_bed = _fix_bed_coltype(
+        pybedtools.BedTool(utr3_bed_f).sort().to_dataframe())
     # Group intervals by gene namei
-
 
     utr5_grouped = utr5_bed.groupby('name')
     cds_grouped = cds_bed.groupby('name')
@@ -380,7 +382,8 @@ def complete_gene_fasta(utr5_bed_f, cds_bed_f, utr3_bed_f, fasta_f, prefix):
         cdslen = len(cdsseq)
         utr3len = len(utr3seq)
 
-        intervals = list(utr5_intervals) + list(cds_intervals) + list(utr3_intervals)
+        intervals = list(utr5_intervals) + list(cds_intervals) + list(
+            utr3_intervals)
         seq = get_fasta_sequence(fasta_f, intervals)
         with open('{}_{}.fasta'.format(prefix, gene_name), 'w') as fh_fasta:
             fh_fasta.write('>{}_utr5len={};cdslen={};utr3len={}\n{}'.format(
