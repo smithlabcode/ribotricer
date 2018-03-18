@@ -30,7 +30,8 @@ install:
   - pip install -r requirements.txt
   - pip install -U gnuplotlib
   - pip install -U sphinx
-  - pip install -U travis-sphinx numpydoc ipython sphinxcontrib-fulltoc guzzle_sphinx_theme
+  - pip install https://github.com/Syntaf/travis-sphinx/archive/master.zip
+  - pip install -U numpydoc ipython sphinxcontrib-fulltoc guzzle_sphinx_theme
   - python setup.py install
 
 # command to run tests, e.g. python setup.py test

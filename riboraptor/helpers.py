@@ -1,16 +1,21 @@
 """All functions that are not so useful, but still useful."""
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
+from collections import OrderedDict
+from collections import defaultdict
+import csv
+import errno
+import itertools
 import math
+import os
+import sys
+import glob
+import ntpath
+
 from scipy import stats
 import numpy as np
 import pandas as pd
 import six
-
-from collections import defaultdict
-import errno
-import itertools
-import os
 
 
 def list_to_ranges(list_of_int):
@@ -320,3 +325,50 @@ def summary_stats_two_arrays_welch(old_mean_array,
                 positions_with_less_than3_obs[index].append(new_array[index])
     """
     return new_mean_array, new_var_array, new_n_counter, positions_with_less_than3_obs
+
+def path_leaf(path):
+    """Get path's tail from a filepath"""
+    head, tail = ntpath.split(path)
+    return tail or ntpath.basename(head)
+
+def parse_star_logs(f):
+    """Parse star logs into a dict
+
+    Parameters
+    ----------
+    f : str
+        Path to starlogs.final.out file
+
+    Returns
+    -------
+    star_info : dict
+                Dict with necessary records parsed
+    """
+    ANNOTATIONS = ['Total reads', 'Uniquely Mapped', 'Uniquely Mapped %', 'Multi Mapped %', 'Unmapped %', 'Multi Mapped']
+    star_info = OrderedDict()
+    with open(f) as fh:
+        for line in fh:
+            line = line.strip()
+            if line.startswith('Number of input reads'):
+                star_info[ANNOTATIONS[0]] = int(line.strip().split('\t')[1])
+            elif line.startswith('Uniquely mapped reads number'):
+                star_info[ANNOTATIONS[1]] = int(line.strip().split('\t')[1])
+            elif line.startswith('Uniquely mapped reads %'):
+                star_info[ANNOTATIONS[2]] = round(float(line.strip('%').split('\t')[1]),2)
+            elif line.startswith('Number of reads mapped to multiple loci'):
+                 star_info[ANNOTATIONS[5]] = int(line.strip().split('\t')[1])
+            elif line.startswith('Number of reads mapped to too many loci'):
+                 star_info[ANNOTATIONS[5]] += int(line.strip().split('\t')[1])
+            elif line.startswith('% of reads mapped to multiple loci'):
+                star_info[ANNOTATIONS[3]] = round(float(line.strip('%').split('\t')[1]),2)
+            elif line.startswith('% of reads mapped to too many loci'):
+                star_info[ANNOTATIONS[3]] += round(float(line.strip('%').split('\t')[1]),2)
+            elif line.startswith('% of reads unmapped: too many mismatches'):
+                star_info[ANNOTATIONS[4]] = round(float(line.strip('%').split('\t')[1]),2)
+            elif line.startswith('% of reads unmapped: too short'):
+                star_info[ANNOTATIONS[4]] += round(float(line.strip('%').split('\t')[1]),2)
+            elif line.startswith('% of reads unmapped: other'):
+                star_info[ANNOTATIONS[4]] += round(float(line.strip('%').split('\t')[1]),2)
+
+    star_info = {key:round(star_info[key], 2) for key in list(star_info.keys())}
+    return star_info
