@@ -386,3 +386,44 @@ def parse_star_logs(f):
         for key in list(star_info.keys())
     }
     return star_info
+
+
+def get_strandedness(filepath):
+    """Parse output of infer_experiment.py from RSeqC to get strandedness.
+
+    Parameters
+    ----------
+    filepath : str
+               Path to infer_experiment.py output
+
+    Returns
+    -------
+    strandedness : str
+                   reverse or forward or none
+    """
+    with open(filepath) as f:
+        data = f.read()
+    splitted = [x.strip() for x in data.split('\n') if len(x.strip()) >= 1]
+    strandedness = None
+    assert splitted[0] == 'This is SingleEnd Data'
+    few_percentage = None
+    rev_percentage = None
+    for line in splitted[1:]:
+        if 'Fraction of reads failed to determine:' in line:
+            continue
+        elif 'Fraction of reads explained by "++,--":' in line:
+            fwd_percentage = float(line.split(':')[1])
+        elif 'Fraction of reads explained by "+-,-+":' in line:
+            rev_percentage = float(line.split(':')[1])
+
+    assert rev_percentage is not None
+    assert fwd_percentage is not None
+
+    ratio = fwd_percentage / rev_percentage
+
+    if np.isclose([ratio], [1]):
+        return 'none'
+    elif ratio >= 0.5:
+        return 'forward'
+    else:
+        return 'reverse'
