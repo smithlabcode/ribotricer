@@ -175,7 +175,7 @@ def count_reads_per_gene(bam, bed, prefix=None):
     for x, region in enumerate(bed):
         counts = 0
         window = HTSeq.GenomicInterval(
-            str(region.chrom), region.start, region.stop, str(region.strand))
+            str(region.chrom).strip(), region.start, region.stop, str(region.strand).strip())
         length = region.stop - region.start
         for almnt in sorted_bam[window]:
             counts += 1
