@@ -2,13 +2,16 @@ import os
 
 __GENOMES_DB__ = ['hg38', 'mm10']
 
-__TAXON_ID_MAP__ = {'6239': 'C.elegans',
-                    '9606': 'H.sapiens',
-                    '10090': 'M.musculus',
-                    '9955': 'D.rerio',
-                    '559292': 'S.cerevisiase S288C',
-                    '7227': 'D.melanogaster',
-                    '10116': 'R.norvegicus'}
+__TAXON_ID_MAP__ = {
+    '6239': 'C.elegans',
+    '9606': 'H.sapiens',
+    '10090': 'M.musculus',
+    '9955': 'D.rerio',
+    '559292': 'S.cerevisiase S288C',
+    '7227': 'D.melanogaster',
+    '10116': 'R.norvegicus'
+}
+
 
 def _get_bed(bedname, genome='hg38'):
     """Load bed from annotation.

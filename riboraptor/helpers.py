@@ -429,6 +429,7 @@ def get_strandedness(filepath):
     else:
         return 'reverse'
 
+
 def load_pickle(filepath):
     """Read pickled files easy in Python 2/3"""
     if sys.version_info > (3, 0):
