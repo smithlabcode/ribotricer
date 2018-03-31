@@ -23,8 +23,10 @@ import six
 from scipy.stats import norm
 
 from .wig import WigReader
+from .helpers import load_pickle
 from .helpers import mkdir_p
 from .helpers import summary_stats_two_arrays_welch
+
 from .genome import _get_sizes
 from .genome import _get_bed
 from .genome import __GENOMES_DB__
@@ -479,8 +481,8 @@ def diff_region_enrichment(numerator, denominator, prefix):
     --------
     enrichment : series
     """
-    numerator = pickle.load(open(numerator, 'rb'))
-    denominator = pickle.load(open(denominator, 'rb'))
+    numerator = load_pickle(numerator)
+    denominator = load_pickle(denominator)
 
     enrichment = numerator.divide(denominator)
     if prefix:
@@ -517,7 +519,7 @@ def read_enrichment(read_lengths,
         if not _check_file_exists(read_lengths):
             raise RuntimeError('{} does not exist.'.format(read_lengths))
         try:
-            read_lengths = pickle.load(open(read_lengths, 'rb'))
+            read_lengths = load_pickle(read_lengths)
         except KeyError:
             read_lengths = pd.read_table(
                 read_lengths, names=['frag_len', 'frag_count'], sep='\t')
@@ -532,10 +534,10 @@ def read_enrichment(read_lengths,
         read_lengths = Counter(counter)
     if isinstance(read_lengths, Counter):
         read_lengths = pd.Series(read_lengths)
-        if isinstance(enrichment_range, six.string_types):
-            splitted = list(
-                map(lambda x: int(x), enrichment_range.strip().split('-')))
-        enrichment_range = range(splitted[0], splitted[1] + 1)
+    if isinstance(enrichment_range, six.string_types):
+        splitted = list(
+            map(lambda x: int(x), enrichment_range.strip().split('-')))
+        enrichment_range = list(range(splitted[0], splitted[1] + 1))
     rpf_signal = read_lengths[enrichment_range].sum()
     total_signal = read_lengths.sum()
     array = [[x] * y for x, y in sorted(read_lengths.iteritems())]

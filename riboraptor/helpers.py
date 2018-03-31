@@ -11,6 +11,7 @@ import os
 import sys
 import glob
 import ntpath
+import pickle
 
 from scipy import stats
 import numpy as np
@@ -427,3 +428,11 @@ def get_strandedness(filepath):
         return 'forward'
     else:
         return 'reverse'
+
+def load_pickle(filepath):
+    """Read pickled files easy in Python 2/3"""
+    if sys.version_info > (3, 0):
+        pickled = pickle.load(open(filepath, 'rb'), encoding='latin1')
+    else:
+        pickled = pickle.load(open(filepath, 'rb'), encoding='utf-8')
+    return pickled
