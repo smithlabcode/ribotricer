@@ -437,3 +437,30 @@ def load_pickle(filepath):
     else:
         pickled = pickle.load(open(filepath, 'rb'), encoding='utf-8')
     return pickled
+
+
+def pad_or_truncate(some_list, target_len):
+    """Pad or truncate a list upto given target length
+
+    Parameters
+    ----------
+    some_list : list
+                Input list
+    target_length : int
+                    Final length of list
+
+    If being extended, returns list padded with NAs.
+    """
+    return some_list[:target_len] + [np.nan] * (target_len - len(some_list))
+
+
+def codon_to_anticodon(codon):
+    """Codon to anticodon.
+
+    Paramters
+    ---------
+    codon : string
+            Input codon
+    """
+    pairs = {'A': 'T', 'C': 'G', 'T': 'A', 'G': 'C', 'N': 'N'}
+    return ''.join(pairs[c] for c in codon)[::-1]
