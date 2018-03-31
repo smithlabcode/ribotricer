@@ -29,7 +29,7 @@ Using conda:
 
    $ git clone git@github.com:saketkc/riboraptor.git
    $ conda create --name raptor gffutils matplotlib mne mtspec numpy pandas pybedtools \
-   pyBigWig pyfaidx pysam scipy seaborn pycwt six click click-help-colors htseq
+   pyBigWig pyfaidx pysam scipy seaborn pycwt six click click-help-colors htseq biopython
    $ cd riboraptor
    $ python setup.py install --single-version-externally-managed --record=/tmp/record.txt
 
