@@ -491,12 +491,12 @@ def uniq_mapping_cmd(bam):
 
 @cli.command(
     'diff-region-enrichment',
-    context_settings=context_settings,
+    context_settings=CONTEXT_SETTINGS,
     help='calculate enrichment of cds over utr3/utr5 counts and alike')
 @click.option(
-    '--numerator', help='path to counts file for numerator', required=true)
+    '--numerator', help='path to counts file for numerator', required=True)
 @click.option(
-    '--denominator', help='path to counts file for denominator', required=true)
+    '--denominator', help='path to counts file for denominator', required=True)
 @click.option('--prefix', help='prefix to write pickled contents')
 def diff_region_enrichment_cmd(numerator, denominator, prefix):
     enrichment = diff_region_enrichment(numerator, denominator, prefix)
@@ -558,7 +558,7 @@ def export_complete_fasta_cmd(utr5_bed, cds_bed, utr3_bed, fasta, prefix):
 
 @cli.command(
     'collapse-gene-coverage',
-    context_settings=context_settings,
+    context_settings=CONTEXT_SETTINGS,
     help='collpase gene coverage to metagene')
 @click.option(
     '--gene_coverage', help='Path to gene coverage tsv', required=True)
