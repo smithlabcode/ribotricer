@@ -25,6 +25,7 @@ from .count import metagene_coverage
 from .count import read_length_distribution
 from .count import unique_mapping_reads_count
 from .count import diff_region_enrichment
+from .count import collapse_gene_coverage_to_metagene
 
 from .fasta import export_all_fasta
 from .fasta import complete_gene_fasta
@@ -490,13 +491,13 @@ def uniq_mapping_cmd(bam):
 
 @cli.command(
     'diff-region-enrichment',
-    context_settings=CONTEXT_SETTINGS,
-    help='Calculate enrichment of CDS over UTR3/UTR5 counts and alike')
+    context_settings=context_settings,
+    help='calculate enrichment of cds over utr3/utr5 counts and alike')
 @click.option(
-    '--numerator', help='Path to counts file for numerator', required=True)
+    '--numerator', help='path to counts file for numerator', required=true)
 @click.option(
-    '--denominator', help='Path to counts file for denominator', required=True)
-@click.option('--prefix', help='Prefix to write pickled contents')
+    '--denominator', help='path to counts file for denominator', required=true)
+@click.option('--prefix', help='prefix to write pickled contents')
 def diff_region_enrichment_cmd(numerator, denominator, prefix):
     enrichment = diff_region_enrichment(numerator, denominator, prefix)
     for l, e in six.iteritems(dict(enrichment)):
@@ -553,3 +554,17 @@ def export_all_fasta_cmd(region_bed, chrom_sizes, fasta, prefix, offset_5p,
     show_default=True)
 def export_complete_fasta_cmd(utr5_bed, cds_bed, utr3_bed, fasta, prefix):
     complete_gene_fasta(utr5_bed, cds_bed, utr3_bed, fasta, prefix)
+
+
+@cli.command(
+    'collapse-gene-coverage',
+    context_settings=context_settings,
+    help='collpase gene coverage to metagene')
+@click.option(
+    '--gene_coverage', help='Path to gene coverage tsv', required=True)
+@click.option(
+    '--target_length', help='Metagene profile length', required=True, type=int)
+@click.option('--outfile', help='prefix to write pickled contents')
+def collapse_genme_coverage_to_metagene_cmd(gene_coverage, target_length,
+                                            outfile):
+    collapse_gene_coverage_to_metagene(gene_coverage, target_length, outfile)

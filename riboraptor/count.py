@@ -25,6 +25,8 @@ from scipy.stats import norm
 from .wig import WigReader
 from .helpers import load_pickle
 from .helpers import mkdir_p
+from .helpers import pad_or_truncate
+from .helpers import pad_five_prime_or_truncate
 from .helpers import summary_stats_two_arrays_welch
 
 from .genome import _get_sizes
@@ -810,7 +812,7 @@ def export_gene_coverages(bigwig,
             mean = np.nanmean(count_array)
             median = np.nanmedian(count_array)
             stdev = np.nanstd(count_array)
-            # Write olny useful etnries which has mean > 0.5
+            # Write olny useful etnries which has mean > 0
             if mean > 0:
                 outfile.write('{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\n'.format(
                     gene_name, gene_offset_5p,
@@ -1337,3 +1339,45 @@ def unique_mapping_reads_count(bam):
         if _is_read_uniq_mapping(read):
             n_mapped += 1
     return n_mapped
+
+
+def collapse_gene_coverage_to_metagene(gene_coverages,
+                                       target_length,
+                                       outfile=None):
+    """Collapse gene coverages to specific target length.
+
+    Parameters
+    ----------
+    gene_coverages : string
+                     Path to gene coverages.tsv
+    target_lenght : int
+                    Collapse to target length
+
+    Returns
+    -------
+    collapsed_gene_coverage : Series like
+                              Collapsed version
+    """
+    if '.gz' in gene_coverages:
+        gene_coverages_df = pd.read_table(gene_coverages, compression='gzip')
+    else:
+        gene_coverages_df = pd.read_table(gene_coverages)
+    # Not all genes would have the same offset
+    # So pad genes with offset < max_offset5p with NAs
+    max_offset5p = gene_coverages_df['offset_5p'].max()
+    gene_coverages_df[
+        'padding_5p_required'] = gene_coverages_df['offset_5p'] - max_offset5p
+    zipped_cols = zip(gene_coverages_df['count'].tolist(),
+                      gene_coverages_df['padding_5p_required'].tolist())
+    collapsed = [
+        pad_five_prime_or_truncate(
+            eval(coverage) / np.nanmean(eval(coverage)), offset_5p,
+            target_length) for coverage, offset_5p in zipped_cols
+    ]
+    metagene = np.nanmean(collapsed, axis=0)
+    metagene = pd.Series(
+        metagene, index=np.arange(-max_offset5p, len(metagene) - max_offset5p))
+    if outfile:
+        pickle.dump(metagene, open(outfile, 'wb'))
+    else:
+        return metagene

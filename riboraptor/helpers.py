@@ -454,6 +454,25 @@ def pad_or_truncate(some_list, target_len):
     return some_list[:target_len] + [np.nan] * (target_len - len(some_list))
 
 
+def pad_five_prime_or_truncate(some_list, offset_5p, target_len):
+    """Pad first the 5prime end and then the 3prime end or truncate
+
+    Parameters
+    ----------
+    some_list : list
+                Input list
+    offset_5p : int
+                5' offset
+    target_length : int
+                    Final length of list
+
+    If being extended, returns list padded with NAs.
+    """
+    some_list = list(some_list)
+    padded_5p = [np.nan] * offset_5p + some_list
+    return padded_5p[:target_len] + [np.nan] * (target_len - len(padded_5p))
+
+
 def codon_to_anticodon(codon):
     """Codon to anticodon.
 
