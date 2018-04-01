@@ -14,21 +14,23 @@ from .count import bam_to_bedgraph
 from .count import bedgraph_to_bigwig
 from .count import count_reads_per_gene
 # from .count import count_reads_in_features => Slow
+from .count import collapse_gene_coverage_to_metagene
 from .count import count_utr5_utr3_cds
-from .count import read_enrichment
-from .count import gene_coverage
+from .count import diff_region_enrichment
 from .count import export_gene_coverages
 from .count import export_single_gene_coverage
+from .count import gene_coverage
 from .count import htseq_to_tpm
 from .count import mapping_reads_summary
 from .count import metagene_coverage
+from .count import read_enrichment
 from .count import read_length_distribution
 from .count import unique_mapping_reads_count
-from .count import diff_region_enrichment
-from .count import collapse_gene_coverage_to_metagene
 
 from .fasta import export_all_fasta
 from .fasta import complete_gene_fasta
+
+from .helpers import parse_star_logs
 
 from .plotting import plot_framewise_counts
 from .plotting import plot_read_counts
@@ -568,3 +570,13 @@ def export_complete_fasta_cmd(utr5_bed, cds_bed, utr3_bed, fasta, prefix):
 def collapse_genme_coverage_to_metagene_cmd(gene_coverage, target_length,
                                             outfile):
     collapse_gene_coverage_to_metagene(gene_coverage, target_length, outfile)
+
+
+@cli.command(
+    'extract-star-logs',
+    context_settings=CONTEXT_SETTINGS,
+    help='collpase star logs to a dataframe')
+@click.option('--starlogs', help='Path to star.logs.out file', required=True)
+@click.option('--outfile', help='Path to output dataframe.tsv', required=True)
+def extract_star_logs(starlogs, outfile):
+    parse_star_logs(starlogs, outfile)

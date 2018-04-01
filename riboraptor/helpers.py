@@ -334,12 +334,12 @@ def path_leaf(path):
     return tail or ntpath.basename(head)
 
 
-def parse_star_logs(f):
+def parse_star_logs(infile, outfile=None):
     """Parse star logs into a dict
 
     Parameters
     ----------
-    f : str
+    infile : str
         Path to starlogs.final.out file
 
     Returns
@@ -348,11 +348,11 @@ def parse_star_logs(f):
                 Dict with necessary records parsed
     """
     ANNOTATIONS = [
-        'Total reads', 'Uniquely Mapped', 'Uniquely Mapped %',
-        'Multi Mapped %', 'Unmapped %', 'Multi Mapped'
+        'total_reads', 'uniquely_mapped', 'uniquely_mapped_percent',
+        'multi_mapped_percent', 'unmapped_percent', 'multi_mapped'
     ]
     star_info = OrderedDict()
-    with open(f) as fh:
+    with open(infile) as fh:
         for line in fh:
             line = line.strip()
             if line.startswith('Number of input reads'):
@@ -386,7 +386,14 @@ def parse_star_logs(f):
         key: round(star_info[key], 2)
         for key in list(star_info.keys())
     }
-    return star_info
+    if outfile is None:
+        return star_info
+    filename = path_leaf(infile)
+    filename = filename.strip('Log.final.out')
+    counts_df = pd.DataFrame.from_dict(star_info, orient='index').T
+    counts_df.index = [filename]
+    counts_df.to_csv(outfile, sep=str('\t'), index=True, header=True)
+    return counts_df
 
 
 def get_strandedness(filepath):
