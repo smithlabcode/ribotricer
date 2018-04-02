@@ -559,20 +559,6 @@ def export_complete_fasta_cmd(utr5_bed, cds_bed, utr3_bed, fasta, prefix):
 
 
 @cli.command(
-    'collapse-gene-coverage',
-    context_settings=CONTEXT_SETTINGS,
-    help='collpase gene coverage to metagene')
-@click.option(
-    '--gene_coverage', help='Path to gene coverage tsv', required=True)
-@click.option(
-    '--target_length', help='Metagene profile length', required=True, type=int)
-@click.option('--outfile', help='prefix to write pickled contents')
-def collapse_genme_coverage_to_metagene_cmd(gene_coverage, target_length,
-                                            outfile):
-    collapse_gene_coverage_to_metagene(gene_coverage, target_length, outfile)
-
-
-@cli.command(
     'extract-star-logs',
     context_settings=CONTEXT_SETTINGS,
     help='collpase star logs to a dataframe')
@@ -580,3 +566,20 @@ def collapse_genme_coverage_to_metagene_cmd(gene_coverage, target_length,
 @click.option('--outfile', help='Path to output dataframe.tsv', required=True)
 def extract_star_logs(starlogs, outfile):
     parse_star_logs(starlogs, outfile)
+
+
+@cli.command(
+    'collapse-gene-coverage',
+    context_settings=CONTEXT_SETTINGS,
+    help='Collapse gene coverage to metagene of target length', )
+@click.option(
+    '--gene_coverage', help='Path to gene coverage tsv', required=True)
+@click.option(
+    '--target_length',
+    help='Target length of metagene',
+    required=True,
+    type=int)
+@click.option('--outfile', help='Path to output file', required=True)
+def collapse_gene_coverage_to_metagene_cmd(gene_coverage, target_length,
+                                           outfile):
+    collapse_gene_coverage_to_metagene(gene_coverage, target_length, outfile)
