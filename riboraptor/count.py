@@ -212,7 +212,10 @@ def gene_coverage(gene_name,
 
     query_intervals, fasta_onebased_intervals, intervals_for_fasta_read, gene_offset_5p, gene_offset_3p = collapse_bed_intervals(
         intervals, chromosome_lengths, offset_5p, offset_3p)
-    coverage_combined = bw.query(query_intervals)
+    coverage = bw.query(query_intervals)
+    coverage_combined = list(coverage[0])
+    for coverage in coverage[1:]:
+        coverage_combined += list(coverage)
     coverage_combined = np.array(coverage_combined).flatten()
     coverage_combined = pd.Series(
         coverage_combined,
@@ -221,8 +224,9 @@ def gene_coverage(gene_name,
     return coverage_combined, fasta_onebased_intervals, intervals_for_fasta_read, gene_offset_5p, gene_offset_3p
 
 
-def gene_coverage_sum(gene_name, bw, bed):
+def gene_coverage_sum(gene_name, bed, bw):
     """Keep track of only the sum"""
+    gene_group = None
     if not isinstance(bw, WigReader):
         bw = WigReader(bw)
     chromsome_lengths = bw.get_chromosomes
@@ -238,11 +242,26 @@ def gene_coverage_sum(gene_name, bw, bed):
     chrom = gene_group['chrom'].unique()[0]
     strand = gene_group['strand'].unique()[0]
 
-    coverage_combined, intervals_for_fasta_read, index_to_genomic_pos_map, _, _ = collapse_bed_intervals(
-    )
+    intervals = list(
+        zip(gene_group['chrom'], gene_group['start'], gene_group['end'],
+            gene_group['strand']))
+
+    query_intervals, fasta_onebased_intervals, intervals_for_fasta_read, gene_offset_5p, gene_offset_3p = collapse_bed_intervals(
+        intervals)
+    coverage = bw.query(query_intervals)
+    coverage_combined = list(coverage[0])
+    for coverage in coverage[1:]:
+        coverage_combined += list(coverage)
+    coverage_combined = np.array(coverage_combined).flatten()
+    coverage_combined = pd.Series(
+        coverage_combined,
+        index=np.arange(-gene_offset_5p,
+                        len(coverage_combined) - gene_offset_5p))
+    #print (coverage_combined.sum(skipna=true))
+    return coverage_combined.sum(skipna=True), len(coverage_combined)
 
 
-def count_reads_per_gene(bw, bed, prefix=None):
+def count_reads_per_gene(bw, bed, prefix=None, n_cores=16):
     """Count number of reads following in each region.
 
     Parameters
@@ -269,11 +288,20 @@ def count_reads_per_gene(bw, bed, prefix=None):
         bed = pybedtools.BedTool(bed).sort()
     bed_df = bed.to_dataframe()
     gene_names = list(sorted(bed_df['name'].unique()))
-    for gene_name in gene_names:
-        coverage_combined, _, _, _, _ = gene_coverage(gene_name, bed, bw)
-        length = len(coverage_combined)
-        counts_by_region[gene_name] = coverage_combined.sum()
-        length_by_region[gene_name] = length
+    if n_cores == 1:
+        for gene_name in gene_names:
+            coverage_combined, _, _, _, _ = gene_coverage(gene_name, bed, bw)
+            length = len(coverage_combined)
+            counts_by_region[gene_name] = coverage_combined.sum()
+            length_by_region[gene_name] = length
+    else:
+        with _poolcontext(processes=n_cores) as pool:
+            results = pool.map(
+                partial(gene_coverage_sum, bed=bed, bw=bw), list(gene_names))
+        counts_by_region = OrderedDict(
+            zip(list(gene_names), list([x[0] for x in results])))
+        length_by_region = OrderedDict(
+            zip(list(gene_names), list([x[1] for x in results])))
     counts_by_region = pd.Series(counts_by_region)
     length_by_region = pd.Series(length_by_region)
     counts_normalized_by_length = counts_by_region.div(length_by_region)
