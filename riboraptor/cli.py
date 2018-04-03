@@ -23,6 +23,7 @@ from .count import gene_coverage
 from .count import htseq_to_tpm
 from .count import mapping_reads_summary
 from .count import metagene_coverage
+from .count import pickle_bed_file
 from .count import read_enrichment
 from .count import read_length_distribution
 from .count import unique_mapping_reads_count
@@ -583,3 +584,18 @@ def extract_star_logs(starlogs, outfile):
 def collapse_gene_coverage_to_metagene_cmd(gene_coverage, target_length,
                                            outfile):
     collapse_gene_coverage_to_metagene(gene_coverage, target_length, outfile)
+
+
+@cli.command(
+    'pickle-bed',
+    context_settings=CONTEXT_SETTINGS,
+    help='Pickle bed genewise (using name column) for faster lookup', )
+@click.option('--bed', help='Path to bed file', required=True)
+@click.option(
+    '--no-collapse',
+    '--no_collapse',
+    help='Collapse based on gene names? (set to True only for tRNA beds)',
+    is_flag=True)
+def pickle_bed_file_cmd(bed, no_collapse):
+    should_collapse = not no_collapse
+    pickle_bed_file(bed, should_collapse)

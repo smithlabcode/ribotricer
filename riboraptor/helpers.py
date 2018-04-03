@@ -19,6 +19,19 @@ import pandas as pd
 import six
 
 
+def check_file_exists(filepath):
+    """Check if file exists.
+
+    Parameters
+    ----------
+    filepath : str
+               Path to file
+    """
+    if os.path.isfile(os.path.abspath(filepath)):
+        return True
+    return False
+
+
 def list_to_ranges(list_of_int):
     """Convert a list to a list of range object
 
@@ -624,10 +637,12 @@ def collapse_bed_intervals(intervals,
     interval_index = np.arange(len(interval_combined)) - gene_offset_5p
     index_to_genomic_pos_map = pd.Series(
         interval_combined.index.tolist(), index=interval_index)
+    """
     intervals_for_fasta_read = []
     for pos in index_to_genomic_pos_map.values:
         # we use 1-based indexing (both start and end) for fetching fasta
         intervals_for_fasta_read.append((chrom, pos + 1, pos + 1, strand))
+    """
     interval_combined = interval_combined.reset_index(drop=True)
     interval_combined = interval_combined.rename(lambda x: x - gene_offset_5p)
     interval_zero_start = list_to_ranges(
@@ -648,4 +663,4 @@ def collapse_bed_intervals(intervals,
         # it is tricky
         # but the start and end were both transformed to 0-based since we used range before
         fasta_onebased_intervals.append((chrom, start, stop, strand))
-    return query_intervals, fasta_onebased_intervals, intervals_for_fasta_read, gene_offset_5p, gene_offset_3p
+    return query_intervals, fasta_onebased_intervals, gene_offset_5p, gene_offset_3p

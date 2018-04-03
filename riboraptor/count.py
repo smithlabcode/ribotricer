@@ -26,6 +26,7 @@ from .genome import _get_sizes
 from .genome import _get_bed
 from .genome import __GENOMES_DB__
 
+from .helpers import check_file_exists
 from .helpers import collapse_bed_intervals
 from .helpers import list_to_ranges
 from .helpers import load_pickle
@@ -42,6 +43,7 @@ from .wig import WigReader
 # Source: https://broadinstitute.github.io/picard/explain-flags.html
 __SAM_NOT_UNIQ_FLAGS__ = [4, 20, 256, 272, 2048]
 __PICKLE_PROTOCOL__ = 2
+__LOOKUP_SUFFIX__ = '_genewise_lookup.pickle'
 
 
 @contextmanager
@@ -49,12 +51,6 @@ def _poolcontext(*args, **kwargs):
     pool = multiprocessing.Pool(*args, **kwargs)
     yield pool
     pool.terminate()
-
-
-def _check_file_exists(filepath):
-    if os.path.isfile(os.path.abspath(filepath)):
-        return True
-    return False
 
 
 def _create_bam_index(bam):
@@ -158,7 +154,8 @@ def gene_coverage(gene_name,
                   bw,
                   gene_group=None,
                   offset_5p=0,
-                  offset_3p=0):
+                  offset_3p=0,
+                  collapse_intervals=True):
     """Get gene coverage.
 
     Parameters
@@ -173,6 +170,8 @@ def gene_coverage(gene_name,
                 Number of bases to count upstream (5')
     offset_3p : int (positive)
                 Number of bases to count downstream (3')
+    collapse_intervals : bool
+                         Should bed be collapsed based on gene name
 
     Returns
     -------
@@ -210,8 +209,26 @@ def gene_coverage(gene_name,
         zip(gene_group['chrom'], gene_group['start'], gene_group['end'],
             gene_group['strand']))
 
-    query_intervals, fasta_onebased_intervals, intervals_for_fasta_read, gene_offset_5p, gene_offset_3p = collapse_bed_intervals(
+    query_intervals, fasta_onebased_intervals, gene_offset_5p, gene_offset_3p = collapse_bed_intervals(
         intervals, chromosome_lengths, offset_5p, offset_3p)
+    try:
+        interval_lookup_pickle = bed + __LOOKUP_SUFFIX__
+        if check_file_exists(interval_lookup_pickle):
+            query_intervals = load_pickle(interval_lookup_pickle)[gene_name]
+            fasta_onebased_intervals = []
+            for interval in query_intervals:
+                # 1-based ending for both
+                # Original bwas based on range and hence was 0-based
+                fasta_onebased_intervals.append((interval[0], interval[1] + 1,
+                                                 interval[2] + 1, interval[3]))
+        elif collapse_intervals:
+            query_intervals, fasta_onebased_intervals, gene_offset_5p, gene_offset_3p = collapse_bed_intervals(
+                intervals, chromosome_lengths, offset_5p, offset_3p)
+        else:
+            query_intervals = intervals
+    except:
+        sys.stderr.write('Error reading {} \t {}'.format(gene_name, intervals))
+        sys.exit(1)
     coverage = bw.query(query_intervals)
     if len(coverage) == 0:
         return (pd.Series([]), pd.Series([]), pd.Series([]), 0, 0)
@@ -223,11 +240,25 @@ def gene_coverage(gene_name,
         coverage_combined,
         index=np.arange(-gene_offset_5p,
                         len(coverage_combined) - gene_offset_5p))
-    return coverage_combined, fasta_onebased_intervals, intervals_for_fasta_read, gene_offset_5p, gene_offset_3p
+    return coverage_combined, fasta_onebased_intervals, gene_offset_5p, gene_offset_3p
 
 
-def gene_coverage_sum(gene_name, bed, bw):
-    """Keep track of only the sum"""
+def gene_coverage_sum(gene_name, bed, bw, collapse_intervals=True):
+    """Keep track of only the sum
+    Parameters
+    ----------
+    gene_name : str
+                Name of gene
+    bed : str
+          Path to bed file
+    bw : str
+         Path to bigwig file
+    collapse_intervals : bool
+                         Should the intervals be collapsed based on the 'name' column in gene
+                         This should be set to False for things like tRNA
+                         where the tRNA can span multiple chromosomes
+
+    """
     gene_group = None
     if not isinstance(bw, WigReader):
         bw = WigReader(bw)
@@ -249,8 +280,14 @@ def gene_coverage_sum(gene_name, bed, bw):
             gene_group['strand']))
 
     try:
-        query_intervals, fasta_onebased_intervals, intervals_for_fasta_read, gene_offset_5p, gene_offset_3p = collapse_bed_intervals(
-            intervals)
+        interval_lookup_pickle = bed + __LOOKUP_SUFFIX__
+        if check_file_exists(interval_lookup_pickle):
+            query_intervals = load_pickle(interval_lookup_pickle)[gene_name]
+        elif collapse_intervals:
+            query_intervals, fasta_onebased_intervals, gene_offset_5p, gene_offset_3p = collapse_bed_intervals(
+                intervals)
+        else:
+            query_intervals = intervals
     except:
         sys.stderr.write('Error reading {} \t {}'.format(gene_name, intervals))
         sys.exit(1)
@@ -270,7 +307,43 @@ def gene_coverage_sum(gene_name, bed, bw):
     return coverage_combined.sum(skipna=True), len(coverage_combined)
 
 
-def count_reads_per_gene(bw, bed, prefix=None, n_cores=16):
+def pickle_bed_file(bed, collapse_intervals=True):
+    """Create a lookup pickle file for genewise CDS/UTR coordinates.
+
+    In order to prevent recalculating the coordinates that should be fetched
+    for each genes' CDS or UTR regions, they can be stored in a pickle file.
+
+    Parameters
+    ----------
+    bed : string
+          Path to bed file
+    collapse_intervals : bool
+                         Should the intervals be collapsed based on the 'name' column in gene
+                         This should be set to False for things like tRNA
+                         where the tRNA can span multiple chromosomes
+    """
+    bed_df = pybedtools.BedTool(bed).sort().to_dataframe()
+    bed_df['chrom'] = bed_df['chrom'].astype(str)
+    bed_df['name'] = bed_df['name'].astype(str)
+    bed_grouped = bed_df.groupby('name')
+    genewise_collapsed_intervals = {}
+    for gene_name, bed_group in bed_grouped:
+        intervals = list(
+            zip(bed_group['chrom'], bed_group['start'], bed_group['end'],
+                bed_group['strand']))
+        if collapse_intervals:
+            intervals, _, _, _ = collapse_bed_intervals(intervals)
+        genewise_collapsed_intervals[gene_name] = intervals
+    outfile = bed + __LOOKUP_SUFFIX__
+    pickle.dump(genewise_collapsed_intervals, open(outfile, 'wb'))
+    return genewise_collapsed_intervals
+
+
+def count_reads_per_gene(bw,
+                         bed,
+                         prefix=None,
+                         n_cores=16,
+                         collapse_intervals=True):
     """Count number of reads following in each region.
 
     Parameters
@@ -280,7 +353,13 @@ def count_reads_per_gene(bw, bed, prefix=None, n_cores=16):
     bed : pybedtools.BedTool or str
           Genomic regions to get distance from
     prefix : str
-            Prefix to output pickle files
+             Prefix to output pickle files
+    n_cores : int
+              Use multiple cores (Default: 16). Set to 1 to disable multiprocessing
+    collapse_intervals : bool
+                         Should the intervals be collapsed based on the 'name' column in gene
+                         This should be set to False for things like tRNA
+                         where the tRNA can span multiple chromosomes
     Returns
     -------
 
@@ -299,14 +378,19 @@ def count_reads_per_gene(bw, bed, prefix=None, n_cores=16):
     gene_names = list(sorted(bed_df['name'].unique()))
     if n_cores == 1:
         for gene_name in gene_names:
-            coverage_combined, _, _, _, _ = gene_coverage(gene_name, bed, bw)
+            coverage_combined, _, _, _, _ = gene_coverage(
+                gene_name, bed, bw, collapse_intervals)
             length = len(coverage_combined)
             counts_by_region[gene_name] = coverage_combined.sum()
             length_by_region[gene_name] = length
     else:
         with _poolcontext(processes=n_cores) as pool:
             results = pool.map(
-                partial(gene_coverage_sum, bed=bed, bw=bw), list(gene_names))
+                partial(
+                    gene_coverage_sum,
+                    bed=bed,
+                    bw=bw,
+                    collapse_intervals=collapse_intervals), list(gene_names))
         counts_by_region = OrderedDict(
             zip(list(gene_names), list([x[0] for x in results])))
         length_by_region = OrderedDict(
@@ -641,7 +725,7 @@ def read_enrichment(read_lengths,
 
     """
     if input_is_file:
-        if not _check_file_exists(read_lengths):
+        if not check_file_exists(read_lengths):
             raise RuntimeError('{} does not exist.'.format(read_lengths))
         try:
             read_lengths = load_pickle(read_lengths)
@@ -902,7 +986,7 @@ def get_region_sizes(bed):
         intervals = list(
             zip(gene_group['chrom'], gene_group['start'], gene_group['end'],
                 gene_group['strand']))
-        collapsed_intervals, _, _, _, _ = collapse_bed_intervals(intervals)
+        collapsed_intervals, _, _, _ = collapse_bed_intervals(intervals)
         for interval in collapsed_intervals:
             if gene_name not in region_sizes:
                 # End is always 1-based so does not require +1
