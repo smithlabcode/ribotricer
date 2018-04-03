@@ -20,7 +20,7 @@ import six
 
 
 def list_to_ranges(list_of_int):
-    """Convert a list to a list of ragne object
+    """Convert a list to a list of range object
 
     Parameters
     ----------

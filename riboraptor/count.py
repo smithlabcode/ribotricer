@@ -23,6 +23,7 @@ import six
 from scipy.stats import norm
 
 from .wig import WigReader
+from .helpers import list_to_ranges
 from .helpers import load_pickle
 from .helpers import mkdir_p
 from .helpers import pad_or_truncate
@@ -46,6 +47,146 @@ def _poolcontext(*args, **kwargs):
     pool = multiprocessing.Pool(*args, **kwargs)
     yield pool
     pool.terminate()
+
+def collapse_bed_intervals(intervals,
+                           chromosome_lengths=None, offset_5p=0, offset_3p=0):
+    """Collapse intervals into non overlapping manner
+
+    Parameters
+    ----------
+    gene_group : dataframe
+                 Gene group for gene of interest
+    offset_5p : int (positive)
+                Number of bases to count upstream (5')
+    offset_3p : int (positive)
+                Number of bases to count downstream (3')
+
+    Returns
+    -------
+    coverage_combined : series
+                        Series with index as position and value as coverage
+    intervals_for_fasta_read : list
+                                List of tuples
+    index_to_genomic_pos_map : series
+
+    gene_offset : int
+                Gene wise offsets
+
+    """
+    chrom = intervals[0][0]
+    strand = intervals[0][3]
+    chroms = list(set([i[0] for i in intervals]))
+    strands = list(set([i[3] for i in intervals]))
+
+    if len(chroms)!=1:
+        sys.stderr.write('Error chromosomes should be unique')
+        return
+    if len(strands)!=1:
+        sys.stderr.write('Error strands should be unique')
+        return
+
+    intervals_list = [list(element) for element in list(intervals)[:]]
+
+    first_interval = intervals_list[0]
+    last_interval = intervals_list[-1]
+    if offset_5p!=0 and offset_3p!=0:
+        chrom_length = chromsome_lengths[str(first_interval[0])]
+    else:
+        chrom_length = np.inf
+    # Need to convert to list instead frm tuples
+    # TODO fix this?
+    # intervals = list(map(list, list(intervals)))
+    if strand == '+':
+        # For positive strand shift
+        # start codon position first_interval[1] by -offset
+        if first_interval[1] - offset_5p >= 0:
+            first_interval[1] = first_interval[1] - offset_5p
+            gene_offset_5p = offset_5p
+        else:
+            sys.stderr.write('Cannot offset beyond 0 for interval: {}. \
+                Set to start of chromsome.\n'.format(first_interval))
+            # Reset offset to minimum possible
+            gene_offset_5p = first_interval[1]
+            first_interval[1] = 0
+
+        if (last_interval[2] + offset_3p <= chrom_length):
+            last_interval[2] = last_interval[2] + offset_3p
+            gene_offset_3p = offset_3p
+        else:
+            sys.stderr.write('Cannot offset beyond 0 for interval: {}. \
+                             Set to end of chromsome.\n'.format(last_interval))
+            gene_offset_3p = chrom_length - last_interval[2]
+            # 1-end so chrom_length
+            last_interval[2] = chrom_length
+    else:
+        # Else shift cooridnate of last element in intervals stop by + offset
+        if (last_interval[2] + offset_5p <= chrom_length):
+            last_interval[2] = last_interval[2] + offset_5p
+            gene_offset_5p = offset_5p
+        else:
+            sys.stderr.write('Cannot offset beyond 0 for interval: {}. \
+                             Set to end of chromsome.\n'.format(last_interval))
+            gene_offset_5p = chrom_length - last_interval[2]
+            # 1-end so chrom_length
+            last_interval[2] = chrom_length
+        if first_interval[1] - offset_3p >= 0:
+            first_interval[1] = first_interval[1] - offset_3p
+            gene_offset_3p = offset_3p
+        else:
+            sys.stderr.write('Cannot offset beyond 0 for interval: {}. \
+                Set to start of chromsome.\n'.format(first_interval))
+            # Reset offset to minimum possible
+            gene_offset_5p = first_interval[1]
+            first_interval[1] = 0
+
+    intervals = [tuple(element) for element in intervals_list]
+
+    interval_coverage_list = []
+    for index, interval in enumerate(intervals):
+        strand = interval[3]
+        if strand == '+':
+            series_range = list(range(interval[1], interval[2]))
+        elif strand == '-':
+            series_range = list(range(interval[2], interval[1], -1))
+
+        series = pd.Series(series_range, index=series_range)
+        interval_coverage_list.append(series)
+
+    if len(interval_coverage_list) == 0:
+        # Some genes might not be present in the bigwig at all
+        sys.stderr.write('Got empty list! intervals  for chr : {}\n'.format(
+            first_interval[0]))
+        return (pd.Series([]), pd.Series([]), pd.Series([]), 0, 0)
+
+    interval_combined = interval_coverage_list[0]
+    for interval in interval_coverage_list[1:]:
+        interval_combined = interval_combined.combine_first(interval)
+    interval_index = np.arange(len(interval_combined)) - gene_offset_5p
+    index_to_genomic_pos_map = pd.Series(
+        interval_combined.index.tolist(), index=interval_index)
+    intervals_for_fasta_read = []
+    for pos in index_to_genomic_pos_map.values:
+        # we use 1-based indexing (both start and end) for fetching fasta
+        intervals_for_fasta_read.append((chrom, pos+1, pos + 1, strand))
+    interval_combined = interval_combined.reset_index(drop=True)
+    interval_combined = interval_combined.rename(lambda x: x - gene_offset_5p)
+    interval_zero_start = list_to_ranges(interval_combined.sort_values().astype(int).values.tolist())
+    interval_one_start = list_to_ranges((1+interval_combined).sort_values().astype(int).values.tolist())
+    query_intervals = []
+    for index,  (start, stop)  in enumerate(interval_zero_start):
+        # our intervals were already 0-based start and 1-based end
+        # so we want to retain that
+        # it is tricky
+        # but the start and end were both transformed to 0-based since we used range before
+        query_intervals.append((chrom, start, stop+1, strand))
+    fasta_onebased_intervals = []
+    for index,  (start, stop)  in enumerate(interval_one_start):
+        # our intervals were already 0-based start and 1-based end
+        # so we want to retain that
+        # it is tricky
+        # but the start and end were both transformed to 0-based since we used range before
+        fasta_onebased_intervals.append((chrom, start, stop, strand))
+    return query_intervals, fasta_onebased_intervals, intervals_for_fasta_read, gene_offset_5p, gene_offset_3p
 
 
 def _check_file_exists(filepath):
@@ -150,13 +291,180 @@ def get_closest(bam, regions, half_window_width=0):
     return pd.DataFrame(profile)
 
 
-def count_reads_per_gene(bam, bed, prefix=None):
+def gene_coverage(gene_name,
+                  bed,
+                  bw,
+                  gene_group=None,
+                  offset_5p=0,
+                  offset_3p=0):
+    """Get gene coverage.
+
+    Parameters
+    ----------
+    gene_name : str
+                Gene name
+    bed : str
+          Path to CDS or 5'UTR or 3'UTR bed
+    bw : str
+         Path to bigwig to fetch the scores from
+    offset_5p : int (positive)
+                Number of bases to count upstream (5')
+    offset_3p : int (positive)
+                Number of bases to count downstream (3')
+
+    Returns
+    -------
+    coverage_combined : series
+                        Series with index as position and value as coverage
+    intervals_for_fasta_read : list
+                                List of tuples
+    index_to_genomic_pos_map : series
+
+    gene_offset : int
+                Gene wise offsets
+    """
+    assert (offset_5p >= 0)
+    assert (offset_3p >= 0)
+    if not isinstance(bw, WigReader):
+        bw = WigReader(bw)
+    chromsome_lengths = bw.get_chromosomes
+    if not isinstance(bed, pd.DataFrame):
+        bed = pybedtools.BedTool(bed).to_dataframe()
+        bed['chrom'] = bed['chrom'].astype(str)
+        bed['name'] = bed['name'].astype(str)
+    assert gene_name in bed['name'].tolist()
+    if gene_group is None:
+        gene_group = bed[bed['name'] == gene_name]
+
+    if len(gene_group['strand'].unique()) != 1:
+        raise RuntimeError('Multiple strands?: {}'.format(gene_group))
+    if len(gene_group['chrom'].unique()) != 1:
+        raise RuntimeError('Chrom not unique for: {}'.format(gene_group))
+    chrom = gene_group['chrom'].unique()[0]
+    strand = gene_group['strand'].unique()[0]
+
+    # Collect all intervals at once
+    intervals = zip(gene_group['chrom'], gene_group['start'],
+                    gene_group['end'], gene_group['strand'])
+    intervals_list = [list(element) for element in list(intervals)[:]]
+    # intervals_list = list(intervals)[:]
+
+    first_interval = intervals_list[0]
+    last_interval = intervals_list[-1]
+    try:
+        chrom_length = chromsome_lengths[str(first_interval[0])]
+    except KeyError:
+        # for some reason this chromosome is ont part of the bigiwig, so just skip i ([], None)
+        return (pd.Series([]), pd.Series([]), pd.Series([]), 0, 0)
+    # Need to convert to list instead frm tuples
+    # TODO fix this?
+    # intervals = list(map(list, list(intervals)))
+    if strand == '+':
+        # For positive strand shift
+        # start codon position first_interval[1] by -offset
+        if first_interval[1] - offset_5p >= 0:
+            first_interval[1] = first_interval[1] - offset_5p
+            gene_offset_5p = offset_5p
+        else:
+            sys.stderr.write('Cannot offset beyond 0 for interval: {}. \
+                Set to start of chromsome.\n'.format(first_interval))
+            # Reset offset to minimum possible
+            gene_offset_5p = first_interval[1]
+            first_interval[1] = 0
+
+        if (last_interval[2] + offset_3p <= chrom_length):
+            last_interval[2] = last_interval[2] + offset_3p
+            gene_offset_3p = offset_3p
+        else:
+            sys.stderr.write('Cannot offset beyond 0 for interval: {}. \
+                             Set to end of chromsome.\n'.format(last_interval))
+            gene_offset_3p = chrom_length - last_interval[2]
+            # 1-end so chrom_length
+            last_interval[2] = chrom_length
+    else:
+        # Else shift cooridnate of last element in intervals stop by + offset
+        if (last_interval[2] + offset_5p <= chrom_length):
+            last_interval[2] = last_interval[2] + offset_5p
+            gene_offset_5p = offset_5p
+        else:
+            sys.stderr.write('Cannot offset beyond 0 for interval: {}. \
+                             Set to end of chromsome.\n'.format(last_interval))
+            gene_offset_5p = chrom_length - last_interval[2]
+            # 1-end so chrom_length
+            last_interval[2] = chrom_length
+        if first_interval[1] - offset_3p >= 0:
+            first_interval[1] = first_interval[1] - offset_3p
+            gene_offset_3p = offset_3p
+        else:
+            sys.stderr.write('Cannot offset beyond 0 for interval: {}. \
+                Set to start of chromsome.\n'.format(first_interval))
+            # Reset offset to minimum possible
+            gene_offset_5p = first_interval[1]
+            first_interval[1] = 0
+
+    intervals = [tuple(element) for element in intervals_list]
+
+    interval_coverage_list = []
+    for index, coverage in enumerate(bw.query(intervals)):
+        strand = intervals[index][3]
+        if strand == '+':
+            series_range = range(intervals[index][1], intervals[index][2])
+        elif strand == '-':
+            series_range = range(intervals[index][2], intervals[index][1], -1)
+
+        series = pd.Series(coverage, index=series_range)
+        interval_coverage_list.append(series)
+
+    if len(interval_coverage_list) == 0:
+        # Some genes might not be present in the bigwig at all
+        sys.stderr.write('Got empty list! intervals  for chr : {}\n'.format(
+            first_interval[0]))
+        return (pd.Series([]), pd.Series([]), pd.Series([]), 0, 0)
+
+    coverage_combined = interval_coverage_list[0]
+    for interval_coverage in interval_coverage_list[1:]:
+        coverage_combined = coverage_combined.combine_first(interval_coverage)
+    coverage_combined = coverage_combined.fillna(0)
+    coverage_index = np.arange(len(coverage_combined)) - gene_offset_5p
+    index_to_genomic_pos_map = pd.Series(
+        coverage_combined.index.tolist(), index=coverage_index)
+    intervals_for_fasta_read = []
+    for pos in index_to_genomic_pos_map.values:
+        intervals_for_fasta_read.append((chrom, pos, pos + 1, strand))
+    coverage_combined = coverage_combined.reset_index(drop=True)
+    coverage_combined = coverage_combined.rename(lambda x: x - gene_offset_5p)
+    return (coverage_combined, intervals_for_fasta_read,
+            index_to_genomic_pos_map, gene_offset_5p, gene_offset_3p)
+
+
+def gene_coverage_sum(gene_name, bw, bed):
+    """Keep track of only the sum"""
+    if not isinstance(bw, WigReader):
+        bw = WigReader(bw)
+    chromsome_lengths = bw.get_chromosomes
+    if not isinstance(bed, pd.DataFrame):
+        bed = pybedtools.BedTool(bed).to_dataframe()
+        bed['chrom'] = bed['chrom'].astype(str)
+        bed['name'] = bed['name'].astype(str)
+    assert gene_name in bed['name'].tolist()
+
+    if gene_group is None:
+        gene_group = bed[bed['name'] == gene_name]
+
+    chrom = gene_group['chrom'].unique()[0]
+    strand = gene_group['strand'].unique()[0]
+
+
+    coverage_combined, intervals_for_fasta_read,            index_to_genomic_pos_map, _, _ = collapse_bed_intervals()
+
+
+def count_reads_per_gene(bw, bed, prefix=None):
     """Count number of reads following in each region.
 
     Parameters
     ----------
-    bam : str
-          Path to bam file
+    bw : str
+          Path to bigWig file
     bed : pybedtools.BedTool or str
           Genomic regions to get distance from
     prefix : str
@@ -173,22 +481,15 @@ def count_reads_per_gene(bam, bed, prefix=None):
     """
     counts_by_region = OrderedDict()
     length_by_region = OrderedDict()
-    sorted_bam = HTSeq.BAM_Reader(bam)
     if isinstance(bed, six.string_types):
         bed = pybedtools.BedTool(bed).sort()
-    for x, region in enumerate(bed):
-        counts = 0
-        window = HTSeq.GenomicInterval(
-            str(region.chrom).strip(), region.start, region.stop,
-            str(region.strand).strip())
-        length = region.stop - region.start
-        for almnt in sorted_bam[window]:
-            counts += 1
-        if region.name not in list(counts_by_region.keys()):
-            counts_by_region[region.name] = 0
-            length_by_region[region.name] = 0
-        counts_by_region[region.name] += counts
-        length_by_region[region.name] += length
+    bed_df = bed.to_dataframe()
+    gene_names = list(sorted(bed_df['name'].unique()))
+    for gene_name in gene_names:
+        coverage_combined, _, _, _, _ = gene_coverage(gene_name, bed, bw)
+        length = len(coverage_combined)
+        counts_by_region[gene_name] = coverage_combined.sum()
+        length_by_region[gene_name] = length
     counts_by_region = pd.Series(counts_by_region)
     length_by_region = pd.Series(length_by_region)
     counts_normalized_by_length = counts_by_region.div(length_by_region)
@@ -605,152 +906,6 @@ def interval_coverage(bw, intervals):
 
     return (coverage_combined, intervals_for_fasta_read,
             index_to_genomic_pos_map)
-
-
-def gene_coverage(gene_name,
-                  bed,
-                  bw,
-                  gene_group=None,
-                  offset_5p=0,
-                  offset_3p=0):
-    """Get gene coverage.
-
-    Parameters
-    ----------
-    gene_name : str
-                Gene name
-    bed : str
-          Path to CDS or 5'UTR or 3'UTR bed
-    bw : str
-         Path to bigwig to fetch the scores from
-    offset_5p : int (positive)
-                Number of bases to count upstream (5')
-    offset_3p : int (positive)
-                Number of bases to count downstream (3')
-
-    Returns
-    -------
-    coverage_combined : series
-                        Series with index as position and value as coverage
-    intervals_for_fasta_read : list
-                                List of tuples
-    index_to_genomic_pos_map : series
-
-    gene_offset : int
-                Gene wise offsets
-    """
-    assert (offset_5p >= 0)
-    assert (offset_3p >= 0)
-    if not isinstance(bw, WigReader):
-        bw = WigReader(bw)
-    chromsome_lengths = bw.get_chromosomes
-    if not isinstance(bed, pd.DataFrame):
-        bed = pybedtools.BedTool(bed).to_dataframe()
-        bed['chrom'] = bed['chrom'].astype(str)
-        bed['name'] = bed['name'].astype(str)
-    assert gene_name in bed['name'].tolist()
-    if gene_group is None:
-        gene_group = bed[bed['name'] == gene_name]
-
-    if len(gene_group['strand'].unique()) != 1:
-        raise RuntimeError('Multiple strands?: {}'.format(gene_group))
-    if len(gene_group['chrom'].unique()) != 1:
-        raise RuntimeError('Chrom not unique for: {}'.format(gene_group))
-    chrom = gene_group['chrom'].unique()[0]
-    strand = gene_group['strand'].unique()[0]
-
-    # Collect all intervals at once
-    intervals = zip(gene_group['chrom'], gene_group['start'],
-                    gene_group['end'], gene_group['strand'])
-    intervals_list = [list(element) for element in list(intervals)[:]]
-    # intervals_list = list(intervals)[:]
-
-    first_interval = intervals_list[0]
-    last_interval = intervals_list[-1]
-    try:
-        chrom_length = chromsome_lengths[str(first_interval[0])]
-    except KeyError:
-        # for some reason this chromosome is ont part of the bigiwig, so just skip i ([], None)
-        return (pd.Series([]), pd.Series([]), pd.Series([]), 0, 0)
-    # Need to convert to list instead frm tuples
-    # TODO fix this?
-    # intervals = list(map(list, list(intervals)))
-    if strand == '+':
-        # For positive strand shift
-        # start codon position first_interval[1] by -offset
-        if first_interval[1] - offset_5p >= 0:
-            first_interval[1] = first_interval[1] - offset_5p
-            gene_offset_5p = offset_5p
-        else:
-            sys.stderr.write('Cannot offset beyond 0 for interval: {}. \
-                Set to start of chromsome.\n'.format(first_interval))
-            # Reset offset to minimum possible
-            gene_offset_5p = first_interval[1]
-            first_interval[1] = 0
-
-        if (last_interval[2] + offset_3p <= chrom_length):
-            last_interval[2] = last_interval[2] + offset_3p
-            gene_offset_3p = offset_3p
-        else:
-            sys.stderr.write('Cannot offset beyond 0 for interval: {}. \
-                             Set to end of chromsome.\n'.format(last_interval))
-            gene_offset_3p = chrom_length - last_interval[2]
-            # 1-end so chrom_length
-            last_interval[2] = chrom_length
-    else:
-        # Else shift cooridnate of last element in intervals stop by + offset
-        if (last_interval[2] + offset_5p <= chrom_length):
-            last_interval[2] = last_interval[2] + offset_5p
-            gene_offset_5p = offset_5p
-        else:
-            sys.stderr.write('Cannot offset beyond 0 for interval: {}. \
-                             Set to end of chromsome.\n'.format(last_interval))
-            gene_offset_5p = chrom_length - last_interval[2]
-            # 1-end so chrom_length
-            last_interval[2] = chrom_length
-        if first_interval[1] - offset_3p >= 0:
-            first_interval[1] = first_interval[1] - offset_3p
-            gene_offset_3p = offset_3p
-        else:
-            sys.stderr.write('Cannot offset beyond 0 for interval: {}. \
-                Set to start of chromsome.\n'.format(first_interval))
-            # Reset offset to minimum possible
-            gene_offset_5p = first_interval[1]
-            first_interval[1] = 0
-
-    intervals = [tuple(element) for element in intervals_list]
-
-    interval_coverage_list = []
-    for index, coverage in enumerate(bw.query(intervals)):
-        strand = intervals[index][3]
-        if strand == '+':
-            series_range = range(intervals[index][1], intervals[index][2])
-        elif strand == '-':
-            series_range = range(intervals[index][2], intervals[index][1], -1)
-
-        series = pd.Series(coverage, index=series_range)
-        interval_coverage_list.append(series)
-
-    if len(interval_coverage_list) == 0:
-        # Some genes might not be present in the bigwig at all
-        sys.stderr.write('Got empty list! intervals  for chr : {}\n'.format(
-            first_interval[0]))
-        return (pd.Series([]), pd.Series([]), pd.Series([]), 0, 0)
-
-    coverage_combined = interval_coverage_list[0]
-    for interval_coverage in interval_coverage_list[1:]:
-        coverage_combined = coverage_combined.combine_first(interval_coverage)
-    coverage_combined = coverage_combined.fillna(0)
-    coverage_index = np.arange(len(coverage_combined)) - gene_offset_5p
-    index_to_genomic_pos_map = pd.Series(
-        coverage_combined.index.tolist(), index=coverage_index)
-    intervals_for_fasta_read = []
-    for pos in index_to_genomic_pos_map.values:
-        intervals_for_fasta_read.append((chrom, pos, pos + 1, strand))
-    coverage_combined = coverage_combined.reset_index(drop=True)
-    coverage_combined = coverage_combined.rename(lambda x: x - gene_offset_5p)
-    return (coverage_combined, intervals_for_fasta_read,
-            index_to_genomic_pos_map, gene_offset_5p, gene_offset_3p)
 
 
 def export_gene_coverages(bigwig,

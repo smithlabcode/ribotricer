@@ -106,11 +106,11 @@ def bedgraph_to_bigwig_cmd(bedgraph, sizes, saveto):
     'count-in-feature',
     context_settings=CONTEXT_SETTINGS,
     help='Count reads in given feature bed file')
-@click.option('--bam', help='Path to bam file', required=True)
+@click.option('--bw', help='Path to bigwig file', required=True)
 @click.option('--bed', help='Path to feature file', required=True)
 @click.option('--prefix', help='Prefix to write pickled contents')
-def count_reads_in_features_cmd(bam, bed, prefix):
-    counts, lengths, normalized_counts = count_reads_per_gene(bam, bed, prefix)
+def count_reads_in_features_cmd(bw, bed, prefix):
+    counts, lengths, normalized_counts = count_reads_per_gene(bw, bed, prefix)
     df = pd.concat([counts, lengths, normalized_counts], axis=1)
     df.columns = ['counts', 'length', 'normalized_counts']
     with pd.option_context('display.max_rows', None, 'display.max_columns', 3):
