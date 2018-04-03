@@ -213,6 +213,8 @@ def gene_coverage(gene_name,
     query_intervals, fasta_onebased_intervals, intervals_for_fasta_read, gene_offset_5p, gene_offset_3p = collapse_bed_intervals(
         intervals, chromosome_lengths, offset_5p, offset_3p)
     coverage = bw.query(query_intervals)
+    if len(coverage) == 0:
+        return (pd.Series([]), pd.Series([]), pd.Series([]), 0, 0)
     coverage_combined = list(coverage[0])
     for coverage in coverage[1:]:
         coverage_combined += list(coverage)
@@ -246,9 +248,16 @@ def gene_coverage_sum(gene_name, bed, bw):
         zip(gene_group['chrom'], gene_group['start'], gene_group['end'],
             gene_group['strand']))
 
-    query_intervals, fasta_onebased_intervals, intervals_for_fasta_read, gene_offset_5p, gene_offset_3p = collapse_bed_intervals(
-        intervals)
+    try:
+        query_intervals, fasta_onebased_intervals, intervals_for_fasta_read, gene_offset_5p, gene_offset_3p = collapse_bed_intervals(
+            intervals)
+    except:
+        sys.stderr.write('Error reading {} \t {}'.format(gene_name, intervals))
+        sys.exit(1)
     coverage = bw.query(query_intervals)
+    if len(coverage) == 0:
+        ## This gene does not exist in the bigwig
+        return (np.nan, sum([x[2] - x[1] for x in query_intervals]))
     coverage_combined = list(coverage[0])
     for coverage in coverage[1:]:
         coverage_combined += list(coverage)
