@@ -245,6 +245,7 @@ def gene_coverage(gene_name,
 
 def gene_coverage_sum(gene_name, bed, bw, collapse_intervals=True):
     """Keep track of only the sum
+
     Parameters
     ----------
     gene_name : str
