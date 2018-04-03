@@ -483,8 +483,8 @@ def pad_five_prime_or_truncate(some_list, offset_5p, target_len):
 def codon_to_anticodon(codon):
     """Codon to anticodon.
 
-    Paramters
-    ---------
+    Parameters
+    ----------
     codon : string
             Input codon
     """
@@ -501,7 +501,7 @@ def collapse_bed_intervals(intervals,
     Parameters
     ----------
     intervals : list of tuples
-                Like : [('chr1', 310, 320, '+'), ('chr1', 321, 330, '+')]
+                Like [('chr1', 310, 320, '+'), ('chr1', 321, 330, '+')]
     chromosome_lengths : dict
                          A map of each chromosome'e length
                          Only used with offset_3p, offset_5p>0
@@ -516,10 +516,10 @@ def collapse_bed_intervals(intervals,
                         A collapsed version of interval
                         This is useful when the annotations are overlapping.
                         Example:
-                            chr1 310 320 gene1 +
-                            chr1 319 324 gene1 +
+                        chr1 310 320 gene1 +
+                        chr1 319 324 gene1 +
                         Returns:
-                            chr1 310 324 gene1 +
+                        chr1 310 324 gene1 +
 
     intervals_for_fasta_read : list of tuples
                                This list can be used to directly fetch
