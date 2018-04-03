@@ -70,7 +70,6 @@ def _is_read_uniq_mapping(read):
 
     Parameters
     ----------
-
     read : pysam.Alignment.fetch object
 
 
@@ -361,6 +360,7 @@ def count_reads_per_gene(bw,
                          Should the intervals be collapsed based on the 'name' column in gene
                          This should be set to False for things like tRNA
                          where the tRNA can span multiple chromosomes
+
     Returns
     -------
 
@@ -1075,6 +1075,7 @@ def mapping_reads_summary(bam, prefix):
           Path to bam file
     prefix : str
              Prefix to save pickle to (optional)
+
     Returns
     -------
     counts : counter
