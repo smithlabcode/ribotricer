@@ -19,30 +19,37 @@ Current capabilities of ``riboraptor`` include:
 
 .. code-block:: console
 
-    $ riboraptor
-      Usage: riboraptor [OPTIONS] COMMAND [ARGS]...
+    $ Usage: riboraptor [OPTIONS] COMMAND [ARGS]...                              
 
-      riboraptor: Tool for ribosome profiling analysis
+      riboraptor: Tool for ribosome profiling analysis                         
 
-      Options:
-        --version  Show the version and exit.
-        --help     Show this message and exit.
+     Options:                             
+        --version  Show the version and exit.                                    
+        --help     Show this message and exit.                                   
 
-      Commands:
-        bam-to-bedgraph        Convert bam to bedgraph
-        bedgraph-to-bigwig     Convert bedgraph to bigwig
-        count-all-features     Count reads in 5'UTR/CDS/3'UTR regions
-        count-in-feature       Count reads in given feature bed file
-        gene-coverage          Calculate coverage across a gene
-        mapping-summary        Mapping summary
-        metagene-coverage      Plot metagene plot
-        periodicity            Calculate periodicity
-        plot-framewise-counts  Plot read counts highlighting frames
-        plot-read-counts       Plot read counts distribution across a gene
-        plot-read-dist         Plot read length distribution
-        read-enrichment        Calculate read length enrichment
-        read-length-dist       Calculate read length distribution
-        uniq-mapping-count     Count number of unique mapping reads
+     Commands:                            
+        bam-to-bedgraph              Convert bam to bedgraph                     
+        bedgraph-to-bigwig           Convert bedgraph to bigwig                  
+        collapse-gene-coverage       Collapse gene coverage to metagene of target...                                                                        
+        count-all-features           Count reads in 5'UTR/CDS/3'UTR regions      
+        count-in-feature             Count reads in given feature bed file       
+        diff-region-enrichment       calculate enrichment of cds over utr3/utr5...                                                                          
+        export-bed-fasta             Export gene level fasta from specified bed...                                                                          
+        export-complete-fasta        Export gene level fasta from specified bed...                                                                          
+        export-gene-coverages        Export gene coverages                       
+        export-single-gene-coverage  Export coverage for a gene                  
+        extract-star-logs            collpase star logs to a dataframe           
+        gene-coverage                Calculate coverage across a gene            
+        htseq-to-tpm                 Convert HTSeq counts file to TPMs sorted... 
+        mapping-summary              Mapping summary                             
+        metagene-coverage            Calculate metagene coverage                 
+        periodicity                  Calculate periodicity                       
+        plot-framewise-counts        Plot read counts highlighting frames        
+        plot-read-counts             Plot read counts distribution across a gene 
+        plot-read-dist               Plot read length distribution               
+        read-enrichment              Calculate read length enrichment            
+        read-length-dist             Calculate read length distribution          
+        uniq-mapping-count           Count number of unique mapping reads     
 
 
 Contents:
