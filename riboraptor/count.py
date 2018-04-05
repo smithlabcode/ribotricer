@@ -1447,6 +1447,7 @@ def collapse_gene_coverage_to_metagene(gene_coverages,
 
 def count_reads_per_gene_htseq(bam, bed, prefix=None):
     """Count number of reads following in each region.
+
     Parameters
     ----------
     bam : str
@@ -1455,6 +1456,7 @@ def count_reads_per_gene_htseq(bam, bed, prefix=None):
           Genomic regions to get distance from
     prefix : str
             Prefix to output pickle files
+
     Returns
     -------
     counts_by_region : Series
