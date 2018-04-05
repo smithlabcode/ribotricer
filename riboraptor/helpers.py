@@ -521,6 +521,15 @@ def collapse_bed_intervals(intervals,
                            offset_3p=0):
     """Collapse intervals into non overlapping manner
 
+
+    # NOTE
+    # TODO : This function has a subtle bug that it will be offset by 1
+    # position when the gene is on negative strand
+    # So essentially if you have CDS on a negative strand
+    # The first position should be discarded
+    # Similary for the last position in the gene on + strand
+    # you have an extra position in the end
+
     Parameters
     ----------
     intervals : list of tuples
