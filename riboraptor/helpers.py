@@ -19,6 +19,16 @@ import pandas as pd
 import six
 
 
+def _fix_bed_coltype(bed):
+    """Fix bed chrom and name columns to be string
+
+    This is necessary since the chromosome numbers are often interpreted as int
+    """
+    bed['chrom'] = bed['chrom'].astype(str)
+    bed['name'] = bed['name'].astype(str)
+    return bed
+
+
 def check_file_exists(filepath):
     """Check if file exists.
 

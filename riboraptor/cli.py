@@ -13,6 +13,7 @@ from .coherence import get_periodicity
 from .count import bam_to_bedgraph
 from .count import bedgraph_to_bigwig
 from .count import count_reads_per_gene
+from .count import count_reads_per_gene_htseq
 # from .count import count_reads_in_features => Slow
 from .count import collapse_gene_coverage_to_metagene
 from .count import count_utr5_utr3_cds
@@ -110,8 +111,17 @@ def bedgraph_to_bigwig_cmd(bedgraph, sizes, saveto):
 @click.option('--bw', help='Path to bigwig file', required=True)
 @click.option('--bed', help='Path to feature file', required=True)
 @click.option('--prefix', help='Prefix to write pickled contents')
-def count_reads_in_features_cmd(bw, bed, prefix):
-    counts, lengths, normalized_counts = count_reads_per_gene(bw, bed, prefix)
+@click.option(
+    '--n_cores', help='Split job over multiple cores', type=int, default=16)
+@click.option(
+    '--no-collapse',
+    '--no_collapse',
+    help='Collapse based on gene names? (set to True only for tRNA beds)',
+    is_flag=True)
+def count_reads_in_features_cmd(bw, bed, prefix, n_cores, no_collapse):
+    should_collapse = not no_collapse
+    counts, lengths, normalized_counts = count_reads_per_gene(
+        bw, bed, prefix, n_cores, should_collapse)
     df = pd.concat([counts, lengths, normalized_counts], axis=1)
     df.columns = ['counts', 'length', 'normalized_counts']
     with pd.option_context('display.max_rows', None, 'display.max_columns', 3):
@@ -599,3 +609,15 @@ def collapse_gene_coverage_to_metagene_cmd(gene_coverage, target_length,
 def pickle_bed_file_cmd(bed, no_collapse):
     should_collapse = not no_collapse
     pickle_bed_file(bed, should_collapse)
+
+
+@cli.command(
+    'count-in-feature-htseq',
+    context_settings=CONTEXT_SETTINGS,
+    help='Count reads in given feature bed file')
+@click.option('--bam', help='Path to bigwig file', required=True)
+@click.option('--bed', help='Path to feature file', required=True)
+@click.option('--prefix', help='Prefix to write pickled contents')
+def count_reads_in_features_htseq_cmd(bam, bed, prefix):
+    counts, lengths, normalized_counts = count_reads_per_gene_htseq(
+        bam, bed, prefix)

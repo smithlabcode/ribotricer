@@ -5,6 +5,7 @@ import numpy as np
 import pandas as pd
 from mtspec import mtspec, mt_coherence
 import six
+from .helpers import identify_peaks
 
 
 def _shift_bit_length(x):
@@ -19,12 +20,31 @@ def _padwithzeros(vector, pad_width, iaxis, kwargs):
     return vector
 
 
-def naive_periodicity(values):
+def naive_periodicity(values, identify_peak=False):
     '''Calculate periodicity in a naive manner
 
     Take ratio of frame1 over avg(frame2+frame3) counts. By default
     the first value is treated as the first frame as well
+
+    Parameters
+    ----------
+    values : Series
+             Metagene profile
+
+    Returns
+    -------
+    periodicity : float
+                  Periodicity
+
     '''
+    if identify_peak:
+        peak_location = identify_peaks(values)
+        min_index = min(values.index)
+        max_index = max(values.index)
+        # Frame 1 starts at the peak_location
+        # We assume that if values is series it will have continuous
+        # indices
+        values = values[np.arange(peak_location, max_index)]
     frame1_total = 0
     frame2_total = 0
     frame3_total = 0

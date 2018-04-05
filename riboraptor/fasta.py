@@ -16,16 +16,7 @@ from .genome import __GENOMES_DB__
 from .helpers import collapse_bed_intervals
 from .helpers import list_to_ranges
 from .helpers import mkdir_p
-
-
-def _fix_bed_coltype(bed):
-    """Fix bed chrom and name columns to be string
-
-    This is necessary since the chromosome numbers are often interpreted as int
-    """
-    bed['chrom'] = bed['chrom'].astype(str)
-    bed['name'] = bed['name'].astype(str)
-    return bed
+from .helpers import _fix_bed_coltype
 
 
 def get_fasta_sequence(fasta_f, intervals):
@@ -122,7 +113,7 @@ def export_fasta_from_bed(gene_name,
     intervals = list(
         zip(gene_group['chrom'], gene_group['start'], gene_group['end'],
             gene_group['strand']))
-    query_intervals, fasta_onebased_intervals, intervals_for_fasta_read, gene_offset_5p, gene_offset_3p = collapse_bed_intervals(
+    query_intervals, fasta_onebased_intervals, gene_offset_5p, gene_offset_3p = collapse_bed_intervals(
         intervals, chromosome_lengths, offset_5p, offset_3p)
 
     seq = get_fasta_sequence(fasta_f, list(fasta_onebased_intervals))

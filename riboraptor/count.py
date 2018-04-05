@@ -28,6 +28,7 @@ from .genome import __GENOMES_DB__
 
 from .helpers import check_file_exists
 from .helpers import collapse_bed_intervals
+from .helpers import _fix_bed_coltype
 from .helpers import list_to_ranges
 from .helpers import load_pickle
 from .helpers import mkdir_p
@@ -190,8 +191,7 @@ def gene_coverage(gene_name,
     chromosome_lengths = bw.get_chromosomes
     if not isinstance(bed, pd.DataFrame):
         bed = pybedtools.BedTool(bed).to_dataframe()
-        bed['chrom'] = bed['chrom'].astype(str)
-        bed['name'] = bed['name'].astype(str)
+        bed = _fix_bed_coltype(bed)
     assert gene_name in bed['name'].tolist()
     if gene_group is None:
         gene_group = bed[bed['name'] == gene_name]
@@ -265,8 +265,7 @@ def gene_coverage_sum(gene_name, bed, bw, collapse_intervals=True):
     chromsome_lengths = bw.get_chromosomes
     if not isinstance(bed, pd.DataFrame):
         bed = pybedtools.BedTool(bed).to_dataframe()
-        bed['chrom'] = bed['chrom'].astype(str)
-        bed['name'] = bed['name'].astype(str)
+        bed = _fix_bed_coltype(bed)
     assert gene_name in bed['name'].tolist()
 
     if gene_group is None:
@@ -323,8 +322,7 @@ def pickle_bed_file(bed, collapse_intervals=True):
                          where the tRNA can span multiple chromosomes
     """
     bed_df = pybedtools.BedTool(bed).sort().to_dataframe()
-    bed_df['chrom'] = bed_df['chrom'].astype(str)
-    bed_df['name'] = bed_df['name'].astype(str)
+    bed_df = _fix_bed_coltype(bed_df)
     bed_grouped = bed_df.groupby('name')
     genewise_collapsed_intervals = {}
     for gene_name, bed_group in bed_grouped:
@@ -376,6 +374,7 @@ def count_reads_per_gene(bw,
     if isinstance(bed, six.string_types):
         bed = pybedtools.BedTool(bed).sort()
     bed_df = bed.to_dataframe()
+    bed_df = _fix_bed_coltype(bed_df)
     gene_names = list(sorted(bed_df['name'].unique()))
     if n_cores == 1:
         for gene_name in gene_names:
@@ -580,8 +579,7 @@ def count_feature_genewise(feature_bed,
     if not isinstance(feature_bed, pybedtools.BedTool):
         feature_bed = pybedtools.BedTool()
     feature_bed_df = feature_bed.to_dataframe()
-    feature_bed_df['chrom'] = feature_bed_df['chrom'].astype(str)
-    feature_bed_df['name'] = feature_bed_df['name'].astype(str)
+    feature_bed_df = _fix_bed_coltype(feature_bed_df)
 
     feature_bed_df_grouped = feature_bed_df.groupby('name')
     genewise_beds = OrderedDict()
@@ -1445,3 +1443,63 @@ def collapse_gene_coverage_to_metagene(gene_coverages,
         pickle.dump(metagene, open(outfile, 'wb'))
     else:
         return metagene
+
+
+def count_reads_per_gene_htseq(bam, bed, prefix=None):
+    """Count number of reads following in each region.
+    Parameters
+    ----------
+    bam : str
+          Path to bam file (unique mapping only)
+    bed : pybedtools.BedTool or str
+          Genomic regions to get distance from
+    prefix : str
+            Prefix to output pickle files
+    Returns
+    -------
+    counts_by_region : Series
+                       Series with counts indexed by gene id
+    region_lengths : Series
+                     Series with gene lengths
+    counts_normalized_by_length : Series
+                                  Series with normalized counts
+    """
+    counts_by_region = OrderedDict()
+    length_by_region = OrderedDict()
+    sorted_bam = HTSeq.BAM_Reader(bam)
+    if isinstance(bed, six.string_types):
+        bed = pybedtools.BedTool(bed).sort()
+    for x, region in enumerate(bed):
+        counts = 0
+        window = HTSeq.GenomicInterval(
+            str(region.chrom).strip(), region.start, region.stop,
+            str(region.strand).strip())
+        length = region.stop - region.start
+        for almnt in sorted_bam[window]:
+            counts += 1
+        if region.name not in list(counts_by_region.keys()):
+            counts_by_region[region.name] = 0
+            length_by_region[region.name] = 0
+        counts_by_region[region.name] += counts
+        length_by_region[region.name] += length
+    counts_by_region = pd.Series(counts_by_region)
+    length_by_region = pd.Series(length_by_region)
+    counts_normalized_by_length = counts_by_region.div(length_by_region)
+    if prefix:
+        mkdir_p(os.path.dirname(prefix))
+        df = pd.concat(
+            [counts_by_region, length_by_region, counts_normalized_by_length],
+            axis=1)
+        df.columns = ['counts', 'length', 'normalized_counts']
+        df.to_csv(
+            '{}.tsv'.format(prefix), index=True, header=True, sep=str('\t'))
+        pickle.dump(counts_by_region,
+                    open('{}_counts.pickle'.format(prefix), 'wb'),
+                    __PICKLE_PROTOCOL__)
+        pickle.dump(length_by_region,
+                    open('{}_lengths.pickle'.format(prefix), 'wb'),
+                    __PICKLE_PROTOCOL__)
+        pickle.dump(counts_normalized_by_length,
+                    open('{}_counts_lengths_normalized.pickle'.format(prefix),
+                         'wb'), __PICKLE_PROTOCOL__)
+    return counts_by_region, length_by_region, counts_normalized_by_length
