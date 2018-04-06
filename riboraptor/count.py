@@ -392,9 +392,9 @@ def count_reads_per_gene(bw,
                     bw=bw,
                     collapse_intervals=collapse_intervals), list(gene_names))
         counts_by_region = OrderedDict(
-            zip(list(gene_names), list([x[0] for x in results])))
+            list(zip(list(gene_names), list([x[0] for x in results]))))
         length_by_region = OrderedDict(
-            zip(list(gene_names), list([x[1] for x in results])))
+            list(zip(list(gene_names), list([x[1] for x in results]))))
     counts_by_region = pd.Series(counts_by_region)
     length_by_region = pd.Series(length_by_region)
     counts_normalized_by_length = counts_by_region.div(length_by_region)
@@ -659,7 +659,7 @@ def count_utr5_utr3_cds(bam,
                         bam=bam,
                         force_strandedness=force_strandedness,
                         use_multiprocessing=True), feature_beds)
-            counts = OrderedDict(zip(order, results))
+            counts = OrderedDict(list(zip(order, results)))
         else:
             counts = OrderedDict()
             for index, bed in enumerate(feature_beds):
@@ -702,7 +702,7 @@ def diff_region_enrichment(numerator, denominator, prefix):
 
 
 def read_enrichment(read_lengths,
-                    enrichment_range=range(28, 33),
+                    enrichment_range=list(range(28, 33)),
                     input_is_stream=False,
                     input_is_file=False):
     """Calculate read enrichment for a certain range of lengths
@@ -737,18 +737,18 @@ def read_enrichment(read_lengths,
     elif input_is_stream:
         counter = {}
         for line in read_lengths:
-            splitted = list(map(lambda x: int(x), line.strip().split('\t')))
+            splitted = list([int(x) for x in line.strip().split('\t')])
             counter[splitted[0]] = splitted[1]
         read_lengths = Counter(counter)
     if isinstance(read_lengths, Counter):
         read_lengths = pd.Series(read_lengths)
     if isinstance(enrichment_range, six.string_types):
         splitted = list(
-            map(lambda x: int(x), enrichment_range.strip().split('-')))
+            [int(x) for x in enrichment_range.strip().split('-')])
         enrichment_range = list(range(splitted[0], splitted[1] + 1))
     rpf_signal = read_lengths[enrichment_range].sum()
     total_signal = read_lengths.sum()
-    array = [[x] * y for x, y in sorted(read_lengths.iteritems())]
+    array = [[x] * y for x, y in list(sorted(six.iteritems(read_lengths)))]
     mean_length, std_dev_length = norm.fit(
         np.concatenate(array).ravel().tolist())
 
@@ -787,9 +787,9 @@ def interval_coverage(bw, intervals):
     for index, coverage in enumerate(bw.query(intervals)):
         strand = intervals[index][3]
         if strand == '+':
-            series_range = range(intervals[index][1], intervals[index][2])
+            series_range = list(range(intervals[index][1], intervals[index][2]))
         elif strand == '-':
-            series_range = range(intervals[index][2], intervals[index][1], -1)
+            series_range = list(range(intervals[index][2], intervals[index][1], -1))
         series = pd.Series(coverage, index=series_range)
         interval_coverage_list.append(series)
     coverage_combined = interval_coverage_list[0]
@@ -926,7 +926,7 @@ def export_single_gene_coverage(bigwig,
     gene_cov, _, _, gene_offset_5p, gene_offset_3p = gene_coverage(
         gene_name, region_bed, bw, gene_group, offset_5p, offset_3p)
     gene_cov.to_csv(
-        path='{}_coverage.tsv'.format(prefix), sep=str(u'\t'), index=True)
+        path='{}_coverage.tsv'.format(prefix), sep=str('\t'), index=True)
 
 
 def get_fasta_sequence(fasta, intervals):
@@ -1165,7 +1165,7 @@ def metagene_coverage(bigwig,
         # region_sizes = get_region_sizes(region_bed_f)
         # Only consider genes which are in cds_grouped.keys
         ranked_genes = [
-            gene for gene in ranked_genes if gene in cds_grouped.groups.keys()
+            gene for gene in ranked_genes if gene in list(cds_grouped.groups.keys())
         ]
     else:
         # Use all genes when no htseq present
@@ -1375,7 +1375,7 @@ def summarize_counters(samplewise_dict):
 
     """
     totals = {}
-    for key, sample_dict in samplewise_dict.iteritems():
+    for key, sample_dict in six.iteritems(samplewise_dict):
         totals[key] = np.nansum(
             [np.nansum(d) for d in list(sample_dict.values)])
     return totals
@@ -1429,8 +1429,8 @@ def collapse_gene_coverage_to_metagene(gene_coverages,
     max_offset5p = gene_coverages_df['offset_5p'].max()
     gene_coverages_df[
         'padding_5p_required'] = gene_coverages_df['offset_5p'] - max_offset5p
-    zipped_cols = zip(gene_coverages_df['count'].tolist(),
-                      gene_coverages_df['padding_5p_required'].tolist())
+    zipped_cols = list(zip(gene_coverages_df['count'].tolist(),
+                      gene_coverages_df['padding_5p_required'].tolist()))
     collapsed = [
         pad_five_prime_or_truncate(
             eval(coverage) / np.nanmean(eval(coverage)), offset_5p,

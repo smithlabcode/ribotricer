@@ -297,7 +297,7 @@ def metagene_coverage_cmd(bigwig, region_bed, max_positions, htseq_f, prefix,
         top_n_meta=n_meta,
         top_n_gene=n_save_gene,
         ignore_tx_version=ignore_tx_version)
-    for l, count in metagene_profile.iteritems():
+    for l, count in six.iteritems(metagene_profile):
         sys.stdout.write('{}\t{}'.format(l, count))
         sys.stdout.write(os.linesep)
 

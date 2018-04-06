@@ -81,8 +81,8 @@ def create_ideal_periodic_signal(signal_length):
 
     """
     uniform_signal = np.array([4 / 6.0] * signal_length)
-    uniform_signal[range(1, len(uniform_signal), 3)] = 1 / 6.0
-    uniform_signal[range(2, len(uniform_signal), 3)] = 1 / 6.0
+    uniform_signal[list(range(1, len(uniform_signal), 3))] = 1 / 6.0
+    uniform_signal[list(range(2, len(uniform_signal), 3))] = 1 / 6.0
     return uniform_signal
 
 
