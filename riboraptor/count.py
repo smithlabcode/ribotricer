@@ -225,8 +225,8 @@ def gene_coverage(gene_name,
                 intervals, chromosome_lengths, offset_5p, offset_3p)
         else:
             query_intervals = intervals
-    except:
-        sys.stderr.write('Error reading {} \t {}'.format(gene_name, intervals))
+    except Exception as error:
+        sys.stderr.write('Error reading {} \t {} : {}'.format(gene_name, intervals, error))
         sys.exit(1)
     coverage = bw.query(query_intervals)
     if len(coverage) == 0:
@@ -287,8 +287,8 @@ def gene_coverage_sum(gene_name, bed, bw, collapse_intervals=True):
                 intervals)
         else:
             query_intervals = intervals
-    except:
-        sys.stderr.write('Error reading {} \t {}'.format(gene_name, intervals))
+    except Exception as error:
+        sys.stderr.write('Error reading {} \t {} : {}'.format(gene_name, intervals, error))
         sys.exit(1)
     coverage = bw.query(query_intervals)
     if len(coverage) == 0:

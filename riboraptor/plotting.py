@@ -26,6 +26,7 @@ import pycwt as wavelet
 import six
 
 from .helpers import identify_peaks
+from .helpers import load_pickle
 from .helpers import millify
 from .helpers import round_to_nearest
 from .helpers import set_xrotation
@@ -130,13 +131,13 @@ def plot_read_length_dist(read_lengths,
     if input_is_stream:
         counter = {}
         for line in read_lengths:
-            splitted = list(map(lambda x: int(x), line.strip().split('\t')))
+            splitted = list([int(x) for x in line.strip().split('\t')])
             counter[splitted[0]] = splitted[1]
         read_lengths = Counter(counter)
     elif isinstance(read_lengths, six.string_types):
         try:
             # Try opening as a pickle first
-            read_lengths = pickle.load(open(read_lengths, 'rb'))
+            read_lengths = load_pickle(read_lengths)
         except UnicodeDecodeError:
             # Some randoom encoding error
             read_lengths = pickle.load(
@@ -177,7 +178,7 @@ def plot_read_length_dist(read_lengths,
     else:
         ax.set_title('Total reads = {}'.format(reads_total))
     if millify_labels:
-        ax.set_yticklabels(list(map(lambda x: millify(x), ax.get_yticks())))
+        ax.set_yticklabels(list([millify(x) for x in ax.get_yticks()]))
     sns.despine(trim=True, offset=20)
     if saveto:
         fig.tight_layout()
@@ -222,13 +223,13 @@ def plot_framewise_counts(counts,
     if input_is_stream:
         counts_counter = {}
         for line in counts:
-            splitted = list(map(lambda x: int(x), line.strip().split('\t')))
+            splitted = list([int(x) for x in line.strip().split('\t')])
             counts_counter[splitted[0]] = splitted[1]
         counts = Counter(counts_counter)
     elif isinstance(counts, six.string_types):
         try:
             # Try opening as a pickle first
-            counts = pickle.load(open(counts, 'rb'))
+            counts = load_pickle(counts)
         except KeyError:
             pass
     if isinstance(counts, Counter):
@@ -237,14 +238,14 @@ def plot_framewise_counts(counts,
     if isinstance(frames_to_plot,
                   six.string_types) and frames_to_plot != 'all':
         frames_to_plot = list(
-            map(lambda x: int(x), frames_to_plot.rstrip().split(',')))
+            [int(x) for x in frames_to_plot.rstrip().split(',')])
     if isinstance(position_range, six.string_types):
         splitted = list(
-            map(lambda x: int(x), position_range.strip().split(':')))
-        position_range = range(splitted[0], splitted[1] + 1)
+            [int(x) for x in position_range.strip().split(':')])
+        position_range = list(range(splitted[0], splitted[1] + 1))
 
     if position_range:
-        counts = counts[position_range]
+        counts = counts[list(position_range)]
     fig = None
     if ax is None:
         fig, ax = plt.subplots()
@@ -272,7 +273,7 @@ def plot_framewise_counts(counts,
         ax.set_title(title)
     sns.despine(trim=True, offset=20)
     if millify_labels:
-        ax.set_yticklabels(list(map(lambda x: millify(x), ax.get_yticks())))
+        ax.set_yticklabels(list([millify(x) for x in ax.get_yticks()]))
     if saveto:
         fig.tight_layout()
         fig.savefig(saveto, dpi=DPI)
@@ -331,13 +332,13 @@ def plot_read_counts(counts,
     if input_is_stream:
         counts_counter = {}
         for line in counts:
-            splitted = list(map(lambda x: int(x), line.strip().split('\t')))
+            splitted = list([int(x) for x in line.strip().split('\t')])
             counts_counter[splitted[0]] = splitted[1]
         counts = Counter(counts_counter)
     elif isinstance(counts, six.string_types):
         try:
             # Try opening as a pickle first
-            counts = pickle.load(open(counts, 'rb'))
+            counts = load_pickle(counts)
         except UnicodeDecodeError:
             # Some randoom encoding error
             counts = pickle.load(open(counts, 'rb'), encoding='iso-8859-1')
@@ -347,7 +348,7 @@ def plot_read_counts(counts,
         counts = pd.Series(counts)
     if isinstance(position_range, six.string_types):
         splitted = list(
-            map(lambda x: int(x), position_range.strip().split(':')))
+            [int(x) for x in position_range.strip().split(':')])
         position_range = np.arange(splitted[0], splitted[1] + 1)
     if position_range is not None:
         counts = counts[position_range]
@@ -391,7 +392,7 @@ def plot_read_counts(counts,
             peak + 0.5, ax.get_ylim()[1] * 0.9, '{}'.format(peak), color='r')
 
     if millify_labels:
-        ax.set_yticklabels(list(map(lambda x: millify(x), ax.get_yticks())))
+        ax.set_yticklabels(list([millify(x) for x in ax.get_yticks()]))
     ax.set_xlim(
         round_to_nearest(min(counts.index) - 15, 10) - 1,
         round_to_nearest(max(counts.index), 10) + 1)
