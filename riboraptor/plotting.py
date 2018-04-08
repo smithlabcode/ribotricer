@@ -32,7 +32,7 @@ from .helpers import round_to_nearest
 from .helpers import set_xrotation
 
 __FRAME_COLORS__ = ['#1b9e77', '#d95f02', '#7570b3']
-DPI = 600
+DPI = 300
 
 
 def setup_plot():
@@ -240,8 +240,7 @@ def plot_framewise_counts(counts,
         frames_to_plot = list(
             [int(x) for x in frames_to_plot.rstrip().split(',')])
     if isinstance(position_range, six.string_types):
-        splitted = list(
-            [int(x) for x in position_range.strip().split(':')])
+        splitted = list([int(x) for x in position_range.strip().split(':')])
         position_range = list(range(splitted[0], splitted[1] + 1))
 
     if position_range:
@@ -347,8 +346,7 @@ def plot_read_counts(counts,
     if not isinstance(counts, pd.Series):
         counts = pd.Series(counts)
     if isinstance(position_range, six.string_types):
-        splitted = list(
-            [int(x) for x in position_range.strip().split(':')])
+        splitted = list([int(x) for x in position_range.strip().split(':')])
         position_range = np.arange(splitted[0], splitted[1] + 1)
     if position_range is not None:
         counts = counts[position_range]

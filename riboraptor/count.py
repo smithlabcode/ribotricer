@@ -189,12 +189,11 @@ def gene_coverage(gene_name,
     if not isinstance(bw, WigReader):
         bw = WigReader(bw)
     chromosome_lengths = bw.get_chromosomes
-    if not isinstance(bed, pd.DataFrame):
-        bed = pybedtools.BedTool(bed).to_dataframe()
-        bed = _fix_bed_coltype(bed)
-    assert gene_name in bed['name'].tolist()
+    bed_df = pybedtools.BedTool(bed).to_dataframe()
+    bed_df = _fix_bed_coltype(bed_df)
+    assert gene_name in bed_df['name'].tolist()
     if gene_group is None:
-        gene_group = bed[bed['name'] == gene_name]
+        gene_group = bed_df[bed_df['name'] == gene_name]
 
     if len(gene_group['strand'].unique()) != 1:
         raise RuntimeError('Multiple strands?: {}'.format(gene_group))
@@ -226,7 +225,8 @@ def gene_coverage(gene_name,
         else:
             query_intervals = intervals
     except Exception as error:
-        sys.stderr.write('Error reading {} \t {} : {}'.format(gene_name, intervals, error))
+        sys.stderr.write(
+            'Error reading {} \t {} : {}'.format(gene_name, intervals, error))
         sys.exit(1)
     coverage = bw.query(query_intervals)
     if len(coverage) == 0:
@@ -288,7 +288,8 @@ def gene_coverage_sum(gene_name, bed, bw, collapse_intervals=True):
         else:
             query_intervals = intervals
     except Exception as error:
-        sys.stderr.write('Error reading {} \t {} : {}'.format(gene_name, intervals, error))
+        sys.stderr.write(
+            'Error reading {} \t {} : {}'.format(gene_name, intervals, error))
         sys.exit(1)
     coverage = bw.query(query_intervals)
     if len(coverage) == 0:
@@ -743,8 +744,7 @@ def read_enrichment(read_lengths,
     if isinstance(read_lengths, Counter):
         read_lengths = pd.Series(read_lengths)
     if isinstance(enrichment_range, six.string_types):
-        splitted = list(
-            [int(x) for x in enrichment_range.strip().split('-')])
+        splitted = list([int(x) for x in enrichment_range.strip().split('-')])
         enrichment_range = list(range(splitted[0], splitted[1] + 1))
     rpf_signal = read_lengths[enrichment_range].sum()
     total_signal = read_lengths.sum()
@@ -787,9 +787,11 @@ def interval_coverage(bw, intervals):
     for index, coverage in enumerate(bw.query(intervals)):
         strand = intervals[index][3]
         if strand == '+':
-            series_range = list(range(intervals[index][1], intervals[index][2]))
+            series_range = list(
+                range(intervals[index][1], intervals[index][2]))
         elif strand == '-':
-            series_range = list(range(intervals[index][2], intervals[index][1], -1))
+            series_range = list(
+                range(intervals[index][2], intervals[index][1], -1))
         series = pd.Series(coverage, index=series_range)
         interval_coverage_list.append(series)
     coverage_combined = interval_coverage_list[0]
@@ -862,8 +864,8 @@ def export_gene_coverages(bigwig,
         for gene_name, gene_group in cds_grouped:
             if ignore_tx_version:
                 gene_name = re.sub(r'\.[0-9]+', '', gene_name)
-            gene_cov, _, _, gene_offset_5p, gene_offset_3p = gene_coverage(
-                gene_name, region_bed, bw, gene_group, offset_5p, offset_3p)
+            gene_cov, _, gene_offset_5p, gene_offset_3p = gene_coverage(
+                gene_name, region_bed_f, bw, gene_group, offset_5p, offset_3p)
             gene_cov = gene_cov.fillna(0)
             count = gene_cov.tolist()
             length = len(count)
@@ -1165,7 +1167,8 @@ def metagene_coverage(bigwig,
         # region_sizes = get_region_sizes(region_bed_f)
         # Only consider genes which are in cds_grouped.keys
         ranked_genes = [
-            gene for gene in ranked_genes if gene in list(cds_grouped.groups.keys())
+            gene for gene in ranked_genes
+            if gene in list(cds_grouped.groups.keys())
         ]
     else:
         # Use all genes when no htseq present
@@ -1197,8 +1200,8 @@ def metagene_coverage(bigwig,
     for gene_name, gene_group in cds_grouped:
         if ignore_tx_version:
             gene_name = re.sub(r'\.[0-9]+', '', gene_name)
-        gene_cov, _, _, gene_offset_5p, gene_offset_3p = gene_coverage(
-            gene_name, region_bed, bw, gene_group, offset_5p, offset_3p)
+        gene_cov, _, gene_offset_5p, gene_offset_3p = gene_coverage(
+            gene_name, region_bed_f, bw, gene_group, offset_5p, offset_3p)
         if max_positions is not None and len(gene_cov.index) > 0:
             min_index = min(gene_cov.index.tolist())
             gene_length = max(gene_cov.index.tolist())
@@ -1429,8 +1432,9 @@ def collapse_gene_coverage_to_metagene(gene_coverages,
     max_offset5p = gene_coverages_df['offset_5p'].max()
     gene_coverages_df[
         'padding_5p_required'] = gene_coverages_df['offset_5p'] - max_offset5p
-    zipped_cols = list(zip(gene_coverages_df['count'].tolist(),
-                      gene_coverages_df['padding_5p_required'].tolist()))
+    zipped_cols = list(
+        zip(gene_coverages_df['count'].tolist(), gene_coverages_df[
+            'padding_5p_required'].tolist()))
     collapsed = [
         pad_five_prime_or_truncate(
             eval(coverage) / np.nanmean(eval(coverage)), offset_5p,
