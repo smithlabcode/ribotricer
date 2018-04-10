@@ -29,6 +29,24 @@ def calculate_cdf(data):
     return pd.Series(cdf, index=index[1:])
 
 
+def series_cdf(series):
+    """Calculate cdf of series preserving the index
+
+    Parameters
+    ----------
+    series : series like
+
+    Returns
+    -------
+    cdf : series
+
+    """
+    index = series.index.tolist()
+    total = series.sum(skipna=True)
+    cdf = series.cumsum(skipna=True) / total
+    return cdf
+
+
 def KS_test(a, b):
     """Perform KS test between a and b values
 
@@ -51,9 +69,13 @@ def KS_test(a, b):
 
 
     """
-    cdf_a = calculate_cdf(a)
-    cdf_b = calculate_cdf(b)
+    if not isinstance(a, pd.Series):
+        a = pd.Series(a)
+    if not isinstance(b, pd.Series):
+        b = pd.Series(b)
+
+    cdf_a = series_cdf(a)
+    cdf_b = series_cdf(b)
     effect_size, p = ks_2samp(a, b, alternative='greater')
-    D = np.argmax(np.abs(cdf_a - cdf_b)) - 1
-    # a.index[np.argmax(np.array(cdf_a)-np.array(cdf_b))]
+    D = cdf_a.subtract(cdf_b).abs().idxmax()
     return D, effect_size, p, cdf_a, cdf_b
