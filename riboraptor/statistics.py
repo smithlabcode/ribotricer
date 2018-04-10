@@ -3,6 +3,30 @@ from __future__ import (absolute_import, division, print_function,
 import numpy as np
 import pandas as pd
 from scipy.stats.mstats import ks_2samp
+import statsmodels.api as sm
+
+
+def KDE(values):
+    """Perform Univariate Kernel Density Estimation.
+
+    Wrapper utility around statsmodels for quick KDE
+    TODO: scikit-learn has a faster implementation (?)
+
+    Parameters
+    ----------
+    values : array like
+
+
+    Returns
+    -------
+
+    support : array_like
+    cdf : array_like
+
+    """
+    density = sm.nonparametric.KDEUnivariate(values)
+    density.fit()
+    return density.support, density.cdfs
 
 
 def calculate_cdf(data):
