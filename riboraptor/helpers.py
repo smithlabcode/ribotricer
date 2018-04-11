@@ -587,7 +587,7 @@ def collapse_bed_intervals(intervals,
     first_interval = intervals_list[0]
     last_interval = intervals_list[-1]
     if offset_5p != 0 and offset_3p != 0:
-        chrom_length = chromsome_lengths[str(first_interval[0])]
+        chrom_length = chromosome_lengths[str(first_interval[0])]
     else:
         chrom_length = np.inf
     # Need to convert to list instead frm tuples
