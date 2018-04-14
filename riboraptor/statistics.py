@@ -26,7 +26,7 @@ def KDE(values):
     """
     density = sm.nonparametric.KDEUnivariate(values)
     density.fit()
-    return density.support, density.cdfs
+    return density.support, density.cdf
 
 
 def calculate_cdf(data):
