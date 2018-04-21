@@ -1,0 +1,248 @@
+shell.executable("/bin/bash")
+shell.prefix("source ~/.bashrc; ")
+
+from collections import defaultdict
+import os
+import sys
+from itertools import chain
+from os.path import join
+import glob
+import re
+import pandas as pd
+import numpy as np
+
+
+include:
+    config['config_path']
+
+workdir: OUT_DIR
+
+
+INTRON_BED = None
+if not INTRON_BED:
+    INTRON_BED = CDS_BED.replace('cds', 'intron')
+
+def total_genome_size():
+    df = pd.read_table(CHROM_SIZES, names=['chrom', 'sizes'])
+    total = df['sizes'].sum()
+    return total
+
+
+def get_align_intro_params():
+    df = pd.read_table(INTRON_BED, names=['chrom', 'start', 'end', 'name', 'score', 'strand'])
+    lengths = df['end'] - df['start']
+
+    ## Based on small genomes. See https://groups.google.com/forum/#!topic/rna-star/hQeHTBbkc0c
+    alignintronNmin = max(4, lengths.min())
+    alignintronNmax = lengths.max()
+    return alignintronNmin, alignintronNmax
+
+ALIGN_INTRON_Nmin, ALIGN_INTRON_Nmax = get_align_intro_params()
+
+TOTAL_GENOME_SIZE = total_genome_size()
+## Small genome optimization
+## See STAR manual 2.2.5
+SA_INDEX_Nbases = int(np.floor(min(14, np.log2(TOTAL_GENOME_SIZE)/2.0-1)))
+
+ALL_SRA_FILES = glob.glob('{}/**/*.sra'.format(RAWDATA_DIR), recursive=True)
+SRX_ID_DICT = defaultdict(list)
+for sample in ALL_SRA_FILES:
+    srx, srr = sample.replace('{}'.format(RAWDATA_DIR),'').lstrip('/').rstrip('/').split('/')
+    SRX_ID_DICT[srx].append(srr.replace('.sra', ''))
+print(SRX_ID_DICT)
+
+SRX_ID_DICT_VALUES = list(SRX_ID_DICT.values())
+SRX_ID_DICT_KEYS = list(SRX_ID_DICT.keys())
+
+ALL_SRR = [item for sublist in SRX_ID_DICT_VALUES for item in sublist]
+
+
+def merge_bams_input(wildcards):
+    return ['mapped/srr_bams/{}.bam'.format(srr) for srr in SRX_ID_DICT[wildcards.sample]]
+
+def sra_to_fastq_input(wildcards):
+    srr_id = wildcards.sample
+    for key in list(SRX_ID_DICT.keys()):
+        value = SRX_ID_DICT[key]
+        if srr_id in list(value):
+            srx_id = key
+            return str(os.path.join(RAWDATA_DIR, srx_id, srr_id+'.sra'))
+    print("WRONG encodeterend: {}".format(srr_id))
+print (ALL_SRR)
+
+rule all:
+    input:
+        expand('sratofastq/{sample}.fastq.gz', sample=ALL_SRR),
+        expand('preprocessed/{sample}_trimmed.fq.gz', sample=ALL_SRR),
+        expand('mapped/bams/{sample}.bam', sample=SRX_ID_DICT_KEYS),
+        expand('mapped/bigWigs/{sample}Multiple.bw', sample=SRX_ID_DICT_KEYS),
+        expand('mapped/bigWigs/{sample}Unique.bw', sample=SRX_ID_DICT_KEYS),
+        expand('mapped/gene_coverages/UTR5/{sample}_gene_coverages.tsv', sample=SRX_ID_DICT_KEYS),
+        expand('mapped/gene_coverages/CDS/{sample}_gene_coverages.tsv', sample=SRX_ID_DICT_KEYS),
+        expand('mapped/gene_coverages/UTR3/{sample}_gene_coverages.tsv', sample=SRX_ID_DICT_KEYS),
+
+
+rule sra_to_fastq:
+    input: sra_to_fastq_input
+    output: 'sratofastq/{sample}.fastq.gz'
+    params:
+        prefix='sratofastq/{sample}.fastq'
+    shell:
+        r'''fastq-dump --split-3 -O sratofastq {input} && gzip {params.prefix}
+        '''
+
+
+rule perfom_trimming:
+    input:
+        R1='sratofastq/{sample}.fastq.gz',
+    params:
+        out_dir='preprocessed/',
+        phred_cutoff=5
+    output:
+        'preprocessed/{sample}_trimmed.fq.gz',
+    shell:
+        r'''
+        trim_galore -o {params.out_dir} -q {params.phred_cutoff} {input.R1}
+        '''
+
+
+rule map_star:
+    input:
+        R1='preprocessed/{sample}_trimmed.fq.gz',
+        index=STAR_INDEX
+    output:
+        bam='mapped/srr_bams/{sample}.bam',
+        txbam='mapped/srr_tx_bams/{sample}.bam',
+        counts='mapped/STARcounts/{sample}.counts',
+    params:
+        name = '{sample}',
+        prefix = 'mapped/srr_bams/{sample}',
+        unmapped = 'unmapped_fastq/{sample}',
+        starlogs = 'mapped/starlogs',
+    threads: 16
+    shell:
+        r'''
+        STAR --runThreadN {threads}\
+             --genomeDir {input.index}\
+             --outFilterMismatchNmax 2\
+             --alignIntronMin {ALIGN_INTRON_Nmin}\
+             --alignIntronMax {ALIGN_INTRON_Nmax}\
+             --outFileNamePrefix {params.prefix}\
+             --readFilesIn {input.R1}\
+             --readFilesCommand zcat\
+             --quantMode TranscriptomeSAM GeneCounts\
+             --outSAMtype BAM Unsorted\
+             --outTmpDir /tmp/{params.name}_tmp\
+             --outFilterType BySJout\
+             --outFilterMatchNmin 16\
+             && samtools sort -@ {threads} {params.prefix}Aligned.out.bam -o {output.bam} -T /tmp/{params.name}_sort\
+             && mv {params.prefix}Aligned.toTranscriptome.out.bam {output.txbam}\
+             && samtools index {output.bam}\
+             && mv {params.prefix}ReadsPerGene.out.tab {output.counts}\
+             && mkdir -p {params.starlogs}\
+             && mv {params.prefix}Log.final.out {params.prefix}Log.out {params.prefix}SJ.out.tab\
+             {params.prefix}Log.progress.out {params.starlogs}\
+             && mkdir -p {params.unmapped}
+        '''
+
+
+rule merge_bams:
+    input: merge_bams_input
+    threads: 16
+    output: 'mapped/bams/{sample}.bam'
+    run:
+        if len(input) > 1:
+            cmd = ' -in '.join(input)
+            shell(r'''bamtools merge -in {cmd} -out {output}.unsorted \
+            && samtools sort -@ {threads} -T /tmp/{wildcards.sample}_merge_bam -o {output} {output}.unsorted \
+            && samtools index {output} \
+            && yes | rm -rf {output}.unsorted''')
+        elif len(input) == 1:
+            cmd = input[0]
+            shell('''mv {cmd} {output} \
+            && mv {cmd}.bai {output}.bai''')
+
+
+rule create_uniq_bedgraph_from_bam_raw:
+    input: 'mapped/bams/{sample}.bam'
+    threads: 16
+    params:
+        prefix = 'mapped/bedGraphs/{sample}',
+    output:
+        bg_unique = 'mapped/bedGraphs/{sample}Unique.bg',
+        bg_multiple = 'mapped/bedGraphs/{sample}Multiple.bg',
+    shell:
+        r'''STAR --runThreadN {threads}\
+        --runMode inputAlignmentsFromBAM\
+        --inputBAMfile {input} \
+        --outWigType bedGraph read1_5p \
+        --outWigNorm None\
+        --outWigStrand Unstranded\
+        --outFileNamePrefix {params.prefix} &&\
+        mv {params.prefix}Signal.Unique.str1.out.bg {output.bg_unique} &&\
+        mv {params.prefix}Signal.UniqueMultiple.str1.out.bg {output.bg_multiple} &&\
+        bedSort {output.bg_unique} {output.bg_unique} &&\
+        bedSort {output.bg_multiple} {output.bg_multiple}
+        '''
+
+rule create_uniq_bigwig_from_uniq_bedgraph_raw:
+    input: 'mapped/bedGraphs/{sample}Unique.bg',
+    output: 'mapped/bigWigs/{sample}Unique.bw',
+    shell:
+        r'''bedGraphToBigWig {input} {CHROM_SIZES} {output}'''
+
+
+rule create_uniqmulti_bigwig_from_uniqmulti_bedgraph_raw:
+    input: 'mapped/bedGraphs/{sample}Multiple.bg',
+    output: 'mapped/bigWigs/{sample}Multiple.bw',
+    shell:
+        r'''bedGraphToBigWig {input} {CHROM_SIZES} {output}'''
+
+
+rule export_utr5_coverage:
+    input: 'mapped/bigWigs/{sample}Unique.bw'
+    params:
+        prefix = 'mapped/gene_coverages/UTR5/{sample}',
+        offset_5p = 10
+    output: 'mapped/gene_coverages/UTR5/{sample}_gene_coverages.tsv'
+    shell: r'''riboraptor export-gene-coverages \
+           --bigwig {input} \
+           --region_bed {UTR5_BED} \
+           --prefix {params.prefix} \
+           --offset_5p {params.offset_5p}'''
+
+
+rule export_cds_coverage:
+    input: 'mapped/bigWigs/{sample}Unique.bw'
+    params:
+        prefix = 'mapped/gene_coverages/CDS/{sample}',
+        offset_5p = 10
+    output: 'mapped/gene_coverages/CDS/{sample}_gene_coverages.tsv'
+    shell: r'''riboraptor export-gene-coverages \
+           --bigwig {input} \
+           --region_bed {CDS_BED} \
+           --prefix {params.prefix} \
+           --offset_5p {params.offset_5p}'''
+
+
+rule export_utr3_coverage:
+    input: 'mapped/bigWigs/{sample}Unique.bw'
+    params:
+        prefix = 'mapped/gene_coverages/UTR3/{sample}',
+        offset_5p = 10
+    output: 'mapped/gene_coverages/UTR3/{sample}_gene_coverages.tsv'
+    shell: r'''riboraptor export-gene-coverages \
+           --bigwig {input} \
+           --region_bed {UTR3_BED} \
+           --prefix {params.prefix} \
+           --offset_5p {params.offset_5p}'''
+
+
+rule fragment_length_pickle:
+    input: 'mapped/bams/{sample}.bam'
+    params:
+        prefix= 'mapped/fragment_length_pickle/{sample}'
+    output: 'mapped/fragment_length_pickle/{sample}.pickle'
+    shell:
+        r'''riboraptor read-length-dist --bam {input} --prefix {params.prefix}'''
+

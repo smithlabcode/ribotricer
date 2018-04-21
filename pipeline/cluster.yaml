@@ -1,0 +1,47 @@
+__default__:
+    partition: 'cmb'
+    time: '12:00:00'
+    mem: '4gb'
+    cores: 1
+    logout: '/home/cmb-06/as/wenzhenl/logs/{rule}.{wildcards.sample}.out'
+    logerror: '/home/cmb-06/as/wenzhenl/logs/{rule}.{wildcards.sample}.err'
+
+create_index:
+    cores: 16
+    mem: '4gb'
+
+map_star:
+    cores: 16
+    mem: '40gb'
+
+create_uniq_bedgraph_from_bam:
+    cores: 16
+    mem: '40gb'
+
+create_uniq_bigwig_from_uniq_bedgraph:
+    cores: 1
+    mem: '10gb'
+
+create_uniqmulti_bigwig_from_uniqmulti_bedgraph:
+    cores: 1
+    mem: '10gb'
+
+fragment_length_pickle:
+    cores: 1
+    mem: '40gb'
+
+merge_bams:
+    cores: 16
+    mem: '40gb'
+
+pickle_counts_cds:
+    cores: 1
+    mem: '40gb'
+
+pickle_counts_utr3:
+    cores: 1
+    mem: '40gb'
+
+pickle_counts_utr5:
+    cores: 1
+    mem: '40gb'
