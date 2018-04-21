@@ -207,10 +207,10 @@ def gene_coverage_cmd(gene, bed, bigwig, offset):
     '--ignore_tx_version',
     help='Ignore version (.xyz) in gene names',
     is_flag=True)
-def export_gene_coverages_cmd(bigwig, region_bed, prefix,
-                              offset_5p, offset_3p, ignore_tx_version):
-    export_gene_coverages(bigwig, region_bed, prefix,
-                          offset_5p, offset_3p, ignore_tx_version)
+def export_gene_coverages_cmd(bigwig, region_bed, prefix, offset_5p, offset_3p,
+                              ignore_tx_version):
+    export_gene_coverages(bigwig, region_bed, prefix, offset_5p, offset_3p,
+                          ignore_tx_version)
 
 
 @cli.command(

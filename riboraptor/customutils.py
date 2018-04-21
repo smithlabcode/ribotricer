@@ -1,6 +1,6 @@
 import numpy as np
 import glob
-import re 
+import re
 import pickle
 import os
 
@@ -40,6 +40,7 @@ def get_cell_line_or_tissue(row):
     return '{}-{}-{}'.format(row['source_name'], row['study_accession'],
                              row['experiment_accession'])
 
+
 def determine_cell_type(sample_attribute):
     sample_attribute = str(sample_attribute)
     if 'cell line:' in sample_attribute:
@@ -62,6 +63,7 @@ def determine_cell_type(sample_attribute):
         print('Found {}'.format(sample_attribute))
         return np.nan
 
+
 def get_tissue_type(sample_attribute):
     sample_attribute = str(sample_attribute)
     if 'tissue: ' in sample_attribute:
@@ -70,7 +72,8 @@ def get_tissue_type(sample_attribute):
     else:
         print('Found {}'.format(sample_attribute))
         return np.nan
-    
+
+
 def get_strain_type(sample_attribute):
     sample_attribute = str(sample_attribute)
     if 'strain: ' in sample_attribute:
@@ -80,16 +83,18 @@ def get_strain_type(sample_attribute):
         print('Found {}'.format(sample_attribute))
         return np.nan
 
+
 def summary_starlogs_over_runs(directory, list_of_srr):
     df = pd.DataFrame()
     files_not_found = []
     for run in list_of_srr:
-        if not os.path.isfile(os.path.join(directory, run+'.tsv')):
+        if not os.path.isfile(os.path.join(directory, run + '.tsv')):
             files_not_found.append(run)
-            continue            
-        temp_df = pd.read_table(os.path.join(directory, run+'.tsv'))
+            continue
+        temp_df = pd.read_table(os.path.join(directory, run + '.tsv'))
         df = pd.concat([df, temp_df])
     return df, files_not_found
+
 
 def get_enrichment_cds_stats(pickle_file):
     data = pickle.load(open(pickle_file, 'rb'))
@@ -100,12 +105,14 @@ def get_enrichment_cds_stats(pickle_file):
     maxx = np.nanmax(data.values())
     return minx, maxx, mean, median, stddev
 
+
 def get_fragment_enrichment_score(txt_file):
     with open(txt_file) as fh:
         data = fh.read()
     enrichment = data.strip('\(').strip('\)').strip(' ').strip()
     enrichment, pval = enrichment.split(',')
     if 'nan' not in enrichment:
-        return float(enrichment.strip('Enrichment: ')), float(pval.strip(')').strip('pval: '))
+        return float(enrichment.strip('Enrichment: ')), float(
+            pval.strip(')').strip('pval: '))
     else:
         return np.nan, 1
