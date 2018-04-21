@@ -194,15 +194,23 @@ def gene_coverage_cmd(gene, bed, bigwig, offset):
 @click.option('--region_bed', help='Path to CDS bed file', required=True)
 @click.option('--prefix', help='Save gene coverages file to')
 @click.option(
-    '--offset', help='Number of upstream bases to count', type=int, default=60)
+    '--offset_5p',
+    help='Number of upstream bases to count(5\')',
+    type=int,
+    default=60)
+@click.option(
+    '--offset_3p',
+    help='Number of upstream bases to count(3\')',
+    type=int,
+    default=0)
 @click.option(
     '--ignore_tx_version',
     help='Ignore version (.xyz) in gene names',
     is_flag=True)
-def export_gene_coverages_cmd(bigwig, region_bed, prefix, offset,
-                              ignore_tx_version):
-    export_gene_coverages(bigwig, region_bed, prefix, offset,
-                          ignore_tx_version)
+def export_gene_coverages_cmd(bigwig, region_bed, prefix,
+                              offset_5p, offset_3p, ignore_tx_version):
+    export_gene_coverages(bigwig, region_bed, prefix,
+                          offset_5p, offset_3p, ignore_tx_version)
 
 
 @cli.command(
