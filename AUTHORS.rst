@@ -6,6 +6,7 @@ Development Lead
 ----------------
 
 * Saket Choudhary <saketkc@gmail.com>
+* Wenzheng Li <wenzhenl@usc.edu>
 
 Contributors
 ------------
