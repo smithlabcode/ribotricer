@@ -1,3 +1,5 @@
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -7,15 +9,15 @@ from matplotlib.ticker import NullFormatter
 
 def dtw(X, Y, metric='euclidean', ddtw=False, ddtw_order=1):
     """
-    
+
     Parameters
     ----------
     X : array_like
         M x D matrix
     Y : array_like
-        N x D matrix    
+        N x D matrix
     metric : string
-             The distance metric to use. 
+             The distance metric to use.
              Can be :
              'braycurtis', 'canberra', 'chebyshev', 'cityblock', 'correlation',
              'cosine', 'dice', 'euclidean', 'hamming', 'jaccard', 'kulsinski',
@@ -24,7 +26,7 @@ def dtw(X, Y, metric='euclidean', ddtw=False, ddtw_order=1):
              'wminkowski', 'yule'.
              See: https://docs.scipy.org/doc/scipy/reference/generated/scipy.spatial.distance.cdist.html
     ddtw : bool
-           Should use derivative DTW where the distance matrix is created 
+           Should use derivative DTW where the distance matrix is created
            using the derivate values at each point rather than the point themselves
     ddtw_order : int [1,2]
                  First order uses one difference method
@@ -38,7 +40,7 @@ def dtw(X, Y, metric='euclidean', ddtw=False, ddtw_order=1):
     accumulated_cost : array_like
                        M x N matrix with (minimum) cost accumulated till (i,j)
                        having started from (0, 0)
-        
+
     """
     X = list(X)
     Y = list(Y)
@@ -96,18 +98,18 @@ def dtw(X, Y, metric='euclidean', ddtw=False, ddtw_order=1):
 
 
 def get_path(D):
-    """Traceback path of minimum cost 
-    
+    """Traceback path of minimum cost
+
     Given accumulated cost matrix D,
     trace back the minimum cost path
-    
+
     Parameters
     -----------
-    
+
     D : array_like
         M x N matrix as obtained from `accumulated_cost` using:
         total_cost, pointwise_cost, accumulated_cost = dtw(X, Y, metric='euclidean')
-    
+
     Returns
     -------
     traceback_x, traceback_x : array_like
