@@ -1,0 +1,5 @@
+*.rst linguist-documentation
+*.html linguist-documentation
+*.ipynb linguist-language=python
+docs/* linguist-documentation
+riboraptor/annotation/* linguist-detectable=false
