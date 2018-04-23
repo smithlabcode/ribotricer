@@ -6,8 +6,8 @@ riboraptor : Tool for analysing ribosome profiling data
 .. image:: https://img.shields.io/pypi/v/riboraptor.svg
         :target: https://pypi.python.org/pypi/riboraptor
 
-.. image:: https://travis-ci.com/saketkc/riboraptor.svg?token=GsuWFnsdqcXUSp8vzLip&branch=master
-    :target: https://travis-ci.com/saketkc/riboraptor
+.. image:: https://travis-ci.org/saketkc/riboraptor.svg?branch=master
+        :target: https://travis-ci.org/saketkc/riboraptor
 
 .. image:: https://pyup.io/repos/github/saketkc/riboraptor/shield.svg
      :target: https://pyup.io/repos/github/saketkc/riboraptor/
