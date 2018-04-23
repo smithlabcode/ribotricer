@@ -1,9 +1,6 @@
 #!/bin/bash
-
-source activate raptor
-
-snakemake --snakefile snakefile\
-    --config config_path=configs/$1.py\
+snakemake --snakefile Snakefile\
+    --config config_path=$1\
     --js $PWD/jobscript.sh\
     --printshellcmds\
     --cluster-config $PWD/cluster.yaml\

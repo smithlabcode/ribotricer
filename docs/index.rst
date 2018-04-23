@@ -2,8 +2,7 @@ Welcome to riboraptor's documentation!
 ======================================
 
 ``riboraptor`` library is a Python library for analysis of Ribo-seq data.
-It assumes the reads have already been aligned to a reference and are available as BAM/SAM for input. Detailed
-instructions for mapping are available elsewhere [TODO: Instructions for mapping].
+It assumes the reads have already been aligned to a reference and are available as BAM/SAM for input.
 
 Current capabilities of ``riboraptor`` include:
 
