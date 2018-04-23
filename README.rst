@@ -1,5 +1,5 @@
 =======================================================
-riboraptor : Tool for analysing ribosome profiling data
+riboraptor : a pipeline for analysing ribosome profiling data
 =======================================================
 
 
