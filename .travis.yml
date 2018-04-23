@@ -1,53 +1,43 @@
 language: python
 python:
-  - "2.7"
-  - "3.5"
-  - "3.6"
+- '2.7'
+- '3.5'
+- '3.6'
 install:
-  - sudo apt-get update
-  - sudo apt-get install -y gfortran
-  # We do this conditionally because it saves us some downloading if the
-  # version is the same.
-  - if [[ "$TRAVIS_PYTHON_VERSION" == "2.7" ]]; then
-      wget https://repo.continuum.io/miniconda/Miniconda2-latest-Linux-x86_64.sh -O miniconda.sh;
-    else
-      wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh;
-    fi
-  - bash miniconda.sh -b -p $HOME/miniconda
-  - export PATH="$HOME/miniconda/bin:$PATH"
-  - hash -r
-  - conda config --set always_yes yes --set changeps1 no
-  - conda config --add channels conda-forge
-  - conda update --yes conda
-  - sudo rm -rf /dev/shm
-  - sudo ln -s /run/shm /dev/shm
-  # Useful for debugging any issues with conda
-  - conda info -a
-  - conda install gnuplot
-
-  - conda create -q -n test-environment python=$TRAVIS_PYTHON_VERSION
-  - source activate test-environment
-  - pip install -r requirements.txt
-  - pip install -U gnuplotlib
-  - pip install -U sphinx
-  - pip install https://github.com/Syntaf/travis-sphinx/archive/master.zip
-  - pip install -U numpydoc ipython sphinxcontrib-fulltoc guzzle_sphinx_theme
-  - python setup.py install
-
-# command to run tests, e.g. python setup.py test
+- sudo apt-get update
+- sudo apt-get install -y gfortran
+- if [[ "$TRAVIS_PYTHON_VERSION" == "2.7" ]]; then wget https://repo.continuum.io/miniconda/Miniconda2-latest-Linux-x86_64.sh
+  -O miniconda.sh; else wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh
+  -O miniconda.sh; fi
+- bash miniconda.sh -b -p $HOME/miniconda
+- export PATH="$HOME/miniconda/bin:$PATH"
+- hash -r
+- conda config --set always_yes yes --set changeps1 no
+- conda config --add channels conda-forge
+- conda update --yes conda
+- sudo rm -rf /dev/shm
+- sudo ln -s /run/shm /dev/shm
+- conda info -a
+- conda install gnuplot
+- conda create -q -n test-environment python=$TRAVIS_PYTHON_VERSION
+- source activate test-environment
+- pip install -r requirements.txt
+- pip install -U gnuplotlib
+- pip install -U sphinx
+- pip install https://github.com/Syntaf/travis-sphinx/archive/master.zip
+- pip install -U numpydoc ipython sphinxcontrib-fulltoc guzzle_sphinx_theme
+- python setup.py install
 script:
-  - riboraptor
-  - travis-sphinx build --source=$TRAVIS_BUILD_DIR/docs
-
+- riboraptor
+- travis-sphinx build --source=$TRAVIS_BUILD_DIR/docs
 after_success:
-  - travis-sphinx deploy
-
+- travis-sphinx deploy
 deploy:
   provider: pypi
   distributions: sdist bdist_wheel
   user: saketkc
   password:
-    secure: PLEASE_REPLACE_ME
+    secure: JiJ07zBUt2dlwCpgx1dajvlWSVc8VDMzj1fyrXP+CgVuXmp9WqhOuB3i/jCOgpagrmAqxmtDKF3yXLGCn/LtFrqpoziC5C1I4SNzVRaArcYnKiEyNVsXgD3CbrXwtTm7OnB+AsvGMpUUMzl7zQ1vy6dt1YldE0C3dYE/Mz/YS4lRicECztXgyyyG5pJkI5rQky0tOk3DWouYgySaMY2iy+UZ58OWKU/2kIvksCtWz2yvnNx8USHQV6OTOxKdI7o64/2nnuIhBKifpLD+yusHCW/q7unDWgxcUdKToQK/ynJkCh1qtb5uZr/nzplwKtLdfib1lf5gyewpT/fi53dsAS3SqkrBsYc2PIjlWhIFH35ONc5NxvmzuzxZYhydjgq5TX2XXbOk6XmdIK6YgUoaXH010sx+tFUm7h88GuY+RR1AG12MRJF7dZtSh/R7biTfyoiPjOi/Zv3Sn9s2MEw+8iKc3MmDq19ztZndDOkcFVGeLjUIYkBon52V/e1rW/uZ14mAzS6qi7UddPx0PkHHss2bwgagP6Kntrg/FO+MFd49J7EPuh5FtreyK5bP6/xbvzp6wT+/wZaj1yff4ziyaU7q6w7aLDydm5XtFlD8ND2PrFGA6iR9Nc/4+n6wz9O9jJ4snknyHntH5t/jMvE4awgAqU2z6+YnmUqjORaiumk=
   on:
     tags: true
     repo: saketkc/riboraptor
