@@ -23,3 +23,14 @@
 - [ ] Visualization of CDS/UTR enrichment across genes
 - [ ] MultiQC report 
 
+## cleanup
+
+- Commands to keep;
+  - [ ] export-gene-coverage (Rename?)
+  - [ ] metagene-coverage 
+  - [ ] read-length-dist (Also change pickle => tsv)
+  - [ ] periodicity 
+  - [ ] plot-read-dist (Rename?)
+  - [ ] plot-read-counts (Rename to plot-metagene)
+  - [ ] export-bed-fasta 
+  - [ ] create-bed-region
