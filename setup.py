@@ -16,7 +16,7 @@ test_requirements = requirements + ['pytest']
 
 setup(
     name='riboraptor',
-    version='0.1.0',
+    version='0.2.0',
     description="Python package to analyse ribosome profiling data",
     long_description=readme + '\n\n' + history,
     author="Saket Choudhary",
