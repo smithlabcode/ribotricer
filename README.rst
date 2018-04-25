@@ -49,7 +49,7 @@ Installing dependencies
    snakemake sra-tools star fastqc trim-galore htseq ucsc-bedgraphtobigwig ucsc-bedsort
 
 Installing riboraptor
-=====================
+~~~~~~~~~~~~~~~~~~~~~
 
 .. code-block:: bash
    source activate riboraptor
