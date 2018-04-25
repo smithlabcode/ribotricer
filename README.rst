@@ -21,6 +21,7 @@ Python package to analyse ribosome profiling data
 * Free software: BSD license
 * Documentation: http://saketkc.github.io/riboraptor/
 
+============
 Installation
 ============
 
@@ -38,21 +39,24 @@ Setting up conda
    conda config --add channels conda-forge
    conda config --add channels bioconda
 
-Installing depende
-**************************
+Installing dependencies
+***********************
 
 #. Create Python 3 conda env with name (e.g. riboraptor)
 .. code-block:: bash
 
-   conda create --name riboraptor python=3.6
+   conda create --name riboraptor python=3.6 raptor gffutils matplotlib mne mtspec numpy pandas pybedtools \
+   pyBigWig pyfaidx pysam scipy seaborn pycwt six click click-help-colors htseq biopython \
+   snakemake sra-tools star fastqc trim-galore htseq ucsc-bedgraphtobigwig ucsc-bedsort
+
+Installing riboraptor
+*********************
 
 .. code-block:: bash
 
-   $ git clone git@github.com:saketkc/riboraptor.git
-   $ conda create --name raptor gffutils matplotlib mne mtspec numpy pandas pybedtools \
-   pyBigWig pyfaidx pysam scipy seaborn pycwt six click click-help-colors htseq biopython
-   $ cd riboraptor
-   $ python setup.py install --single-version-externally-managed --record=/tmp/record.txt
+   git clone git@github.com:saketkc/riboraptor.git
+   cd riboraptor
+   python setup.py install --single-version-externally-managed --record=/tmp/record.txt
 
 
 Using pip only:
