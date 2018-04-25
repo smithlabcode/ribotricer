@@ -23,7 +23,10 @@ Python package to analyse ribosome profiling data
 Installation
 ------------
 
-Using conda:
+Setting up conda
+Step 1: Install `conda`, the best way to install it is with the
+[Miniconda](https://conda.io/miniconda.html) package.
+The Python 3 version is recommended.
 
 .. code-block:: bash
 
