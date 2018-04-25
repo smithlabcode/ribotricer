@@ -26,7 +26,7 @@ Installation
 ============
 
 Setting up conda
-****************
+================
 
 #. Install `conda`, the best way to install it is with the Miniconda_ package.The Python 3 version is recommended.
 
@@ -40,9 +40,8 @@ Setting up conda
    conda config --add channels bioconda
 
 Installing dependencies
-***********************
+=======================
 
-#. Create Python 3 conda env with name (e.g. riboraptor)
 .. code-block:: bash
 
    conda create --name riboraptor python=3.6 raptor gffutils matplotlib mne mtspec numpy pandas pybedtools \
@@ -50,7 +49,7 @@ Installing dependencies
    snakemake sra-tools star fastqc trim-galore htseq ucsc-bedgraphtobigwig ucsc-bedsort
 
 Installing riboraptor
-*********************
+=====================
 
 .. code-block:: bash
 
