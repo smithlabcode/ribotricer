@@ -26,8 +26,8 @@ Installation
 
 Setting up conda
 ****************
-#. Install `conda`, the best way to install it is with the Miniconda_ package.
-The Python 3 version is recommended.
+
+#. Install `conda`, the best way to install it is with the Miniconda_ package.The Python 3 version is recommended.
 
 #. Set up channels, **It is important to add them in this order**.
 
