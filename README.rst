@@ -66,7 +66,7 @@ Downloading datasets from SRA
 #. Install `aspera connect`_ 
 #. Install additional dependencies
 
-.. code-block: bash
+.. code-block:: bash
 
    source activate riboraptor
    conda install gcc
@@ -76,12 +76,12 @@ Downloading datasets from SRA
  
 Since there is currently bug with bioconductor-sradb, we will install it from github
 
-.. code-block: bash
+.. code-block:: bash
    git clone https://github.com/seandavi/SRAdb
    cd SRAdb
    
 Run `R`, and install SRAdb within `R` use `devtools`
-.. code-block: r
+.. code-block:: r
    library(devtools)
    devtools::install(".")
 
