@@ -26,7 +26,7 @@ Installation
 ============
 
 Setting up conda
-================
+~~~~~~~~~~~~~~~~
 
 #. Install `conda`, the best way to install it is with the Miniconda_ package.The Python 3 version is recommended.
 
@@ -40,7 +40,7 @@ Setting up conda
    conda config --add channels bioconda
 
 Installing dependencies
-=======================
+~~~~~~~~~~~~~~~~~~~~~~~
 
 .. code-block:: bash
 
