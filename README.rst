@@ -13,6 +13,7 @@ riboraptor : a pipeline for analysing ribosome profiling data
      :target: https://pyup.io/repos/github/saketkc/riboraptor/
      :alt: Updates
 
+.. _Miniconda: https://conda.io/miniconda.html
 
 Python package to analyse ribosome profiling data
 
@@ -25,7 +26,7 @@ Installation
 
 Setting up conda
 Step 1: Install `conda`, the best way to install it is with the
-[Miniconda](https://conda.io/miniconda.html) package.
+Miniconda_ package.
 The Python 3 version is recommended.
 
 .. code-block:: bash
