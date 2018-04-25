@@ -1,6 +1,6 @@
-*************************************************************
+=============================================================
 riboraptor : a pipeline for analysing ribosome profiling data
-*************************************************************
+=============================================================
 
 
 .. image:: https://img.shields.io/pypi/v/riboraptor.svg
@@ -21,9 +21,9 @@ Python package to analyse ribosome profiling data
 * Free software: BSD license
 * Documentation: http://saketkc.github.io/riboraptor/
 
-============
+
 Installation
-============
+------------
 
 Setting up conda
 ~~~~~~~~~~~~~~~~
@@ -52,6 +52,7 @@ Installing riboraptor
 ~~~~~~~~~~~~~~~~~~~~~
 
 .. code-block:: bash
+
    source activate riboraptor
    git clone git@github.com:saketkc/riboraptor.git
    cd riboraptor
