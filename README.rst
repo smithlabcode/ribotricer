@@ -25,6 +25,7 @@ Installation
 ------------
 
 Setting up conda
+****************
 Step 1: Install `conda`, the best way to install it is with the
 Miniconda_ package.
 The Python 3 version is recommended.
