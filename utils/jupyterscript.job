@@ -1,0 +1,12 @@
+#!/bin/bash
+#SBATCH --ntasks=16
+#SBATCH --time=120:00:00
+#SBATCH --error=/staging/as/wenzhenl/jupyter/utils/logs/jupyter.err
+#SBATCH --output=/staging/as/wenzhenl/jupyter/utils/logs/jupyter.out
+#SBATCH --mem=100gb
+#SBATCH --partition=cmb
+
+source activate raptor
+unset XDG_RUNTIME_DIR
+cd /staging/as/wenzhenl/jupyter
+jupyter notebook --port=11111 --no-browser --NotebookApp.iopub_data_rate_limit=10000000000
