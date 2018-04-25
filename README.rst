@@ -30,7 +30,9 @@ Setting up conda
 The Python 3 version is recommended.
 
 # Set up channels, **It is important to add them in this order**.
-.. code-block::bash
+
+.. code-block:: bash
+
    $ conda config --add channels r
    $ conda config --add channels defaults
    $ conda config --add channels conda-forge
