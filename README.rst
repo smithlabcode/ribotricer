@@ -22,7 +22,7 @@ Python package to analyse ribosome profiling data
 * Documentation: http://saketkc.github.io/riboraptor/
 
 Installation
-------------
+============
 
 Setting up conda
 ****************
@@ -38,7 +38,7 @@ Setting up conda
    conda config --add channels conda-forge
    conda config --add channels bioconda
 
-Creating conda environment
+Installing depende
 **************************
 
 #. Create Python 3 conda env with name (e.g. riboraptor)
