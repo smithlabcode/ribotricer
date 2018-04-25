@@ -14,6 +14,8 @@ riboraptor : a pipeline for analysing ribosome profiling data
      :alt: Updates
 
 .. _Miniconda: https://conda.io/miniconda.html
+.. _`aspera connect`: http://downloads.asperasoft.com/en/downloads/8?list
+
 
 Python package to analyse ribosome profiling data
 
@@ -57,7 +59,32 @@ Installing riboraptor
    git clone git@github.com:saketkc/riboraptor.git
    cd riboraptor
    python setup.py install --single-version-externally-managed --record=/tmp/record.txt
+
+Downloading datasets from SRA
+-----------------------------
+
+#. Install `aspera connect`_ 
+#. Install additional dependencies
+
+.. code-block: bash
+
+   source activate riboraptor
+   conda install gcc
+   conda install -c r r=3.4.1
+   conda install -c bioconda bioconductor-annotationdbi bioconductor-geometadb
+   conda install -c r r-devtools
+ 
+Since there is currently bug with bioconductor-sradb, we will install it from github
+
+.. code-block: bash
+   git clone https://github.com/seandavi/SRAdb
+   cd SRAdb
    
+Run `R`, and install SRAdb within `R` use `devtools`
+.. code-block: r
+   library(devtools)
+   devtools::install(".")
+
 Features
 --------
 
