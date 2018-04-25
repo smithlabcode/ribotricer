@@ -44,7 +44,7 @@ Installing dependencies
 
 .. code-block:: bash
 
-   conda create --name riboraptor python=3.6 raptor gffutils matplotlib mne mtspec numpy pandas pybedtools \
+   conda create --name riboraptor python=3.6 gffutils matplotlib mne mtspec numpy pandas pybedtools \
    pyBigWig pyfaidx pysam scipy seaborn pycwt six click click-help-colors htseq biopython \
    snakemake sra-tools star fastqc trim-galore htseq ucsc-bedgraphtobigwig ucsc-bedsort
 
@@ -52,7 +52,8 @@ Installing riboraptor
 =====================
 
 .. code-block:: bash
-
+   source activate riboraptor
+   # conda activate riboraptor if you are using conda version 4#
    git clone git@github.com:saketkc/riboraptor.git
    cd riboraptor
    python setup.py install --single-version-externally-managed --record=/tmp/record.txt
