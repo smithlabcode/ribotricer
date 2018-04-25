@@ -53,22 +53,10 @@ Installing riboraptor
 
 .. code-block:: bash
    source activate riboraptor
-   # conda activate riboraptor if you are using conda version 4#
    git clone git@github.com:saketkc/riboraptor.git
    cd riboraptor
    python setup.py install --single-version-externally-managed --record=/tmp/record.txt
-
-
-Using pip only:
-
-.. code-block:: bash
-
-   $ git clone git@github.com:saketkc/riboraptor.git
-   $ cd riboraptor
-   $ pip install -r requirements.txt
-   $ python setup.py install
-
-
+   
 Features
 --------
 
