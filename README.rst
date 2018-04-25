@@ -82,7 +82,7 @@ Since there is currently bug with bioconductor-sradb, we will install it from gi
    
 Run `R`, and install SRAdb within `R` use `devtools`
 
-.. code-block:: r
+.. code-block:: R
    library(devtools)
    devtools::install(".")
 
