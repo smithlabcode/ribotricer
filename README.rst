@@ -88,6 +88,7 @@ Run `R`, and install SRAdb within `R` use `devtools`
    library(devtools)
    devtools::install(".")
 
+test
 
 Features
 --------
