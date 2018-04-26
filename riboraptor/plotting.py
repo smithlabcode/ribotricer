@@ -22,7 +22,6 @@ from matplotlib.ticker import AutoMinorLocator
 import numpy as np
 import pandas as pd
 import seaborn as sns
-import pycwt as wavelet
 import six
 
 from .helpers import identify_peaks
@@ -466,6 +465,7 @@ def plot_featurewise_barplot(utr5_counts,
 
 
 def create_wavelet(data, ax):
+    import pycwt as wavelet
     t = data.index
 
     N = len(data.index)

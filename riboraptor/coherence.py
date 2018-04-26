@@ -3,7 +3,6 @@ from __future__ import (absolute_import, division, print_function,
 import pickle
 import numpy as np
 import pandas as pd
-from mtspec import mtspec, mt_coherence
 import six
 from .helpers import identify_peaks
 
@@ -71,6 +70,7 @@ def get_periodicity(values, input_is_stream=False):
                   Periodicity calculated as cross
                   correlation between input and idea 1-0-0 signal
     """
+    from mtspec import mtspec, mt_coherence
     tbp = 4
     kspec = 3
     nf = 30
