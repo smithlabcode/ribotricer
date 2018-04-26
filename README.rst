@@ -46,9 +46,9 @@ Installing dependencies
 
 .. code-block:: bash
 
-   conda create --name riboraptor python=3.6 gffutils matplotlib mne mtspec numpy pandas pybedtools \
-   pyBigWig pyfaidx pysam scipy seaborn pycwt six click click-help-colors htseq biopython \
-   snakemake sra-tools star fastqc trim-galore htseq ucsc-bedgraphtobigwig ucsc-bedsort
+   conda create --name riboraptor python=3.6 matplotlib numpy pandas pybedtools \
+   pyBigWig pyfaidx pysam scipy seaborn statsmodels six click click-help-colors htseq biopython \
+   snakemake sra-tools star fastqc trim-galore ucsc-bedgraphtobigwig ucsc-bedsort
 
 Installing riboraptor
 ~~~~~~~~~~~~~~~~~~~~~
