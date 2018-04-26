@@ -82,13 +82,16 @@ def bam_to_bedgraph_cmd(bam, strand, end_type, saveto):
         sys.stdout.write(str(bedgraph))
         sys.stdout.write(os.linesep)
 
-@cli.command('uniq-bam',
+
+@cli.command(
+    'uniq-bam',
     context_settings=CONTEXT_SETTINGS,
     help='Create a new bam with unique mapping reads only')
 @click.option('--inbam', required=True)
 @click.option('--outbam', required=True)
 def extract_uniq_mapping_reads_cmd(inbam, outbam):
     extract_uniq_mapping_reads(inbam, outbam)
+
 
 @cli.command(
     'bedgraph-to-bigwig',
@@ -598,7 +601,8 @@ def extract_star_logs(starlogs, outfile):
 @cli.command(
     'collapse-gene-coverage',
     context_settings=CONTEXT_SETTINGS,
-    help='Collapse gene coverage to metagene of target length', )
+    help='Collapse gene coverage to metagene of target length',
+)
 @click.option(
     '--gene_coverage', help='Path to gene coverage tsv', required=True)
 @click.option(
@@ -615,7 +619,8 @@ def collapse_gene_coverage_to_metagene_cmd(gene_coverage, target_length,
 @cli.command(
     'pickle-bed',
     context_settings=CONTEXT_SETTINGS,
-    help='Pickle bed genewise (using name column) for faster lookup', )
+    help='Pickle bed genewise (using name column) for faster lookup',
+)
 @click.option('--bed', help='Path to bed file', required=True)
 @click.option(
     '--no-collapse',

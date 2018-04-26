@@ -39,8 +39,9 @@ def create_gene_dict(db):
         feature_type = feature.featuretype
         if feature_type == 'gene':
             if len(gene_ids) != 1:
-                logging.warning('Found multiple gene_ids on line {} in gtf'.
-                                format(line_no))
+                logging.warning(
+                    'Found multiple gene_ids on line {} in gtf'.format(
+                        line_no))
                 break
             else:
                 gene_id = gene_ids[0]
@@ -296,8 +297,8 @@ def create_all_bed(gtf_file, prefix):
                 chrom, start, end, strand = feature.chrom, int(
                     feature.start), int(feature.end), feature.strand
                 try:
-                    feature.featuretype = str(
-                        df.loc[(chrom, start, end, strand)].name[0])
+                    feature.featuretype = str(df.loc[(chrom, start, end,
+                                                      strand)].name[0])
                 except KeyError:
                     print('something went wrong with feature: {}'.format(
                         feature))

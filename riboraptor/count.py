@@ -143,8 +143,8 @@ def get_closest(bam, regions, half_window_width=0):
                 read_loc = almnt.iv.start - tss.pos
             else:
                 read_loc = tss.pos - almnt.iv.end
-            length = sum(cigar.size for cigar in almnt.cigar
-                         if cigar.type == 'M')
+            length = sum(
+                cigar.size for cigar in almnt.cigar if cigar.type == 'M')
             profile[almnt.read.name] = {'dist': read_loc, 'length': length}
     return pd.DataFrame(profile)
 
@@ -225,8 +225,8 @@ def gene_coverage(gene_name,
         else:
             query_intervals = intervals
     except Exception as error:
-        sys.stderr.write(
-            'Error reading {} \t {} : {}'.format(gene_name, intervals, error))
+        sys.stderr.write('Error reading {} \t {} : {}'.format(
+            gene_name, intervals, error))
         sys.exit(1)
     coverage = bw.query(query_intervals)
     if len(coverage) == 0:
@@ -288,8 +288,8 @@ def gene_coverage_sum(gene_name, bed, bw, collapse_intervals=True):
         else:
             query_intervals = intervals
     except Exception as error:
-        sys.stderr.write(
-            'Error reading {} \t {} : {}'.format(gene_name, intervals, error))
+        sys.stderr.write('Error reading {} \t {} : {}'.format(
+            gene_name, intervals, error))
         sys.exit(1)
     coverage = bw.query(query_intervals)
     if len(coverage) == 0:
@@ -668,8 +668,7 @@ def count_utr5_utr3_cds(bam,
                     pybedtools.BedTool(bed), bam, force_strandedness)
     if saveto:
         mkdir_p(os.path.dirname(saveto))
-        pickle.dump(counts,
-                    open('{}.pickle'.format(saveto), 'wb'),
+        pickle.dump(counts, open('{}.pickle'.format(saveto), 'wb'),
                     __PICKLE_PROTOCOL__)
     return counts
 
@@ -696,8 +695,7 @@ def diff_region_enrichment(numerator, denominator, prefix):
     enrichment = numerator.divide(denominator)
     if prefix:
         mkdir_p(os.path.dirname(prefix))
-        pickle.dump(enrichment,
-                    open('{}.pickle'.format(prefix), 'wb'),
+        pickle.dump(enrichment, open('{}.pickle'.format(prefix), 'wb'),
                     __PICKLE_PROTOCOL__)
     return enrichment
 
@@ -876,8 +874,8 @@ def export_gene_coverages(bigwig,
             # Write olny useful etnries which has mean > 0
             if mean > 0:
                 outfile.write('{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\n'.format(
-                    gene_name, gene_offset_5p,
-                    int(gene_offset_3p), length, mean, median, stdev, count))
+                    gene_name, gene_offset_5p, int(gene_offset_3p), length,
+                    mean, median, stdev, count))
 
 
 def export_single_gene_coverage(bigwig,
@@ -1095,8 +1093,7 @@ def mapping_reads_summary(bam, prefix):
         counts += nh_count
     if prefix:
         mkdir_p(os.path.dirname(prefix))
-        pickle.dump(counts,
-                    open('{}.pickle'.format(prefix), 'wb'),
+        pickle.dump(counts, open('{}.pickle'.format(prefix), 'wb'),
                     __PICKLE_PROTOCOL__)
     return counts
 
@@ -1356,8 +1353,8 @@ def read_length_distribution(bam, prefix):
     if prefix:
         mkdir_p(os.path.dirname(prefix))
         pickle.dump(
-            pd.Series(read_counts),
-            open('{}.pickle'.format(prefix), 'wb'), __PICKLE_PROTOCOL__)
+            pd.Series(read_counts), open('{}.pickle'.format(prefix), 'wb'),
+            __PICKLE_PROTOCOL__)
 
     return read_counts
 
@@ -1454,8 +1451,8 @@ def collapse_gene_coverage_to_metagene(gene_coverages,
     gene_coverages_df[
         'padding_5p_required'] = gene_coverages_df['offset_5p'] - max_offset5p
     zipped_cols = list(
-        zip(gene_coverages_df['count'].tolist(), gene_coverages_df[
-            'padding_5p_required'].tolist()))
+        zip(gene_coverages_df['count'].tolist(),
+            gene_coverages_df['padding_5p_required'].tolist()))
     collapsed = [
         pad_five_prime_or_truncate(
             eval(coverage) / np.nanmean(eval(coverage)), offset_5p,
@@ -1463,7 +1460,8 @@ def collapse_gene_coverage_to_metagene(gene_coverages,
     ]
     metagene = np.nanmean(collapsed, axis=0)
     metagene = pd.Series(
-        metagene, index=np.arange(-max_offset5p, len(metagene) - max_offset5p))
+        metagene, index=np.arange(-max_offset5p,
+                                  len(metagene) - max_offset5p))
     if outfile:
         pickle.dump(metagene, open(outfile, 'wb'))
     else:

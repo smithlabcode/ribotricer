@@ -27,14 +27,15 @@ def load_tpm(path):
 
 
 def get_cell_line_or_tissue(row):
-    if str(row['cell_line']).strip() and str(row['cell_line']).strip() != 'nan':
+    if str(row['cell_line']).strip() and str(
+            row['cell_line']).strip() != 'nan':
         return '{}-{}-{}'.format(row['cell_line'], row['study_accession'],
                                  row['experiment_accession'])
     if str(row['tissue']).strip() and str(row['tissue']).strip() != 'nan':
         return '{}-{}-{}'.format(row['tissue'], row['study_accession'],
                                  row['experiment_accession'])
-    if str(row['source_name']).strip(
-    ) and str(row['source_name']).strip() != 'nan':
+    if str(row['source_name']).strip() and str(
+            row['source_name']).strip() != 'nan':
         return '{}-{}-{}'.format(row['source_name'], row['study_accession'],
                                  row['experiment_accession'])
     if row['study_accession'].strip() == 'SRP052229':
