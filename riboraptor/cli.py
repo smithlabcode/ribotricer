@@ -14,7 +14,6 @@ from .count import bam_to_bedgraph
 from .count import bedgraph_to_bigwig
 from .count import count_reads_per_gene
 from .count import count_reads_per_gene_htseq
-# from .count import count_reads_in_features => Slow
 from .count import collapse_gene_coverage_to_metagene
 from .count import count_utr5_utr3_cds
 from .count import diff_region_enrichment
@@ -113,88 +112,6 @@ def bedgraph_to_bigwig_cmd(bedgraph, sizes, saveto):
         bedgraph_to_bigwig(bedgraph, sizes, saveto)
     else:
         bedgraph_to_bigwig(sys.stdin.readlines(), sizes, saveto, True)
-
-
-@cli.command(
-    'count-in-feature',
-    context_settings=CONTEXT_SETTINGS,
-    help='Count reads in given feature bed file')
-@click.option('--bw', help='Path to bigwig file', required=True)
-@click.option('--bed', help='Path to feature file', required=True)
-@click.option('--prefix', help='Prefix to write pickled contents')
-@click.option(
-    '--n_cores', help='Split job over multiple cores', type=int, default=16)
-@click.option(
-    '--no-collapse',
-    '--no_collapse',
-    help='Collapse based on gene names? (set to True only for tRNA beds)',
-    is_flag=True)
-def count_reads_in_features_cmd(bw, bed, prefix, n_cores, no_collapse):
-    should_collapse = not no_collapse
-    counts, lengths, normalized_counts = count_reads_per_gene(
-        bw, bed, prefix, n_cores, should_collapse)
-    df = pd.concat([counts, lengths, normalized_counts], axis=1)
-    df.columns = ['counts', 'length', 'normalized_counts']
-    with pd.option_context('display.max_rows', None, 'display.max_columns', 3):
-        print(df)
-    sys.stdout.write(os.linesep)
-
-
-@cli.command(
-    'count-all-features',
-    context_settings=CONTEXT_SETTINGS,
-    help='Count reads in 5\'UTR/CDS/3\'UTR regions')
-@click.option('--bam', help='Path to bam file', required=True)
-@click.option('--utr5-bed', help='Path to 5\'utr file')
-@click.option('--cds-bed', help='Path to CDS file')
-@click.option('--utr3-bed', help='Path to 3\'UTR file')
-@click.option(
-    '--genome', '-g', help='Genome (for loading bed files internally)')
-@click.option('-s', help='Force strandedness', is_flag=True)
-@click.option('--genewise', help='Store genewise?', is_flag=True)
-@click.option('--prefix', help='Prefix to write pickled contents')
-@click.option(
-    '--use_multiprocessing', help='Should multiprocess?', is_flag=True)
-def count_utr5_utr3_cds_cmd(bam, utr5_bed, cds_bed, utr3_bed, genome, s,
-                            genewise, prefix, use_multiprocessing):
-    counts = count_utr5_utr3_cds(
-        bam=bam,
-        utr5_bed=utr5_bed,
-        cds_bed=cds_bed,
-        utr3_bed=utr3_bed,
-        genome=genome,
-        force_strandedness=s,
-        genewise=genewise,
-        saveto=prefix,
-        use_multiprocessing=use_multiprocessing)
-    for region, count in six.iteritems(dict(counts)):
-        sys.stdout.write('{}\t{}'.format(region, count))
-        sys.stdout.write(os.linesep)
-
-
-@cli.command(
-    'gene-coverage',
-    context_settings=CONTEXT_SETTINGS,
-    help='Calculate coverage across a gene')
-@click.option('--gene', '-n', help='Gene name', required=True)
-@click.option(
-    '--bed',
-    '-i',
-    help='BED file with \'gene\' annotated in name column',
-    required=True)
-@click.option('--bigwig', '-bw', help='Path to bigwig', required=True)
-@click.option(
-    '--offset',
-    '-o',
-    help='Number of upstream bases to count',
-    type=int,
-    default=0)
-def gene_coverage_cmd(gene, bed, bigwig, offset):
-    coverage_combined, _, _, gene_offset = gene_coverage(
-        gene, bed, bigwig, offset)
-    for l, count in six.iteritems(dict(coverage_combined)):
-        sys.stdout.write('{}\t{}'.format(l, count))
-        sys.stdout.write(os.linesep)
 
 
 @cli.command(
@@ -334,18 +251,6 @@ def periodicity_cmd(counts):
             sys.stdin.readlines(), input_is_stream=True)
     sys.stdout.write('Periodicity: {}({})'.format(periodicity, pval))
     sys.stdout.write(os.linesep)
-
-
-@cli.command(
-    'htseq-to-tpm',
-    context_settings=CONTEXT_SETTINGS,
-    help='Convert HTSeq counts file to TPMs sorted descending')
-@click.option('--htseq_f', help='Path to input htseq file', required=True)
-@click.option(
-    '--cds', help='Path to CDS bed file or genome name', required=True)
-@click.option('--saveto', help='Path to file tosave to', required=True)
-def htseq_to_tpm_cmd(htseq_f, cds, saveto):
-    htseq_to_tpm(htseq_f, cds, saveto)
 
 
 @cli.command(
@@ -614,31 +519,3 @@ def extract_star_logs(starlogs, outfile):
 def collapse_gene_coverage_to_metagene_cmd(gene_coverage, target_length,
                                            outfile):
     collapse_gene_coverage_to_metagene(gene_coverage, target_length, outfile)
-
-
-@cli.command(
-    'pickle-bed',
-    context_settings=CONTEXT_SETTINGS,
-    help='Pickle bed genewise (using name column) for faster lookup',
-)
-@click.option('--bed', help='Path to bed file', required=True)
-@click.option(
-    '--no-collapse',
-    '--no_collapse',
-    help='Collapse based on gene names? (set to True only for tRNA beds)',
-    is_flag=True)
-def pickle_bed_file_cmd(bed, no_collapse):
-    should_collapse = not no_collapse
-    pickle_bed_file(bed, should_collapse)
-
-
-@cli.command(
-    'count-in-feature-htseq',
-    context_settings=CONTEXT_SETTINGS,
-    help='Count reads in given feature bed file')
-@click.option('--bam', help='Path to bigwig file', required=True)
-@click.option('--bed', help='Path to feature file', required=True)
-@click.option('--prefix', help='Prefix to write pickled contents')
-def count_reads_in_features_htseq_cmd(bam, bed, prefix):
-    counts, lengths, normalized_counts = count_reads_per_gene_htseq(
-        bam, bed, prefix)
