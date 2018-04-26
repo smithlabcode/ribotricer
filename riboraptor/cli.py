@@ -20,6 +20,7 @@ from .count import count_utr5_utr3_cds
 from .count import diff_region_enrichment
 from .count import export_gene_coverages
 from .count import export_single_gene_coverage
+from .count import extract_uniq_mapping_reads
 from .count import gene_coverage
 from .count import htseq_to_tpm
 from .count import mapping_reads_summary
@@ -81,6 +82,13 @@ def bam_to_bedgraph_cmd(bam, strand, end_type, saveto):
         sys.stdout.write(str(bedgraph))
         sys.stdout.write(os.linesep)
 
+@cli.command('uniq-bam',
+    context_settings=CONTEXT_SETTINGS,
+    help='Create a new bam with unique mapping reads only')
+@click.option('--inbam', required=True)
+@click.option('--outbam', required=True)
+def extract_uniq_mapping_reads_cmd(inbam, outbam):
+    extract_uniq_mapping_reads(inbam, outbam)
 
 @cli.command(
     'bedgraph-to-bigwig',

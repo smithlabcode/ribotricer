@@ -1403,7 +1403,28 @@ def unique_mapping_reads_count(bam):
     for read in bam.fetch():
         if _is_read_uniq_mapping(read):
             n_mapped += 1
+    bam.close()
     return n_mapped
+
+
+def extract_uniq_mapping_reads(inbam, outbam):
+    """Extract only uniquely mapping reads from a bam.
+
+    Parameters
+    ----------
+    inbam : string
+          Path to input bam file
+    outbam : string
+              Path to write unique reads bam to
+    """
+    _create_bam_index(inbam)
+    allreadsbam = pysam.AlignmentFile(inbam, 'rb')
+    uniquereadsbam = pysam.AlignmentFile(outbam, 'wb', template=allreadsbam)
+    for read in allreadsbam.fetch():
+        if _is_read_uniq_mapping(read):
+            uniquereadsbam.write(read)
+    allreadsbam.close()
+    uniquereadsbam.close()
 
 
 def collapse_gene_coverage_to_metagene(gene_coverages,
