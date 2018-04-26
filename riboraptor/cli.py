@@ -46,9 +46,9 @@ def cli():
 @cli.command(
     'export-gene-coverages',
     context_settings=CONTEXT_SETTINGS,
-    help='Export gene coverages')
+    help='Export gene level coverage for all genes for given region')
 @click.option('--bigwig', '-bw', help='Path to bigwig', required=True)
-@click.option('--region_bed', help='Path to CDS bed file', required=True)
+@click.option('--region_bed', help='Path to bed file', required=True)
 @click.option('--prefix', help='Save gene coverages file to')
 @click.option(
     '--offset_5p',
@@ -57,7 +57,7 @@ def cli():
     default=60)
 @click.option(
     '--offset_3p',
-    help='Number of upstream bases to count(3\')',
+    help='Number of downstream bases to count(3\')',
     type=int,
     default=0)
 @click.option(
@@ -72,17 +72,11 @@ def export_gene_coverages_cmd(bigwig, region_bed, prefix, offset_5p, offset_3p,
 
 ###################### metagene-coverages #################################
 @cli.command(
-    'metagene-coverage',
+    'export-metagene-coverage',
     context_settings=CONTEXT_SETTINGS,
-    help='Calculate metagene coverage')
+    help='Export metagene coverage for given region')
 @click.option('--bigwig', '-bw', help='Path to bigwig', required=True)
-@click.option('--region_bed', help='Path to CDS bed file', required=True)
-@click.option(
-    '--max-positions',
-    help='Number of upstream bases to count',
-    type=int,
-    default=200)
-@click.option('--htseq_f', help='Path to htseq counts file')
+@click.option('--region_bed', help='Path to bed file', required=True)
 @click.option('--prefix', help='Save pickle files to')
 @click.option(
     '--offset_5p',
@@ -91,26 +85,10 @@ def export_gene_coverages_cmd(bigwig, region_bed, prefix, offset_5p, offset_3p,
     default=60)
 @click.option(
     '--offset_3p',
-    help='Number of upstream bases to count(3\')',
+    help='Number of downstream bases to count(3\')',
     type=int,
     default=0)
-@click.option(
-    '--n-meta',
-    help='Number of genes to use for calculating metagene average',
-    type=int,
-    default=-1)
-@click.option(
-    '--n-save-gene',
-    help='Number of genes profiles to pickle',
-    type=int,
-    default=0)
-@click.option(
-    '--ignore_tx_version',
-    help='Ignore version (.xyz) in gene names',
-    is_flag=True)
-def metagene_coverage_cmd(bigwig, region_bed, max_positions, htseq_f, prefix,
-                          offset_5p, offset_3p, n_meta, n_save_gene,
-                          ignore_tx_version):
+def metagene_coverage_cmd(bigwig, region_bed, prefix, offset_5p, offset_3p):
     metagene_profile = metagene_coverage(
         bigwig=bigwig,
         region_bed_f=region_bed,
@@ -157,15 +135,6 @@ def rld_cmd(bam, prefix):
         sys.stdout.write(os.linesep)
 
 
-@cli.command(
-    'uniq-mapping-count',
-    context_settings=CONTEXT_SETTINGS,
-    help='Count number of unique mapping reads')
-@click.option('--bam', help='Path to BAM file', required=True)
-def uniq_mapping_cmd(bam):
-    count = unique_mapping_reads_count(bam)
-    sys.stdout.write(str(count))
-    sys.stdout.write(os.linesep)
 
 @cli.command(
     'export-bed-fasta',
@@ -205,9 +174,9 @@ def export_all_fasta_cmd(region_bed, chrom_sizes, fasta, prefix, offset_5p,
 #################### PLOTING RELATED FUNCTIONS ###############################
 ##############################################################################
 
-######################## plot-read-counts ####################################
+######################## plot-metagene ####################################
 @cli.command(
-    'plot-read-counts',
+    'plot-metagene',
     context_settings=CONTEXT_SETTINGS,
     help='Plot read counts distribution across a gene')
 @click.option('--counts', help='Path to counts file (if not stdin)')
@@ -366,3 +335,15 @@ def bedgraph_to_bigwig_cmd(bedgraph, sizes, saveto):
         bedgraph_to_bigwig(bedgraph, sizes, saveto)
     else:
         bedgraph_to_bigwig(sys.stdin.readlines(), sizes, saveto, True)
+
+
+###################### uniq-mapping-count ######################################
+@cli.command(
+    'uniq-mapping-count',
+    context_settings=CONTEXT_SETTINGS,
+    help='Count number of unique mapping reads')
+@click.option('--bam', help='Path to BAM file', required=True)
+def uniq_mapping_cmd(bam):
+    count = unique_mapping_reads_count(bam)
+    sys.stdout.write(str(count))
+    sys.stdout.write(os.linesep)
