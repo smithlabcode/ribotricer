@@ -14,7 +14,6 @@ from .coherence import naive_periodicity
 
 from .count import bam_to_bedgraph
 from .count import bedgraph_to_bigwig
-from .count import count_utr5_utr3_cds
 from .count import diff_region_enrichment
 from .count import export_gene_coverages
 from .count import export_single_gene_coverage
@@ -305,44 +304,6 @@ def plot_read_counts_cmd(counts, title, marker, color, millify_labels,
             input_is_stream=True)
 
 
-@cli.command(
-    'plot-framewise-counts',
-    context_settings=CONTEXT_SETTINGS,
-    help='Plot read counts highlighting frames')
-@click.option('--counts', help='Path to counts file (if not stdin)')
-@click.option('--title', help='Plot Title', required=True)
-@click.option(
-    '--millify_labels',
-    help='Convert labels on Y-axis to concise form?',
-    is_flag=True)
-@click.option(
-    '--positions', help='Range of positions to plot', default='-60:100')
-@click.option(
-    '--saveto',
-    help='Path to file (png/pdf) to save to',
-    default=None,
-    show_default=True)
-@click.option('--ascii', help='Plot ascii', is_flag=True)
-def plot_framewise_counts_cmd(counts, title, millify_labels, positions, saveto,
-                              ascii):
-    if counts:
-        plot_framewise_counts(
-            counts,
-            title=title,
-            millify_labels=millify_labels,
-            position_range=positions,
-            saveto=saveto,
-            ascii=ascii)
-    else:
-        plot_framewise_counts(
-            sys.stdin.readlines(),
-            title=title,
-            millify_labels=millify_labels,
-            position_range=positions,
-            saveto=saveto,
-            ascii=ascii,
-            input_is_stream=True)
-
 
 @cli.command(
     'plot-read-dist',
@@ -421,23 +382,6 @@ def uniq_mapping_cmd(bam):
     count = unique_mapping_reads_count(bam)
     sys.stdout.write(str(count))
     sys.stdout.write(os.linesep)
-
-
-@cli.command(
-    'diff-region-enrichment',
-    context_settings=CONTEXT_SETTINGS,
-    help='calculate enrichment of cds over utr3/utr5 counts and alike')
-@click.option(
-    '--numerator', help='path to counts file for numerator', required=True)
-@click.option(
-    '--denominator', help='path to counts file for denominator', required=True)
-@click.option('--prefix', help='prefix to write pickled contents')
-def diff_region_enrichment_cmd(numerator, denominator, prefix):
-    enrichment = diff_region_enrichment(numerator, denominator, prefix)
-    for l, e in six.iteritems(dict(enrichment)):
-        sys.stdout.write('{}\t{}'.format(l, e))
-        sys.stdout.write(os.linesep)
-
 
 @cli.command(
     'export-bed-fasta',
