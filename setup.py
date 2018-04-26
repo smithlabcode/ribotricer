@@ -26,7 +26,7 @@ setup(
         'riboraptor',
     ],
     package_dir={'riboraptor': 'riboraptor'},
-    package_data={'riboraptor': ['annotation/hg38/*.*']},  # 'data/*.bw',
+    package_data={'riboraptor': ['annotation/hg38/*.*', 'annotation/mm10/*.*']},
     #data_files=[('riboraptor', ['annotation/*.*'])],
     entry_points={'console_scripts': ['riboraptor=riboraptor.cli:cli']},
     include_package_data=True,
@@ -35,8 +35,6 @@ setup(
     zip_safe=False,
     keywords='riboraptor',
     classifiers=[
-        'Development Status :: 2 - Pre-Alpha',
-        'Intended Audience :: Developers',
         'License :: OSI Approved :: BSD License',
         'Natural Language :: English',
         "Programming Language :: Python :: 2",

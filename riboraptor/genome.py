@@ -19,7 +19,7 @@ def _get_bed(bedname, genome='hg38'):
     """Load bed from annotation.
     """
     annotation_dir = os.path.abspath(
-        os.path.join(os.path.dirname(__file__), '..', 'annotation', genome))
+        os.path.join(os.path.dirname(__file__), 'annotation', genome))
     annotation_file = os.path.join(annotation_dir, bedname + '.bed.gz')
     return annotation_file
 
