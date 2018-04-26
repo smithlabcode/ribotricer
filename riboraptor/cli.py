@@ -9,22 +9,19 @@ import six
 import pandas as pd
 
 from . import __version__
-from .coherence import get_periodicity
+
+from .coherence import naive_periodicity
+
 from .count import bam_to_bedgraph
 from .count import bedgraph_to_bigwig
-from .count import count_reads_per_gene
-from .count import count_reads_per_gene_htseq
-from .count import collapse_gene_coverage_to_metagene
 from .count import count_utr5_utr3_cds
 from .count import diff_region_enrichment
 from .count import export_gene_coverages
 from .count import export_single_gene_coverage
 from .count import extract_uniq_mapping_reads
 from .count import gene_coverage
-from .count import htseq_to_tpm
 from .count import mapping_reads_summary
 from .count import metagene_coverage
-from .count import pickle_bed_file
 from .count import read_enrichment
 from .count import read_length_distribution
 from .count import unique_mapping_reads_count
@@ -245,11 +242,11 @@ def metagene_coverage_cmd(bigwig, region_bed, max_positions, htseq_f, prefix,
 @click.option('--counts', help='Path to counts file (if not stdin)')
 def periodicity_cmd(counts):
     if counts:
-        periodicity, pval = get_periodicity(counts)
+        periodicity = naive_periodicity(counts)
     else:
-        periodicity, pval = get_periodicity(
+        periodicity = naive_periodicity(
             sys.stdin.readlines(), input_is_stream=True)
-    sys.stdout.write('Periodicity: {}({})'.format(periodicity, pval))
+    sys.stdout.write('Periodicity: {}'.format(periodicity))
     sys.stdout.write(os.linesep)
 
 
@@ -501,21 +498,3 @@ def export_complete_fasta_cmd(utr5_bed, cds_bed, utr3_bed, fasta, prefix):
 @click.option('--outfile', help='Path to output dataframe.tsv', required=True)
 def extract_star_logs(starlogs, outfile):
     parse_star_logs(starlogs, outfile)
-
-
-@cli.command(
-    'collapse-gene-coverage',
-    context_settings=CONTEXT_SETTINGS,
-    help='Collapse gene coverage to metagene of target length',
-)
-@click.option(
-    '--gene_coverage', help='Path to gene coverage tsv', required=True)
-@click.option(
-    '--target_length',
-    help='Target length of metagene',
-    required=True,
-    type=int)
-@click.option('--outfile', help='Path to output file', required=True)
-def collapse_gene_coverage_to_metagene_cmd(gene_coverage, target_length,
-                                           outfile):
-    collapse_gene_coverage_to_metagene(gene_coverage, target_length, outfile)
