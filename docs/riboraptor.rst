@@ -28,6 +28,22 @@ riboraptor.count module
     :undoc-members:
     :show-inheritance:
 
+riboraptor.customutils module
+-----------------------------
+
+.. automodule:: riboraptor.customutils
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+riboraptor.dtw module
+---------------------
+
+.. automodule:: riboraptor.dtw
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 riboraptor.fasta module
 -----------------------
 
@@ -40,14 +56,6 @@ riboraptor.genome module
 ------------------------
 
 .. automodule:: riboraptor.genome
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-riboraptor.gtfutils module
---------------------------
-
-.. automodule:: riboraptor.gtfutils
     :members:
     :undoc-members:
     :show-inheritance:
