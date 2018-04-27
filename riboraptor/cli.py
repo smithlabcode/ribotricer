@@ -98,7 +98,7 @@ def export_gene_coverages_cmd(bigwig, region_bed, saveto, offset_5p, offset_3p,
     help='Ignore version (.xyz) in gene names',
     is_flag=True)
 def export_metagene_coverage_cmd(bigwig, region_bed, saveto, offset_5p,
-                                 offset_3p):
+                                 offset_3p, ignore_tx_version):
     metagene_profile = export_metagene_coverage(
         bigwig=bigwig,
         region_bed_f=region_bed,
