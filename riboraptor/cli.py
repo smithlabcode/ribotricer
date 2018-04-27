@@ -179,9 +179,9 @@ def export_all_fasta_cmd(region_bed, chrom_sizes, fasta, prefix, offset_5p,
 @cli.command(
     'plot-metagene',
     context_settings=CONTEXT_SETTINGS,
-    help='Plot read counts distribution across a gene')
+    help='Plot metagene profile')
 @click.option('--counts', help='Path to counts file (if not stdin)')
-@click.option('--title', help='Plot Title', required=True)
+@click.option('--title', help='Plot Title')
 @click.option(
     '--marker',
     help='Marker (o/x) for plots',
@@ -233,7 +233,7 @@ def plot_read_counts_cmd(counts, title, marker, color, millify_labels,
 
 ######################## plot-read-dist ####################################
 @cli.command(
-    'plot-read-dist',
+    'plot-read-length',
     context_settings=CONTEXT_SETTINGS,
     help='Plot read length distribution')
 @click.option('--read-lengths', help='Path to read length pickle file')
