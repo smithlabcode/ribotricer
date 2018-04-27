@@ -1103,7 +1103,7 @@ def export_metagene_coverage(bigwig,
                              prefix=None,
                              offset_5p=60,
                              offset_3p=0,
-                             ignore_tx_version):
+                             ignore_tx_version=True):
     """Calculate metagene coverage.
 
     Parameters
