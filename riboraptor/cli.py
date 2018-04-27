@@ -49,7 +49,7 @@ def cli():
     help='Export gene level coverage for all genes for given region')
 @click.option('--bigwig', '-bw', help='Path to bigwig', required=True)
 @click.option('--region_bed', help='Path to bed file', required=True)
-@click.option('--prefix', help='Save gene coverages file to')
+@click.option('--saveto', help='Path to write gene coverages tsv file')
 @click.option(
     '--offset_5p',
     help='Number of upstream bases to count(5\')',
@@ -64,9 +64,9 @@ def cli():
     '--ignore_tx_version',
     help='Ignore version (.xyz) in gene names',
     is_flag=True)
-def export_gene_coverages_cmd(bigwig, region_bed, prefix, offset_5p, offset_3p,
+def export_gene_coverages_cmd(bigwig, region_bed, saveto, offset_5p, offset_3p,
                               ignore_tx_version):
-    export_gene_coverages(bigwig, region_bed, prefix, offset_5p, offset_3p,
+    export_gene_coverages(bigwig, region_bed, saveto, offset_5p, offset_3p,
                           ignore_tx_version)
 
 
@@ -77,7 +77,7 @@ def export_gene_coverages_cmd(bigwig, region_bed, prefix, offset_5p, offset_3p,
     help='Export metagene coverage for given region')
 @click.option('--bigwig', '-bw', help='Path to bigwig', required=True)
 @click.option('--region_bed', help='Path to bed file', required=True)
-@click.option('--prefix', help='Save output file to')
+@click.option('--saveto', help='Path to write metagene coverage tsv file')
 @click.option(
     '--offset_5p',
     help='Number of upstream bases to count(5\')',
@@ -92,11 +92,11 @@ def export_gene_coverages_cmd(bigwig, region_bed, prefix, offset_5p, offset_3p,
     '--ignore_tx_version',
     help='Ignore version (.xyz) in gene names',
     is_flag=True)
-def export_metagene_coverage_cmd(bigwig, region_bed, prefix, offset_5p, offset_3p):
+def export_metagene_coverage_cmd(bigwig, region_bed, saveto, offset_5p, offset_3p):
     metagene_profile = export_metagene_coverage(
         bigwig=bigwig,
         region_bed_f=region_bed,
-        prefix=prefix,
+        saveto=saveto,
         offset_5p=offset_5p,
         offset_3p=offset_3p,
         ignore_tx_version=ignore_tx_version)
@@ -127,7 +127,7 @@ def periodicity_cmd(counts):
     context_settings=CONTEXT_SETTINGS,
     help='Calculate read length distribution')
 @click.option('--bam', help='Path to BAM file', required=True)
-@click.option('--saveto', help='Location to write tsv output')
+@click.option('--saveto', help='Path to write read length dist tsv output')
 def rld_cmd(bam, saveto):
     counts = read_length_distribution(bam, saveto)
     for l, count in six.iteritems(dict(counts)):

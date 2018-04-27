@@ -814,7 +814,7 @@ def interval_coverage(bw, intervals):
 
 def export_gene_coverages(bigwig,
                           region_bed_f,
-                          prefix,
+                          saveto,
                           offset_5p=60,
                           offset_3p=0,
                           ignore_tx_version=True):
@@ -827,8 +827,8 @@ def export_gene_coverages(bigwig,
     region_bed_f : str
                    Path to region bed file (CDS/3'UTR/5'UTR)
                    with bed name column as gene
-    prefix : str
-             Prefix to write output file
+    saveto : str
+             Path to write output tsv file
     offset_5p : int
              number of bases to count upstream (5')
     offset_30 : int
@@ -855,7 +855,7 @@ def export_gene_coverages(bigwig,
     # Group intervals by gene name
     cds_grouped = region_bed.groupby('name')
 
-    with open('{}_gene_coverages.tsv'.format(prefix), 'w') as outfile:
+    with open(saveto, 'w') as outfile:
         outfile.write(
             'gene_name\toffset_5p\toffset_3p\tlength\tmean\tmedian\tstdev\tcount\n'
         )
@@ -1100,7 +1100,7 @@ def mapping_reads_summary(bam, prefix):
 
 def export_metagene_coverage(bigwig,
                              region_bed_f,
-                             prefix=None,
+                             saveto=None,
                              offset_5p=60,
                              offset_3p=0,
                              ignore_tx_version=True):
@@ -1112,8 +1112,8 @@ def export_metagene_coverage(bigwig,
              Path to bigwig file
     region_bed_f : str
                    Path to region bed file (CDS/3'UTR/5'UTR)
-    prefix : str
-             Prefix to write output files
+    saveto : str
+             Path to write output tsv file
     offset_5p : int
                 Number of bases to offset upstream(5')
     offset_3p : int
@@ -1156,10 +1156,9 @@ def export_metagene_coverage(bigwig,
     metagene_normalized_coverage = genewise_normalized_coverage.div(
         gene_position_counter)
 
-    if prefix:
-        mkdir_p(os.path.dirname(prefix))
-        outfile = "{}_metagene_coverage".format(prefix)
-        pd.DataFrame(metagene_normalized_coverage).to_csv(outfile, sep = '\t', header=False)
+    if saveto:
+        mkdir_p(os.path.dirname(saveto))
+        pd.DataFrame(metagene_normalized_coverage).to_csv(saveto, sep = '\t', header=False)
 
     return metagene_normalized_coverage
 
@@ -1396,14 +1395,15 @@ def read_htseq(htseq_f):
     return htseq
 
 
-def read_length_distribution(bam, outfile):
+def read_length_distribution(bam, saveto):
     """Count read lengths.
 
     Parameters
     ----------
     bam : str
           Path to bam file
-
+    saveto: str
+          Path to write output tsv file
     Returns
     -------
     lengths : counter
@@ -1416,12 +1416,12 @@ def read_length_distribution(bam, outfile):
         read.query_length for read in bam.fetch()
         if _is_read_uniq_mapping(read)
     ])
-    if outfile:
+    if saveto:
         to_write = ''
         for read_length, count in six.iteritems(read_counts):
             to_write += '{}\t{}\n'.format(read_length, count)
-        with open(outfile, 'w') as fh:
-            fh.write(to_write)
+        with open(saveto, 'w') as output:
+            output.write(to_write)
     return read_counts
 
 
