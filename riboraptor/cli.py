@@ -50,7 +50,9 @@ def cli():
     context_settings=CONTEXT_SETTINGS,
     help='Export gene level coverage for all genes for given region')
 @click.option('--bigwig', '-bw', help='Path to bigwig', required=True)
-@click.option('--region_bed', help='Path to bed file', required=True)
+@click.option('--region_bed', 
+              help='Path to bed file or a genome name (hg38_utr5, hg38_cds, hg38_utr3)', 
+              required=True)
 @click.option('--saveto', help='Path to write gene coverages tsv file')
 @click.option(
     '--offset_5p',
@@ -152,7 +154,9 @@ def rld_cmd(bam, saveto):
     'export-bed-fasta',
     context_settings=CONTEXT_SETTINGS,
     help='Export gene level fasta from specified bed regions')
-@click.option('--region_bed', help='Path to bed file', required=True)
+@click.option('--region_bed', 
+              help='Path to bed file or a genome name (hg38_utr5, hg38_cds, hg38_utr3)',
+              required=True)
 @click.option('--fasta', help='Path to fasta file', required=True)
 @click.option(
     '--prefix',
