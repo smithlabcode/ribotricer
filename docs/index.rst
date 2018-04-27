@@ -18,26 +18,26 @@ Current capabilities of ``riboraptor`` include:
 
 .. code-block:: console
 
-    $ Usage: riboraptor [OPTIONS] COMMAND [ARGS]...                              
+    $ Usage: riboraptor [OPTIONS] COMMAND [ARGS]...
 
-      riboraptor: Tool for ribosome profiling analysis                         
+      riboraptor: Tool for ribosome profiling analysis
 
-     Options:                             
-        --version  Show the version and exit.                                    
-        --help     Show this message and exit.                                   
+     Options:
+        --version  Show the version and exit.
+        --help     Show this message and exit.
 
-     Commands:                            
-        bam-to-bedgraph              Convert bam to bedgraph                     
-        bedgraph-to-bigwig           Convert bedgraph to bigwig                                    
-        export-bed-fasta             Export gene level fasta from specified bed...                                                                          
-        export-gene-coverages        Export gene level coverage for all genes for given region                                           
-        export-metagene-coverage     Export metagene coverage for given region                
+     Commands:
+        bam-to-bedgraph              Convert bam to bedgraph
+        bedgraph-to-bigwig           Convert bedgraph to bigwig
+        export-bed-fasta             Export gene level fasta from specified bed
+        export-gene-coverages        Export gene level coverage for all genes for given region
+        export-metagene-coverage     Export metagene coverage for given region
         periodicity                  Calculate periodicity
         plot-metagene                Plot metagene profile
         plot-read-length             Plot read length distribution
-        read-length-dist             Calculate read length distribution 
+        read-length-dist             Calculate read length distribution
         uniq-bam                     Create a new bam with unique mapping reads only
-        uniq-mapping-count           Count number of unique mapping reads     
+        uniq-mapping-count           Count number of unique mapping reads
 
 
 Contents:
