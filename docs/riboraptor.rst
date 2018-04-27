@@ -28,14 +28,6 @@ riboraptor.count module
     :undoc-members:
     :show-inheritance:
 
-riboraptor.customutils module
------------------------------
-
-.. automodule:: riboraptor.customutils
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
 riboraptor.dtw module
 ---------------------
 
@@ -56,6 +48,14 @@ riboraptor.genome module
 ------------------------
 
 .. automodule:: riboraptor.genome
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+riboraptor.haha module
+----------------------
+
+.. automodule:: riboraptor.haha
     :members:
     :undoc-members:
     :show-inheritance:
@@ -88,6 +88,14 @@ riboraptor.statistics module
 ----------------------------
 
 .. automodule:: riboraptor.statistics
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+riboraptor.utils module
+-----------------------
+
+.. automodule:: riboraptor.utils
     :members:
     :undoc-members:
     :show-inheritance:
