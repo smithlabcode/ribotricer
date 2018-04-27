@@ -130,8 +130,8 @@ def periodicity_cmd(counts):
 @click.option('--saveto', help='Path to write read length dist tsv output')
 def rld_cmd(bam, saveto):
     counts = read_length_distribution(bam, saveto)
-    for l, count in six.iteritems(dict(counts)):
-        sys.stdout.write('{}\t{}'.format(l, count))
+    for i, count in six.iteritems(dict(counts)):
+        sys.stdout.write('{}\t{}'.format(i, count))
         sys.stdout.write(os.linesep)
 
 
