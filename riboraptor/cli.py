@@ -204,7 +204,7 @@ def export_all_fasta_cmd(region_bed, chrom_sizes, fasta, prefix, offset_5p,
 @click.option(
     '--saveto',
     help='Path to file (png/pdf) to save to',
-    required=True,
+    default=None,
     show_default=True)
 @click.option(
     '--ylabel', help='Y axix label', default='Normalized RPF density')
