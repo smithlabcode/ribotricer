@@ -230,7 +230,7 @@ def gene_coverage(gene_name,
         sys.exit(1)
     coverage = bw.query(query_intervals)
     if len(coverage) == 0:
-        return (pd.Series([]), pd.Series([]), pd.Series([]), 0, 0)
+        return (pd.Series([]), pd.Series([]), 0, 0)
     coverage_combined = list(coverage[0])
     for coverage in coverage[1:]:
         coverage_combined += list(coverage)
@@ -1151,6 +1151,7 @@ def export_metagene_coverage(bigwig,
     total_genes = len(cds_grouped.groups)
     progress_index = 0
     for gene_name, gene_group in cds_grouped:
+        print(progress_index)
         if ignore_tx_version:
             gene_name = re.sub(r'\.[0-9]+', '', gene_name)
         gene_cov, _, gene_offset_5p, gene_offset_3p = gene_coverage(
