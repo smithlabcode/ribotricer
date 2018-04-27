@@ -47,14 +47,6 @@ Setting up conda
    conda config --add channels conda-forge
    conda config --add channels bioconda
 
-One shot installation
-~~~~~~~~~~~~~~~~~~~~~
-
-.. code-block:: bash
-
-   conda install riboraptor
-
-If you run the above command, the remaining installation steps below are redundant.
 
 Installing dependencies
 ~~~~~~~~~~~~~~~~~~~~~~~
