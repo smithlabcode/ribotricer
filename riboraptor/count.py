@@ -1101,6 +1101,7 @@ def mapping_reads_summary(bam, prefix):
 
 def export_metagene_coverage(bigwig,
                              region_bed_f,
+                             max_positions=None,
                              saveto=None,
                              offset_5p=60,
                              offset_3p=0,
@@ -1114,6 +1115,10 @@ def export_metagene_coverage(bigwig,
     region_bed_f : str
                    Path to region bed file (CDS/3'UTR/5'UTR)
                    or a genome name (hg38_utr5, hg38_cds, hg38_utr3)
+    max_positions: int
+                   Number of positions to consider while
+                   calculating the normalized coverage
+                   Higher values lead to slower implementation
     saveto : str
              Path to write output tsv file
     offset_5p : int
@@ -1128,6 +1133,10 @@ def export_metagene_coverage(bigwig,
     metagene_profile : series
                        Metagene profile
     """
+
+    if max_positions:
+        assert (max_positions > 0)
+
     bw = WigReader(bigwig)
     if region_bed_f.lower().split('_')[0] in __GENOMES_DB__:
         genome, region_type = region_bed_f.lower().split('_')
@@ -1146,11 +1155,17 @@ def export_metagene_coverage(bigwig,
         gene_cov, _, gene_offset_5p, gene_offset_3p = gene_coverage(
             gene_name, region_bed_f, bw, gene_group, offset_5p, offset_3p)
 
-        # Generate top gene version metagene plot
-        norm_cov = gene_cov / gene_cov.mean()
-        genewise_normalized_coverage = genewise_normalized_coverage.add(
-            norm_cov, fill_value=0)
-        gene_position_counter += Counter(gene_cov.index.tolist())
+        if max_positions is not None and len(gene_cov.index) > 0:
+            min_index = min(gene_cov.index.tolist())
+            gene_length = max(gene_cov.index.tolist())
+            gene_cov = gene_cov[np.arange(min_index,
+                                          min(gene_length, max_positions))]
+        gene_cov_mean = gene_cov.mean()
+        if gene_cov_mean > 0:
+            norm_cov = gene_cov / gene_cov.mean()
+            genewise_normalized_coverage = genewise_normalized_coverage.add(
+                norm_cov, fill_value=0)
+            gene_position_counter += Counter(gene_cov.index.tolist())
 
     if len(gene_position_counter) != len(genewise_normalized_coverage):
         raise RuntimeError('Gene normalizaed counter mismatch')
