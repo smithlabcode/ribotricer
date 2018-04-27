@@ -1098,6 +1098,75 @@ def mapping_reads_summary(bam, prefix):
     return counts
 
 
+def export_metagene_coverage(bigwig,
+                             region_bed_f,
+                             prefix=None,
+                             offset_5p=60,
+                             offset_3p=0,
+                             ignore_tx_version):
+    """Calculate metagene coverage.
+
+    Parameters
+    ----------
+    bigwig : str
+             Path to bigwig file
+    region_bed_f : str
+                   Path to region bed file (CDS/3'UTR/5'UTR)
+                   with bed name column as gene
+                   or a genome name (hg38_cds, hg38_utr3, hg38_utr5)
+    prefix : str
+             Prefix to write output files
+    offset_5p : int
+                Number of bases to offset upstream(5')
+    offset_3p : int
+                Number of bases to offset downstream(3')
+    ignore_tx_version : bool
+                 Should versions be ignored for gene names
+
+    Returns
+    -------
+    metagene_profile : series
+                       Metagene profile
+    """
+    bw = WigReader(bigwig)
+
+    region_bed = pybedtools.BedTool(region_bed_f).sort().to_dataframe()
+    region_bed['chrom'] = region_bed['chrom'].astype(str)
+    region_bed['name'] = region_bed['name'].astype(str)
+    # Group intervals by gene name
+    cds_grouped = region_bed.groupby('name')
+    gene_position_counter = Counter()
+    genewise_normalized_coverage = pd.Series()
+
+    for gene_name, gene_group in cds_grouped:
+        if ignore_tx_version:
+            gene_name = re.sub(r'\.[0-9]+', '', gene_name)
+        gene_cov, _, gene_offset_5p, gene_offset_3p = gene_coverage(
+            gene_name, region_bed_f, bw, gene_group, offset_5p, offset_3p)
+
+        # Generate top gene version metagene plot
+        norm_cov = gene_cov / gene_cov.mean()
+        genewise_normalized_coverage = genewise_normalized_coverage.add(
+            norm_cov, fill_value=0)
+        gene_position_counter += Counter(gene_cov.index.tolist())
+
+    if len(gene_position_counter) != len(genewise_normalized_coverage):
+        raise RuntimeError('Gene normalizaed counter mismatch')
+        sys.exit(1)
+
+    gene_position_counter = pd.Series(gene_position_counter)
+    metagene_normalized_coverage = genewise_normalized_coverage.div(
+        gene_position_counter)
+
+    if prefix:
+        mkdir_p(os.path.dirname(prefix))
+        metagene_normalized_coverage = pd.DataFrame(metagene_normalized_coverage)
+        outfile = "{}_metagene_coverage".format(prefix)
+        metagene_normalized_coverage.to_csv(outfile, sep = '\t', header=False)
+
+    return metagene_normalized_coverage
+
+
 def metagene_coverage(bigwig,
                       region_bed_f,
                       max_positions=None,
