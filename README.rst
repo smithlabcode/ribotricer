@@ -15,6 +15,12 @@ riboraptor : a pipeline for analysing ribosome profiling data
 
 .. _Miniconda: https://conda.io/miniconda.html
 .. _`aspera connect`: http://downloads.asperasoft.com/en/downloads/8?list
+.. _`Line4 snakemake/jobscript.sh`: https://github.com/saketkc/riboraptor/blob/47c8a50753c2bcc96b57d43b525a47bb8fde2d04/snakemake/jobscript.sh#L4
+.. _`Line5 snakemake/jobscript.sh`:https://github.com/saketkc/riboraptor/blob/47c8a50753c2bcc96b57d43b525a47bb8fde2d04/snakemake/jobscript.sh#L5
+.. _`Line6 snakemake/cluster.yaml`: https://github.com/saketkc/riboraptor/blob/47c8a50753c2bcc96b57d43b525a47bb8fde2d04/snakemake/cluster.yaml#L6
+.. _`Line7 snakemake/cluser.yaml`: https://github.com/saketkc/riboraptor/blob/47c8a50753c2bcc96b57d43b525a47bb8fde2d04/snakemake/cluster.yaml#L7
+.. _`Line3 snakemake/submitall.sh`: https://github.com/saketkc/riboraptor/blob/47c8a50753c2bcc96b57d43b525a47bb8fde2d04/snakemake/submitall.sh#L3
+.. _`Line3 snakemake/submitall.dryrun`: https://github.com/saketkc/riboraptor/blob/47c8a50753c2bcc96b57d43b525a47bb8fde2d04/snakemake/submitall.dryrun#L3
 
 
 Python package to analyse ribosome profiling data
@@ -59,6 +65,22 @@ Installing riboraptor
    git clone git@github.com:saketkc/riboraptor.git
    cd riboraptor
    python setup.py install --single-version-externally-managed --record=/tmp/record.txt
+
+
+Running pipeline
+----------------
+
+#. Create a copy of `snakemake/configs/template.py` say `snakemake/configs/myNewProject.py` editing the paths inside the config file.
+#. Export your miniconda path by editing `Line4 snakemake/jobscript.sh`_
+#. Edit `Line6 snakemake/cluster.yaml`_ to your error log file
+#. Edit `Line7 snakemake/cluster.yaml`_ to your output log file
+If you used a different conda environment name instead of **riboraptor**:
+#. Edit `Line5 snakemake/jobscript.sh`_ to indicate your `conda` environment name.
+#. Edit `Line3 snakemake/submitall.sh`_ to indicate your `conda` environment name.
+#. Edit `Line3 snakemake/submitall.dryrun`_ to indicate your `conda` environment name.
+
+#. Submit: `bash submitall.sh <config_file_name_prefix>` . E.g. `bash submitall.sh myNewProject`
+
 
 Downloading datasets from SRA
 -----------------------------
