@@ -1417,7 +1417,7 @@ def read_length_distribution(bam, saveto):
         if _is_read_uniq_mapping(read)
     ])
     if saveto:
-        to_write = ''
+        to_write = 'read_length\tcounts\n'
         for read_length, count in six.iteritems(read_counts):
             to_write += '{}\t{}\n'.format(read_length, count)
         with open(saveto, 'w') as output:

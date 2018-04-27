@@ -139,7 +139,7 @@ def plot_read_length_dist(read_lengths,
             read_lengths = load_pickle(read_lengths)
         except IndexError:
             # Some randoom encoding error
-            read_lengths = pd.read_table(read_lengths, names=['read_length', 'counts'])
+            read_lengths = pd.read_table(read_lengths)
             read_lengths = pd.Series(read_lengths.counts.tolist(), index=read_lengths.read_length.tolist())
         except KeyError:
             pass
