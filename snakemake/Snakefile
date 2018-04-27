@@ -237,12 +237,30 @@ rule export_cds_metagene_coverage:
            --region_bed {CDS_BED} \
            --saveto {output}'''
         
-   rule plot_metagene_
-rule fragment_length_pickle:
-    input: 'mapped/bams/{sample}.bam'
+rule plot_cds_metagene:
+    input: 'mapped/metagene_coverage/CDS/{sample}_metagene_coverage.tsv'
     params:
-        prefix= 'mapped/fragment_length_pickle/{sample}'
-    output: 'mapped/fragment_length_pickle/{sample}.pickle'
-    shell:
-        r'''riboraptor read-length-dist --bam {input} --prefix {params.prefix}'''
+        positions_to_plot = '-60:300'
+    output: 'mapped/metagene_coverage/CDS/{sample}_metagene_plot.pdf'
+    shell: r'''riboraptor plot-metagene \
+           --counts {input} \
+           --positions {params.positions_to_plot} \
+           --title {wildcards.sample} \
+           --saveto {output}'''
 
+        
+rule export_read_length:
+    input: 'mapped/bams/{sample}.bam'
+    output: 'mapped/read_length/{sample}_read_length.tsv'
+    shell:
+        r'''riboraptor export-read-length --bam {input} --saveto {output}'''
+
+        
+rule plot_read_length:
+    input: 'mapped/read_length/{sample}_read_length.tsv'
+    output: 'mapped/read_length/{sample}_read_length_plot.pdf'
+    shell:
+        r'''riboraptor plot-read-length \
+        --read-lengths {input} \
+        --title {wildcards.sample} \
+        --saveto {output}'''
