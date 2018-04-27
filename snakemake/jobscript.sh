@@ -2,7 +2,7 @@
 DIR=$(dirname "$(readlink -f "$0")")
 
 export PATH="/home/cmb-panasas2/wenzhenl/miniconda3/bin:$PATH"
-source activate raptor
+source activate riboraptor
 echo "=============================="
 cd $SLURM_SUBMIT_DIR
 echo "=============================="
