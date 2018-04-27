@@ -5,3 +5,5 @@ riboraptor uniq-mapping-count --bam tests/data/SRX2536403_subsampled.unique.bam
 riboraptor read-length-dist --bam tests/data/SRX2536403_subsampled.unique.bam --saveto tests/data/SRX2536403_subsampled.unique.read_length_dist.tsv
 riboraptor plot-read-length --read-lengths tests/data/SRX2536403_subsampled.unique.read_length_dist.tsv
 riboraptor export-metagene-coverage --bigwig tests/data/SRX2536403_subsampled.unique.bigWig --region_bed hg38_cds --saveto tests/data/SRX2536403_subsampled.unique.metagene_counts.tsv --ignore_tx_version
+riboraptor export-gene-coverages --bigwig tests/data/SRX2536403_subsampled.unique.bigWig --region_bed hg38_utr3 --saveto tests/data/SRX2536403_subsampled.unique.gene_coverage_UTR3.tsv 
+
