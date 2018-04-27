@@ -827,6 +827,7 @@ def export_gene_coverages(bigwig,
     region_bed_f : str
                    Path to region bed file (CDS/3'UTR/5'UTR)
                    with bed name column as gene
+                   or a genome name (hg38_utr5, hg38_cds, hg38_utr3)
     saveto : str
              Path to write output tsv file
     offset_5p : int
