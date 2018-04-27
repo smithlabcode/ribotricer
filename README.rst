@@ -74,12 +74,10 @@ Running pipeline
 #. Export your miniconda path by editing `Line4 snakemake/jobscript.sh`_
 #. Edit `Line6 snakemake/cluster.yaml`_ to your error log file
 #. Edit `Line7 snakemake/cluster.yaml`_ to your output log file
-**Only do step 5-7 if your conda environment name is not riboraptor**
-#. Edit `Line5 snakemake/jobscript.sh`_ to indicate your `conda` environment name.
-#. Edit `Line3 snakemake/submitall.sh`_ to indicate your `conda` environment name.
-#. Edit `Line3 snakemake/submitall.dryrun`_ to indicate your `conda` environment name.
 #. Submit: `bash submitall.sh <config_file_name_prefix>` . E.g. `bash submitall.sh myNewProject`
-
+.. #. Edit `Line5 snakemake/jobscript.sh`_ to indicate your `conda` environment name.
+.. #. Edit `Line3 snakemake/submitall.sh`_ to indicate your `conda` environment name.
+.. #. Edit `Line3 snakemake/submitall.dryrun`_ to indicate your `conda` environment name.
 
 Downloading datasets from SRA
 -----------------------------
