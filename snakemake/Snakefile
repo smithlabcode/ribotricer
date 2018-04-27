@@ -44,11 +44,11 @@ TOTAL_GENOME_SIZE = total_genome_size()
 ## See STAR manual 2.2.5
 SA_INDEX_Nbases = int(np.floor(min(14, np.log2(TOTAL_GENOME_SIZE)/2.0-1)))
 
-ALL_SRA_FILES = glob.glob('{}/**/*.sra'.format(RAWDATA_DIR), recursive=True)
+ALL_SRA_FILES = glob.glob('{}/**/*.fastq'.format(RAWDATA_DIR), recursive=True)
 SRX_ID_DICT = defaultdict(list)
 for sample in ALL_SRA_FILES:
     srx, srr = sample.replace('{}'.format(RAWDATA_DIR),'').lstrip('/').rstrip('/').split('/')
-    SRX_ID_DICT[srx].append(srr.replace('.sra', ''))
+    SRX_ID_DICT[srx].append(srr.replace('.fastq', ''))
 print(SRX_ID_DICT)
 
 SRX_ID_DICT_VALUES = list(SRX_ID_DICT.values())
@@ -66,7 +66,7 @@ def sra_to_fastq_input(wildcards):
         value = SRX_ID_DICT[key]
         if srr_id in list(value):
             srx_id = key
-            return str(os.path.join(RAWDATA_DIR, srx_id, srr_id+'.sra'))
+            return str(os.path.join(RAWDATA_DIR, srx_id, srr_id+'.fastq'))
     print("WRONG encodeterend: {}".format(srr_id))
 print (ALL_SRR)
 
@@ -91,8 +91,7 @@ rule sra_to_fastq:
     params:
         prefix='sratofastq/{sample}.fastq'
     shell:
-        r'''fastq-dump --split-3 -O sratofastq {input} && gzip {params.prefix}
-        '''
+        r'''gzip -c {input} > {output}'''
 
 
 rule perfom_trimming:
