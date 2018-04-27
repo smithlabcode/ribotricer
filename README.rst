@@ -67,7 +67,8 @@ Installing riboraptor
 Running pipeline
 ----------------
 
-#. Create a copy of `snakemake/configs/template.py` say `snakemake/configs/myNewProject.py` editing the paths inside the config file.
+#. Create a copy of `snakemake/configs/template.py` say `snakemake/configs/myNewProject.py`
+#. Edit the paths inside the config file to your GTF and BED files
 #. Export your miniconda path by editing `Line4 snakemake/jobscript.sh`_
 #. Edit `Line6 snakemake/cluster.yaml`_ to your error log file
 #. Edit `Line7 snakemake/cluster.yaml`_ to your output log file
@@ -75,7 +76,8 @@ Running pipeline
 
 .. code-block:: bash
 
-   bash submitall.sh snakemake/config/myNewProject.py
+   cd snakemake
+   bash submitall.sh myNewProject
    
   
 Downloading datasets from SRA
