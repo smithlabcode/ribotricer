@@ -1112,8 +1112,6 @@ def export_metagene_coverage(bigwig,
              Path to bigwig file
     region_bed_f : str
                    Path to region bed file (CDS/3'UTR/5'UTR)
-                   with bed name column as gene
-                   or a genome name (hg38_cds, hg38_utr3, hg38_utr5)
     prefix : str
              Prefix to write output files
     offset_5p : int
