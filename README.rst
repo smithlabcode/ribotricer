@@ -82,11 +82,15 @@ Usage mode 1: use riboraptor as a Snakemake based workflow
    cd snakemake
    bash submitall.sh myNewProject
 
-Usage mode 2: Use riboraptor as a standalone toolkit
+Usage mode 2: use riboraptor as a standalone toolkit
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 See: http://saketkc.github.io/riboraptor/
   
+Usage mode 3: use riboraptor in a Galaxy environment
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Check: http://nucleus.usc.edu:8080/
+
 Downloading datasets from SRA
 -----------------------------
 
