@@ -83,6 +83,8 @@ Usage mode 1: use riboraptor as a Snakemake based workflow
    bash submitall.sh myNewProject
 
 Usage mode 2: Use riboraptor as a standalone toolkit
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 See: http://saketkc.github.io/riboraptor/
   
 Downloading datasets from SRA
