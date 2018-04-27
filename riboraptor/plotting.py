@@ -343,9 +343,10 @@ def plot_read_counts(counts,
         try:
             # Try opening as a pickle first
             counts = load_pickle(counts)
-        except UnicodeDecodeError:
-            # Some randoom encoding error
-            counts = pickle.load(open(counts, 'rb'), encoding='iso-8859-1')
+        except IndexError:
+            counts = pd.read_table(counts)
+            counts = pd.Series(
+                counts['count'].tolist(), index=counts['position'].tolist())
         except KeyError:
             pass
     if not isinstance(counts, pd.Series):
