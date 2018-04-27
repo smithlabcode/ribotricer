@@ -17,7 +17,7 @@ from .count import bedgraph_to_bigwig
 from .count import unique_mapping_reads_count
 from .count import extract_uniq_mapping_reads
 from .count import export_gene_coverages
-from .count import metagene_coverage
+from .count import export_metagene_coverage
 from .count import read_length_distribution
 
 from .fasta import export_all_fasta
@@ -77,7 +77,7 @@ def export_gene_coverages_cmd(bigwig, region_bed, prefix, offset_5p, offset_3p,
     help='Export metagene coverage for given region')
 @click.option('--bigwig', '-bw', help='Path to bigwig', required=True)
 @click.option('--region_bed', help='Path to bed file', required=True)
-@click.option('--prefix', help='Save pickle files to')
+@click.option('--prefix', help='Save output file to')
 @click.option(
     '--offset_5p',
     help='Number of upstream bases to count(5\')',
@@ -88,20 +88,20 @@ def export_gene_coverages_cmd(bigwig, region_bed, prefix, offset_5p, offset_3p,
     help='Number of downstream bases to count(3\')',
     type=int,
     default=0)
-def metagene_coverage_cmd(bigwig, region_bed, prefix, offset_5p, offset_3p):
-    metagene_profile = metagene_coverage(
+@click.option(
+    '--ignore_tx_version',
+    help='Ignore version (.xyz) in gene names',
+    is_flag=True)
+def export_metagene_coverage_cmd(bigwig, region_bed, prefix, offset_5p, offset_3p):
+    metagene_profile = export_metagene_coverage(
         bigwig=bigwig,
         region_bed_f=region_bed,
-        max_positions=max_positions,
-        htseq_f=htseq_f,
         prefix=prefix,
         offset_5p=offset_5p,
         offset_3p=offset_3p,
-        top_n_meta=n_meta,
-        top_n_gene=n_save_gene,
         ignore_tx_version=ignore_tx_version)
-    for l, count in six.iteritems(metagene_profile):
-        sys.stdout.write('{}\t{}'.format(l, count))
+    for i, count in six.iteritems(metagene_profile):
+        sys.stdout.write('{}\t{}'.format(i, count))
         sys.stdout.write(os.linesep)
 
 

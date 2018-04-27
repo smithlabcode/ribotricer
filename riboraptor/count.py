@@ -1158,9 +1158,8 @@ def export_metagene_coverage(bigwig,
 
     if prefix:
         mkdir_p(os.path.dirname(prefix))
-        metagene_normalized_coverage = pd.DataFrame(metagene_normalized_coverage)
         outfile = "{}_metagene_coverage".format(prefix)
-        metagene_normalized_coverage.to_csv(outfile, sep = '\t', header=False)
+        pd.DataFrame(metagene_normalized_coverage).to_csv(outfile, sep = '\t', header=False)
 
     return metagene_normalized_coverage
 
