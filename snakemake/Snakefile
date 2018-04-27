@@ -80,7 +80,10 @@ rule all:
         expand('mapped/gene_coverages/UTR5/{sample}_gene_coverages.tsv', sample=SRX_ID_DICT_KEYS),
         expand('mapped/gene_coverages/CDS/{sample}_gene_coverages.tsv', sample=SRX_ID_DICT_KEYS),
         expand('mapped/gene_coverages/UTR3/{sample}_gene_coverages.tsv', sample=SRX_ID_DICT_KEYS),
-
+        expand('mapped/metagene_coverage/CDS/{sample}_metagene_coverage.tsv', sample=SRX_ID_DICT_KEYS),
+        expand('mapped/metagene_coverage/CDS/{sample}_metagene_plot.pdf', sample=SRX_ID_DICT_KEYS),
+        expand('mapped/read_length/{sample}_read_length.tsv', sample=SRX_ID_DICT_KEYS),
+        expand('mapped/read_length/{sample}_read_length_plot.pdf', sample=SRX_ID_DICT_KEYS),
 
 rule sra_to_fastq:
     input: sra_to_fastq_input
@@ -226,6 +229,15 @@ rule export_utr3_coverage:
            --saveto {output}'''
 
 
+rule export_cds_metagene_coverage:
+    input: 'mapped/bigWigs/{sample}Unique.bw'
+    output: 'mapped/metagene_coverage/CDS/{sample}_metagene_coverage.tsv'
+    shell: r'''riboraptor export-metagene-coverage \
+           --bigwig {input} \
+           --region_bed {CDS_BED} \
+           --saveto {output}'''
+        
+   rule plot_metagene_
 rule fragment_length_pickle:
     input: 'mapped/bams/{sample}.bam'
     params:
