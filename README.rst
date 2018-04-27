@@ -16,11 +16,8 @@ riboraptor : a pipeline for analysing ribosome profiling data
 .. _Miniconda: https://conda.io/miniconda.html
 .. _`aspera connect`: http://downloads.asperasoft.com/en/downloads/8?list
 .. _`Line4 snakemake/jobscript.sh`: https://github.com/saketkc/riboraptor/blob/47c8a50753c2bcc96b57d43b525a47bb8fde2d04/snakemake/jobscript.sh#L4
-.. _`Line5 snakemake/jobscript.sh`: https://github.com/saketkc/riboraptor/blob/47c8a50753c2bcc96b57d43b525a47bb8fde2d04/snakemake/jobscript.sh#L5
 .. _`Line6 snakemake/cluster.yaml`: https://github.com/saketkc/riboraptor/blob/47c8a50753c2bcc96b57d43b525a47bb8fde2d04/snakemake/cluster.yaml#L6
 .. _`Line7 snakemake/cluser.yaml`: https://github.com/saketkc/riboraptor/blob/47c8a50753c2bcc96b57d43b525a47bb8fde2d04/snakemake/cluster.yaml#L7
-.. _`Line3 snakemake/submitall.sh`: https://github.com/saketkc/riboraptor/blob/47c8a50753c2bcc96b57d43b525a47bb8fde2d04/snakemake/submitall.sh#L3
-.. _`Line3 snakemake/submitall.dryrun`: https://github.com/saketkc/riboraptor/blob/47c8a50753c2bcc96b57d43b525a47bb8fde2d04/snakemake/submitall.dryrun#L3
 
 
 Python package to analyse ribosome profiling data
