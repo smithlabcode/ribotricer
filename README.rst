@@ -64,8 +64,11 @@ Installing riboraptor
    python setup.py install --single-version-externally-managed --record=/tmp/record.txt
 
 
-Running pipeline
+Using riboraptor
 ----------------
+
+Usage mode 1: use riboraptor as a Snakemake based workflow
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 #. Create a copy of `snakemake/configs/template.py` say `snakemake/configs/myNewProject.py`
 #. Edit the paths inside the config file to your RAW data, output, GTF and BED files
@@ -78,7 +81,9 @@ Running pipeline
 
    cd snakemake
    bash submitall.sh myNewProject
-   
+
+Usage mode 2: Use riboraptor as a standalone toolkit
+See: http://saketkc.github.io/riboraptor/
   
 Downloading datasets from SRA
 -----------------------------
