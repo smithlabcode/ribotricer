@@ -467,6 +467,8 @@ def get_strandedness(filepath):
 
 def load_pickle(filepath):
     """Read pickled files easy in Python 2/3"""
+    if '.tsv' in filepath:
+        raise IndexError
     if sys.version_info > (3, 0):
         pickled = pickle.load(open(filepath, 'rb'), encoding='latin1')
     else:

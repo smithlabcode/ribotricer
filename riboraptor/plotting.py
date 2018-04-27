@@ -191,7 +191,7 @@ def plot_read_length_dist(read_lengths,
         import gnuplotlib as gp
         sys.stdout.write(os.linesep)
         gp.plot(
-            (read_lengths_counts.index, read_lengths_counts.values, {
+            (read_lengths.index, read_lengths.values, {
                 'with': 'boxes'
             }),
             terminal='dumb 160, 40',
@@ -297,7 +297,7 @@ def plot_framewise_counts(counts,
     return ax
 
 
-def plot_read_counts(counts,
+def plot_read_counts(read_counts,
                      ax=None,
                      marker=False,
                      color='royalblue',
@@ -311,7 +311,7 @@ def plot_read_counts(counts,
                      input_is_stream=False,
                      ylabel='Normalized RPF density',
                      **kwargs):
-    """Plot RPF density around start/stop codons.
+    """Plot RPF density aro und start/stop codons.
 
     Parameters
     ----------
@@ -339,12 +339,13 @@ def plot_read_counts(counts,
             splitted = list([int(x) for x in line.strip().split('\t')])
             counts_counter[splitted[0]] = splitted[1]
         counts = Counter(counts_counter)
-    elif isinstance(counts, six.string_types):
+    elif isinstance(read_counts, six.string_types):
         try:
             # Try opening as a pickle first
-            counts = load_pickle(counts)
+            print(read_counts)
+            counts = load_pickle(read_counts)
         except IndexError:
-            counts = pd.read_table(counts)
+            counts = pd.read_table(read_counts)
             counts = pd.Series(
                 counts['count'].tolist(), index=counts['position'].tolist())
         except KeyError:
@@ -401,7 +402,8 @@ def plot_read_counts(counts,
         round_to_nearest(min(counts.index) - 15, 10) - 1,
         round_to_nearest(max(counts.index), 10) + 1)
     setup_axis(ax, **kwargs)
-    ax.set_ylabel(ylabel)
+    if ylabel:
+        ax.set_ylabel(ylabel)
     if title:
         ax.set_title(title)
     sns.despine(trim=True, offset=10)

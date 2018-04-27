@@ -1148,7 +1148,8 @@ def export_metagene_coverage(bigwig,
     cds_grouped = region_bed.groupby('name')
     gene_position_counter = Counter()
     genewise_normalized_coverage = pd.Series()
-
+    total_genes = len(cds_grouped.groups)
+    progress_index = 0
     for gene_name, gene_group in cds_grouped:
         if ignore_tx_version:
             gene_name = re.sub(r'\.[0-9]+', '', gene_name)
@@ -1166,6 +1167,12 @@ def export_metagene_coverage(bigwig,
             genewise_normalized_coverage = genewise_normalized_coverage.add(
                 norm_cov, fill_value=0)
             gene_position_counter += Counter(gene_cov.index.tolist())
+        progress_index += 1
+        percent_progress = progress_index / total_genes * 100
+        if progress_index >= 500:
+            break
+        if percent_progress % 10 == 0:
+            print('Progress: {}%'.format(percent_progress))
 
     if len(gene_position_counter) != len(genewise_normalized_coverage):
         raise RuntimeError('Gene normalizaed counter mismatch')
@@ -1183,7 +1190,7 @@ def export_metagene_coverage(bigwig,
             'count':
             metagene_normalized_coverage.values
         })
-        to_write.to_csv(saveto, sep='\t', index=False)
+        to_write.to_csv(saveto, sep=str('\t'), index=False)
 
     return metagene_normalized_coverage
 

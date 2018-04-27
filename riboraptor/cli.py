@@ -83,7 +83,8 @@ def export_gene_coverages_cmd(bigwig, region_bed, saveto, offset_5p, offset_3p,
     help='Path to bed file or a genome name (hg38_utr5, hg38_cds, hg38_utr3)',
     required=True)
 @click.option('--saveto', help='Path to write metagene coverage tsv file')
-@click.option('--max_positions', help='maximum positions to count')
+@click.option(
+    '--max_positions', help='maximum positions to count', default=500)
 @click.option(
     '--offset_5p',
     help='Number of upstream bases to count(5\')',
@@ -98,7 +99,7 @@ def export_gene_coverages_cmd(bigwig, region_bed, saveto, offset_5p, offset_3p,
     '--ignore_tx_version',
     help='Ignore version (.xyz) in gene names',
     is_flag=True)
-def export_metagene_coverage_cmd(bigwig, region_bed, max_position, saveto,
+def export_metagene_coverage_cmd(bigwig, region_bed, max_positions, saveto,
                                  offset_5p, offset_3p, ignore_tx_version):
     metagene_profile = export_metagene_coverage(
         bigwig=bigwig,
@@ -203,9 +204,10 @@ def export_all_fasta_cmd(region_bed, chrom_sizes, fasta, prefix, offset_5p,
 @click.option(
     '--saveto',
     help='Path to file (png/pdf) to save to',
-    default=None,
+    required=True,
     show_default=True)
-@click.option('--ylabel', help='Y axix label')
+@click.option(
+    '--ylabel', help='Y axix label', default='Normalized RPF density')
 @click.option('--ascii', help='Do not plot ascii', is_flag=True)
 def plot_read_counts_cmd(counts, title, marker, color, millify_labels,
                          identify_peak, positions, saveto, ylabel, ascii):
