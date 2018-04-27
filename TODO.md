@@ -39,3 +39,11 @@
 - [ ] remove /tmp
 - [ ] make snakemake work locally
 - [ ] make better doc for usage mode
+
+
+## From group meeting (04/27/2018)
+
+- [ ] Emulate databases with gene name support
+- [ ] For template use one empty line and one commented version of the line
+- [ ] Change /tmp paths
+
