@@ -70,3 +70,7 @@ target/
 snakemake/*.stats
 snakemake/configs/*
 !snakemake/configs/template.py
+
+#utils
+utils/*.sqlite
+utils/*.txt
