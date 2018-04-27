@@ -52,14 +52,6 @@ riboraptor.genome module
     :undoc-members:
     :show-inheritance:
 
-riboraptor.haha module
-----------------------
-
-.. automodule:: riboraptor.haha
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
 riboraptor.helpers module
 -------------------------
 
