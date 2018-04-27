@@ -1158,7 +1158,13 @@ def export_metagene_coverage(bigwig,
 
     if saveto:
         mkdir_p(os.path.dirname(saveto))
-        pd.DataFrame(metagene_normalized_coverage).to_csv(saveto, sep = '\t', header=False)
+        to_write = pd.DataFrame({
+            'position':
+            metagene_normalized_coverage.index,
+            'count':
+            metagene_normalized_coverage.values
+        })
+        to_write.to_csv(saveto, sep='\t', index=False)
 
     return metagene_normalized_coverage
 

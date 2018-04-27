@@ -7,6 +7,7 @@ from scipy.spatial.distance import cdist
 from matplotlib.ticker import NullFormatter
 from .helpers import CBB_PALETTE
 
+
 def dtw(X, Y, metric='euclidean', ddtw=False, ddtw_order=1):
     """
 

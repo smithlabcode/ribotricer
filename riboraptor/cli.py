@@ -38,9 +38,11 @@ def cli():
     """riboraptor: Tool for ribosome profiling analysis"""
     pass
 
+
 ##############################################################################
 #################### COUNT RELATED FUNCTIONS #################################
 ##############################################################################
+
 
 ###################### export-gene-coverages #################################
 @cli.command(
@@ -92,7 +94,8 @@ def export_gene_coverages_cmd(bigwig, region_bed, saveto, offset_5p, offset_3p,
     '--ignore_tx_version',
     help='Ignore version (.xyz) in gene names',
     is_flag=True)
-def export_metagene_coverage_cmd(bigwig, region_bed, saveto, offset_5p, offset_3p):
+def export_metagene_coverage_cmd(bigwig, region_bed, saveto, offset_5p,
+                                 offset_3p):
     metagene_profile = export_metagene_coverage(
         bigwig=bigwig,
         region_bed_f=region_bed,
@@ -121,7 +124,6 @@ def periodicity_cmd(counts):
     sys.stdout.write(os.linesep)
 
 
-
 @cli.command(
     'read-length-dist',
     context_settings=CONTEXT_SETTINGS,
@@ -133,7 +135,6 @@ def rld_cmd(bam, saveto):
     for i, count in six.iteritems(dict(counts)):
         sys.stdout.write('{}\t{}'.format(i, count))
         sys.stdout.write(os.linesep)
-
 
 
 @cli.command(
@@ -169,10 +170,10 @@ def export_all_fasta_cmd(region_bed, chrom_sizes, fasta, prefix, offset_5p,
                      offset_3p, ignore_tx_version)
 
 
-
 ##############################################################################
 #################### PLOTING RELATED FUNCTIONS ###############################
 ##############################################################################
+
 
 ######################## plot-metagene ####################################
 @cli.command(
@@ -267,10 +268,10 @@ def plot_read_length_dist_cmd(read_lengths, title, millify_labels, saveto,
             ascii=ascii)
 
 
-
 ##############################################################################
 #################### BAMTOOLS STYLE FUNCTIONS ################################
 ##############################################################################
+
 
 ####################### bam-to-bedgraph ######################################
 @cli.command(
