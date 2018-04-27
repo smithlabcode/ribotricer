@@ -7,14 +7,14 @@ It assumes the reads have already been aligned to a reference and are available 
 Current capabilities of ``riboraptor`` include:
 
 :Visualization:
-    - Read length distribution
-    - Metagene coverage
-    - Possible pausing sites
+    - Plot read length distribution
+    - Plot metagene coverage
 
 :Utilities:
-    - Mapping summary statistics
-    - 5'UTR/CDS/3'UTR coverage
-    - P-site offset calculation
+    - Export all gene coverages
+    - Export metagene coverage
+    - Export read length distribution
+    - Calculate periodicity
 
 .. code-block:: console
 
@@ -28,26 +28,16 @@ Current capabilities of ``riboraptor`` include:
 
      Commands:                            
         bam-to-bedgraph              Convert bam to bedgraph                     
-        bedgraph-to-bigwig           Convert bedgraph to bigwig                  
-        collapse-gene-coverage       Collapse gene coverage to metagene of target...                                                                        
-        count-all-features           Count reads in 5'UTR/CDS/3'UTR regions      
-        count-in-feature             Count reads in given feature bed file       
-        diff-region-enrichment       calculate enrichment of cds over utr3/utr5...                                                                          
+        bedgraph-to-bigwig           Convert bedgraph to bigwig                                    
         export-bed-fasta             Export gene level fasta from specified bed...                                                                          
-        export-complete-fasta        Export gene level fasta from specified bed...                                                                          
-        export-gene-coverages        Export gene coverages                       
-        export-single-gene-coverage  Export coverage for a gene                  
-        extract-star-logs            collpase star logs to a dataframe           
-        gene-coverage                Calculate coverage across a gene            
-        htseq-to-tpm                 Convert HTSeq counts file to TPMs sorted... 
-        mapping-summary              Mapping summary                             
-        metagene-coverage            Calculate metagene coverage                 
-        periodicity                  Calculate periodicity                       
-        plot-framewise-counts        Plot read counts highlighting frames        
-        plot-read-counts             Plot read counts distribution across a gene 
-        plot-read-dist               Plot read length distribution               
-        read-enrichment              Calculate read length enrichment            
-        read-length-dist             Calculate read length distribution          
+        export-gene-coverages        Export gene level coverage for all genes for given region                       
+                                  
+        export-metagene-coverage     Export metagene coverage for given region                
+        periodicity                  Calculate periodicity
+        plot-metagene                Plot metagene profile
+        plot-read-length             Plot read length distribution
+        read-length-dist             Calculate read length distribution 
+        uniq-bam                     Create a new bam with unique mapping reads only
         uniq-mapping-count           Count number of unique mapping reads     
 
 
