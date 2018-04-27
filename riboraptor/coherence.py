@@ -44,6 +44,8 @@ def naive_periodicity(values, identify_peak=False):
         # We assume that if values is series it will have continuous
         # indices
         values = values[np.arange(peak_location, max_index)]
+    values = pd.Series(values)
+    values = values.fillna(0)
     frame1_total = 0
     frame2_total = 0
     frame3_total = 0

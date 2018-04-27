@@ -1155,7 +1155,7 @@ def export_metagene_coverage(bigwig,
             gene_name = re.sub(r'\.[0-9]+', '', gene_name)
         gene_cov, _, gene_offset_5p, gene_offset_3p = gene_coverage(
             gene_name, region_bed_f, bw, gene_group, offset_5p, offset_3p)
-
+        gene_cov = gene_cov.fillna(0)
         if max_positions is not None and len(gene_cov.index) > 0:
             min_index = min(gene_cov.index.tolist())
             gene_length = max(gene_cov.index.tolist())
@@ -1190,6 +1190,7 @@ def export_metagene_coverage(bigwig,
             'count':
             metagene_normalized_coverage.values
         })
+        to_write = to_write[['position', 'count']]
         to_write.to_csv(saveto, sep=str('\t'), index=False)
 
     return metagene_normalized_coverage

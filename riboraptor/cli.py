@@ -122,6 +122,9 @@ def export_metagene_coverage_cmd(bigwig, region_bed, max_positions, saveto,
 @click.option('--counts', help='Path to counts file (if not stdin)')
 def periodicity_cmd(counts):
     if counts:
+        counts = pd.read_table(counts)
+        counts = pd.Series(
+            counts['count'].tolist(), index=counts['position'].tolist())
         periodicity = naive_periodicity(counts)
     else:
         periodicity = naive_periodicity(
