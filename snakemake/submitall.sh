@@ -1,6 +1,9 @@
 #!/bin/bash
-snakemake --snakefile Snakefile\
-    --config config_path=$1\
+
+source activate riboraptor
+
+snakemake --snakefile snakefile\
+    --config config_path=configs/$1.py\
     --js $PWD/jobscript.sh\
     --printshellcmds\
     --cluster-config $PWD/cluster.yaml\
