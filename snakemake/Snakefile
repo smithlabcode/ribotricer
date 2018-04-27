@@ -81,9 +81,9 @@ rule all:
         expand('mapped/gene_coverages/CDS/{sample}_gene_coverages.tsv', sample=SRX_ID_DICT_KEYS),
         expand('mapped/gene_coverages/UTR3/{sample}_gene_coverages.tsv', sample=SRX_ID_DICT_KEYS),
         expand('mapped/metagene_coverage/CDS/{sample}_metagene_coverage.tsv', sample=SRX_ID_DICT_KEYS),
-        expand('mapped/metagene_coverage/CDS/{sample}_metagene_plot.pdf', sample=SRX_ID_DICT_KEYS),
+        expand('mapped/metagene_coverage/CDS/{sample}_metagene_plot.png', sample=SRX_ID_DICT_KEYS),
         expand('mapped/read_length/{sample}_read_length.tsv', sample=SRX_ID_DICT_KEYS),
-        expand('mapped/read_length/{sample}_read_length_plot.pdf', sample=SRX_ID_DICT_KEYS),
+        expand('mapped/read_length/{sample}_read_length_plot.png', sample=SRX_ID_DICT_KEYS),
 
 rule sra_to_fastq:
     input: sra_to_fastq_input
@@ -241,7 +241,7 @@ rule plot_cds_metagene:
     input: 'mapped/metagene_coverage/CDS/{sample}_metagene_coverage.tsv'
     params:
         positions_to_plot = '-60:300'
-    output: 'mapped/metagene_coverage/CDS/{sample}_metagene_plot.pdf'
+    output: 'mapped/metagene_coverage/CDS/{sample}_metagene_plot.png'
     shell: r'''riboraptor plot-metagene \
            --counts {input} \
            --positions {params.positions_to_plot} \
@@ -258,7 +258,7 @@ rule export_read_length:
         
 rule plot_read_length:
     input: 'mapped/read_length/{sample}_read_length.tsv'
-    output: 'mapped/read_length/{sample}_read_length_plot.pdf'
+    output: 'mapped/read_length/{sample}_read_length_plot.png'
     shell:
         r'''riboraptor plot-read-length \
         --read-lengths {input} \
