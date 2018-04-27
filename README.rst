@@ -51,9 +51,10 @@ One shot installation
 ~~~~~~~~~~~~~~~~~~~~~
 
 .. code-block:: bash
+
    conda install riboraptor
 
-If you do this step the remaining installation steps below are redundant.
+If you run the above command, the remaining installation steps below are redundant.
 
 Installing dependencies
 ~~~~~~~~~~~~~~~~~~~~~~~
