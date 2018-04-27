@@ -201,41 +201,29 @@ rule create_uniqmulti_bigwig_from_uniqmulti_bedgraph_raw:
 
 rule export_utr5_coverage:
     input: 'mapped/bigWigs/{sample}Unique.bw'
-    params:
-        prefix = 'mapped/gene_coverages/UTR5/{sample}',
-        offset_5p = 10
     output: 'mapped/gene_coverages/UTR5/{sample}_gene_coverages.tsv'
     shell: r'''riboraptor export-gene-coverages \
            --bigwig {input} \
            --region_bed {UTR5_BED} \
-           --prefix {params.prefix} \
-           --offset_5p {params.offset_5p}'''
+           --saveto {output}'''
 
 
 rule export_cds_coverage:
     input: 'mapped/bigWigs/{sample}Unique.bw'
-    params:
-        prefix = 'mapped/gene_coverages/CDS/{sample}',
-        offset_5p = 10
     output: 'mapped/gene_coverages/CDS/{sample}_gene_coverages.tsv'
     shell: r'''riboraptor export-gene-coverages \
            --bigwig {input} \
            --region_bed {CDS_BED} \
-           --prefix {params.prefix} \
-           --offset_5p {params.offset_5p}'''
+           --saveto {output}'''
 
 
 rule export_utr3_coverage:
     input: 'mapped/bigWigs/{sample}Unique.bw'
-    params:
-        prefix = 'mapped/gene_coverages/UTR3/{sample}',
-        offset_5p = 10
     output: 'mapped/gene_coverages/UTR3/{sample}_gene_coverages.tsv'
     shell: r'''riboraptor export-gene-coverages \
            --bigwig {input} \
            --region_bed {UTR3_BED} \
-           --prefix {params.prefix} \
-           --offset_5p {params.offset_5p}'''
+           --saveto {output}'''
 
 
 rule fragment_length_pickle:
