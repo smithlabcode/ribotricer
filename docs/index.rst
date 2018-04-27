@@ -30,8 +30,7 @@ Current capabilities of ``riboraptor`` include:
         bam-to-bedgraph              Convert bam to bedgraph                     
         bedgraph-to-bigwig           Convert bedgraph to bigwig                                    
         export-bed-fasta             Export gene level fasta from specified bed...                                                                          
-        export-gene-coverages        Export gene level coverage for all genes for given region                       
-                                  
+        export-gene-coverages        Export gene level coverage for all genes for given region                                           
         export-metagene-coverage     Export metagene coverage for given region                
         periodicity                  Calculate periodicity
         plot-metagene                Plot metagene profile
