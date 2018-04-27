@@ -1396,7 +1396,7 @@ def read_htseq(htseq_f):
     return htseq
 
 
-def read_length_distribution(bam, prefix):
+def read_length_distribution(bam, outfile):
     """Count read lengths.
 
     Parameters
@@ -1416,12 +1416,12 @@ def read_length_distribution(bam, prefix):
         read.query_length for read in bam.fetch()
         if _is_read_uniq_mapping(read)
     ])
-    if prefix:
-        mkdir_p(os.path.dirname(prefix))
-        pickle.dump(
-            pd.Series(read_counts), open('{}.pickle'.format(prefix), 'wb'),
-            __PICKLE_PROTOCOL__)
-
+    if outfile:
+        to_write = ''
+        for read_length, count in six.iteritems(read_counts):
+            to_write += '{}\t{}\n'.format(read_length, count)
+        with open(outfile, 'w') as fh:
+            fh.write(to_write)
     return read_counts
 
 

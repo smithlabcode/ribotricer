@@ -137,10 +137,10 @@ def plot_read_length_dist(read_lengths,
         try:
             # Try opening as a pickle first
             read_lengths = load_pickle(read_lengths)
-        except UnicodeDecodeError:
+        except IndexError:
             # Some randoom encoding error
-            read_lengths = pickle.load(
-                open(read_lengths, 'rb'), encoding='iso-8859-1')
+            read_lengths = pd.read_table(read_lengths, names=['read_length', 'counts'])
+            read_lengths = pd.Series(read_lengths.counts.tolist(), index=read_lengths.read_length.tolist())
         except KeyError:
             pass
     fig = None
@@ -181,7 +181,10 @@ def plot_read_length_dist(read_lengths,
     sns.despine(trim=True, offset=20)
     if saveto:
         fig.tight_layout()
-        fig.savefig(saveto, dpi=DPI)
+        if '.dat' in saveto:
+            fig.savefig(saveto, format='png', dpi=DPI)
+        else:
+            fig.savefig(saveto, dpi=DPI)
     if ascii:
         import gnuplotlib as gp
         sys.stdout.write(os.linesep)

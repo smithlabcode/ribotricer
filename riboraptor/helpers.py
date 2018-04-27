@@ -470,7 +470,7 @@ def load_pickle(filepath):
     if sys.version_info > (3, 0):
         pickled = pickle.load(open(filepath, 'rb'), encoding='latin1')
     else:
-        pickled = pickle.load(open(filepath, 'rb'), encoding='utf-8')
+        pickled = pickle.load(open(filepath, 'rb'))
     return pickled
 
 

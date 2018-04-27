@@ -127,9 +127,9 @@ def periodicity_cmd(counts):
     context_settings=CONTEXT_SETTINGS,
     help='Calculate read length distribution')
 @click.option('--bam', help='Path to BAM file', required=True)
-@click.option('--prefix', help='Prefix to write pickled contents')
-def rld_cmd(bam, prefix):
-    counts = read_length_distribution(bam, prefix)
+@click.option('--saveto', help='Location to write tsv output')
+def rld_cmd(bam, saveto):
+    counts = read_length_distribution(bam, saveto)
     for l, count in six.iteritems(dict(counts)):
         sys.stdout.write('{}\t{}'.format(l, count))
         sys.stdout.write(os.linesep)
@@ -236,7 +236,7 @@ def plot_read_counts_cmd(counts, title, marker, color, millify_labels,
     context_settings=CONTEXT_SETTINGS,
     help='Plot read length distribution')
 @click.option('--read-lengths', help='Path to read length pickle file')
-@click.option('--title', help='Plot Title', required=True)
+@click.option('--title', help='Plot Title')
 @click.option(
     '--millify_labels',
     help='Convert labels on Y-axis to concise form?',
