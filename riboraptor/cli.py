@@ -78,7 +78,10 @@ def export_gene_coverages_cmd(bigwig, region_bed, saveto, offset_5p, offset_3p,
     context_settings=CONTEXT_SETTINGS,
     help='Export metagene coverage for given region')
 @click.option('--bigwig', '-bw', help='Path to bigwig', required=True)
-@click.option('--region_bed', help='Path to bed file', required=True)
+@click.option(
+    '--region_bed',
+    help='Path to bed file or a genome name (hg38_utr5, hg38_cds, hg38_utr3)',
+    required=True)
 @click.option('--saveto', help='Path to write metagene coverage tsv file')
 @click.option(
     '--offset_5p',

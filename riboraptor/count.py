@@ -1112,6 +1112,7 @@ def export_metagene_coverage(bigwig,
              Path to bigwig file
     region_bed_f : str
                    Path to region bed file (CDS/3'UTR/5'UTR)
+                   or a genome name (hg38_utr5, hg38_cds, hg38_utr3)
     saveto : str
              Path to write output tsv file
     offset_5p : int
@@ -1127,7 +1128,9 @@ def export_metagene_coverage(bigwig,
                        Metagene profile
     """
     bw = WigReader(bigwig)
-
+    if region_bed_f.lower().split('_')[0] in __GENOMES_DB__:
+        genome, region_type = region_bed_f.lower().split('_')
+        region_bed_f = _get_bed(region_type, genome)
     region_bed = pybedtools.BedTool(region_bed_f).sort().to_dataframe()
     region_bed['chrom'] = region_bed['chrom'].astype(str)
     region_bed['name'] = region_bed['name'].astype(str)
