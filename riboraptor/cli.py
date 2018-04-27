@@ -72,7 +72,7 @@ def export_gene_coverages_cmd(bigwig, region_bed, saveto, offset_5p, offset_3p,
                           ignore_tx_version)
 
 
-###################### metagene-coverages #################################
+###################### export-metagene-coverages ##############################
 @cli.command(
     'export-metagene-coverage',
     context_settings=CONTEXT_SETTINGS,
@@ -114,7 +114,7 @@ def export_metagene_coverage_cmd(bigwig, region_bed, max_positions, saveto,
         sys.stdout.write(os.linesep)
 
 
-#################### periodicity #####################################
+#################### periodicity #############################################
 @cli.command(
     'periodicity',
     context_settings=CONTEXT_SETTINGS,
@@ -133,8 +133,9 @@ def periodicity_cmd(counts):
     sys.stdout.write(os.linesep)
 
 
+#################### export-read-length ######################################
 @cli.command(
-    'read-length-dist',
+    'export-read-length',
     context_settings=CONTEXT_SETTINGS,
     help='Calculate read length distribution')
 @click.option('--bam', help='Path to BAM file', required=True)
@@ -146,6 +147,7 @@ def rld_cmd(bam, saveto):
         sys.stdout.write(os.linesep)
 
 
+#################### export-bed-fasta ######################################
 @cli.command(
     'export-bed-fasta',
     context_settings=CONTEXT_SETTINGS,
@@ -241,7 +243,7 @@ def plot_read_counts_cmd(counts, title, marker, color, millify_labels,
             input_is_stream=True)
 
 
-######################## plot-read-dist ####################################
+######################## plot-read-length ####################################
 @cli.command(
     'plot-read-length',
     context_settings=CONTEXT_SETTINGS,

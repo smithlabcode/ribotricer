@@ -32,10 +32,10 @@ Current capabilities of ``riboraptor`` include:
         export-bed-fasta             Export gene level fasta from specified bed
         export-gene-coverages        Export gene level coverage for all genes for given region
         export-metagene-coverage     Export metagene coverage for given region
+        export-read-length           Calculate read length distribution
         periodicity                  Calculate periodicity
         plot-metagene                Plot metagene profile
         plot-read-length             Plot read length distribution
-        read-length-dist             Calculate read length distribution
         uniq-bam                     Create a new bam with unique mapping reads only
         uniq-mapping-count           Count number of unique mapping reads
 
