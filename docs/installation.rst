@@ -4,6 +4,38 @@
 Installation
 ============
 
+Setting up conda
+----------------
+
+#. Install `conda`, the best way to install it is with the Miniconda_ package.The Python 3 version is recommended.
+
+#. Set up channels, **It is important to add them in this order**.
+
+.. code-block:: bash
+
+   conda config --add channels r
+   conda config --add channels defaults
+   conda config --add channels conda-forge
+   conda config --add channels bioconda
+
+Installing dependencies
+-----------------------
+
+.. code-block:: bash
+
+   conda create --name riboraptor python=3.6 matplotlib numpy pandas pybedtools \
+   pyBigWig pyfaidx pysam scipy seaborn statsmodels six click click-help-colors htseq biopython \
+   snakemake sra-tools star fastqc trim-galore ucsc-bedgraphtobigwig ucsc-bedsort
+
+Installing riboraptor
+---------------------
+
+.. code-block:: bash
+
+   source activate riboraptor
+   git clone git@github.com:saketkc/riboraptor.git
+   cd riboraptor
+   python setup.py install --single-version-externally-managed --record=/tmp/record.txt
 
 Stable release
 --------------
