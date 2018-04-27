@@ -34,3 +34,8 @@
   - [ ] plot-read-counts (Rename to plot-metagene)
   - [ ] export-bed-fasta 
   - [ ] create-bed-region
+ 
+## comments
+- [ ] remove /tmp
+- [ ] make snakemake work locally
+- [ ] make better doc for usage mode
