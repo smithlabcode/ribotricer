@@ -1151,7 +1151,6 @@ def export_metagene_coverage(bigwig,
     total_genes = len(cds_grouped.groups)
     progress_index = 0
     for gene_name, gene_group in cds_grouped:
-        print(progress_index)
         if ignore_tx_version:
             gene_name = re.sub(r'\.[0-9]+', '', gene_name)
         gene_cov, _, gene_offset_5p, gene_offset_3p = gene_coverage(
@@ -1170,8 +1169,6 @@ def export_metagene_coverage(bigwig,
             gene_position_counter += Counter(gene_cov.index.tolist())
         progress_index += 1
         percent_progress = progress_index / total_genes * 100
-        if progress_index >= 500:
-            break
         if percent_progress % 10 == 0:
             print('Progress: {}%'.format(percent_progress))
 
