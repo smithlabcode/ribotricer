@@ -66,6 +66,7 @@ def get_periodicity(values, input_is_stream=False):
     ----------
     values : array like
              List of values
+
     Returns
     -------
     periodicity : float
