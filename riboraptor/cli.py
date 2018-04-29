@@ -99,7 +99,7 @@ def export_gene_coverages_cmd(bigwig, region_bed, saveto, offset_5p, offset_3p,
     '--region_bed',
     help='Path to bed file or a genome name (hg38_utr5, hg38_cds, hg38_utr3)',
     required=True)
-@click.option('--saveto', help='Path to write metagene coverage tsv file')
+@click.option('--saveto', help='Path to write metagene coverage tsv file', required=True)
 @click.option(
     '--max_positions', help='maximum positions to count', default=500)
 @click.option(
