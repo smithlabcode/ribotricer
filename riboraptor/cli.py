@@ -53,9 +53,9 @@ def cli():
 )
 @click.option('--bam', help='Path to bigwig file', required=True)
 @click.option('--bed', help='Path to feature file', required=True)
-@click.option('--prefix', help='Prefix to write pickled contents')
-def count_reads_bed_cmd(bam, bed, prefix):
-    counts, lengths, normalized_counts = count_reads_bed(bam, bed, prefix)
+@click.option('--saveto', help='Path to save gene counts tsv', required=True)
+def count_reads_bed_cmd(bam, bed, saveto):
+    counts, lengths, normalized_counts = count_reads_bed(bam, bed, saveto)
 
 
 ###################### export-gene-coverages #################################

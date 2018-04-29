@@ -1233,7 +1233,7 @@ def collapse_gene_coverage_to_metagene(gene_coverages,
         return metagene
 
 
-def count_reads_bed(bam, bed, prefix=None):
+def count_reads_bed(bam, bed, saveto):
     """Count number of reads following in each region.
 
     Parameters
@@ -1275,13 +1275,12 @@ def count_reads_bed(bam, bed, prefix=None):
     counts_by_region = pd.Series(counts_by_region)
     length_by_region = pd.Series(length_by_region)
     counts_normalized_by_length = counts_by_region.div(length_by_region)
-    if prefix:
-        mkdir_p(os.path.dirname(prefix))
+    if saveto:
+        mkdir_p(os.path.dirname(saveto))
         df = pd.concat(
             [counts_by_region, length_by_region, counts_normalized_by_length],
             axis=1)
         df = df.reset_index()
         df.columns = ['gene', 'counts', 'length', 'normalized_counts']
-        df.to_csv(
-            '{}.tsv'.format(prefix), index=False, header=True, sep=str('\t'))
+        df.to_csv(saveto, index=False, header=True, sep=str('\t'))
     return counts_by_region, length_by_region, counts_normalized_by_length
