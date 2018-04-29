@@ -1261,7 +1261,7 @@ def count_reads_bed(bam, region_bed_f, saveto):
         genome, region_type = region_bed_f.lower().split('_')
         region_bed_f = _get_bed(region_type, genome)
 
-    bed = pybedtools.BedTool(region_bed_f).sort().to_dataframe()
+    bed = pybedtools.BedTool(region_bed_f).sort()
     for x, region in enumerate(bed):
         counts = 0
         window = HTSeq.GenomicInterval(
