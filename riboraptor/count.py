@@ -98,57 +98,6 @@ def _is_read_uniq_mapping(read):
     return False
 
 
-def _bed_to_genomic_interval(bed):
-    """ Converts bed file to genomic interval (htseq format) file
-
-    Parameters
-    ----------
-    bed : str
-          Path to bed file
-
-    Returns
-    -------
-    interval : HTSeq.GenomicPosition
-    """
-
-    for interval in bed:
-        yield HTSeq.GenomicPosition(
-            str(interval.chrom), interval.start, str(interval.strand))
-
-
-def get_closest(bam, regions, half_window_width=0):
-    """For each read in bam find nearest region in bed.
-
-    Parameters
-    ----------
-    bam : str
-          Path to bam file
-    regions : HTseq.GenomicPosition
-              Genomic regions to get distance from
-    half_window_width : int
-                        Distance around region to record
-
-    Returns
-    -------
-    profile : dataframe
-    """
-    profile = {}
-    sorted_bam = HTSeq.BAM_Reader(bam)
-    for x, tss in enumerate(_bed_to_genomic_interval(regions)):
-        window = HTSeq.GenomicInterval(
-            str(tss.chrom), tss.pos - half_window_width,
-            tss.pos + half_window_width, str(tss.strand))
-        for almnt in sorted_bam[window]:
-            if almnt.iv.strand == '+':
-                read_loc = almnt.iv.start - tss.pos
-            else:
-                read_loc = tss.pos - almnt.iv.end
-            length = sum(
-                cigar.size for cigar in almnt.cigar if cigar.type == 'M')
-            profile[almnt.read.name] = {'dist': read_loc, 'length': length}
-    return pd.DataFrame(profile)
-
-
 def gene_coverage(gene_name,
                   bed,
                   bw,
@@ -879,57 +828,6 @@ def export_gene_coverages(bigwig,
                     mean, median, stdev, count))
 
 
-def export_single_gene_coverage(bigwig,
-                                region_bed_f,
-                                gene_name,
-                                prefix,
-                                offset_5p=60,
-                                offset_3p=0,
-                                ignore_tx_version=True):
-    """Export single gene coverage to tsv
-
-    Parameters
-    ----------
-    bigwig : str
-             Path to bigwig file
-    region_bed_f : str
-                   Path to region bed file (CDS/3'UTR/5'UTR)
-                   with bed name column as gene
-    prefix : str
-             Prefix to write output file
-    offset : int
-             Number of bases to count upstream
-    ignore_tx_version : bool
-                        Should versions be ignored for gene names
-
-    Returns
-    -------
-    gene_profile: tsv with first column as index, next coumn as value
-    """
-    bw = WigReader(bigwig)
-    if region_bed_f.lower().split('_')[0] in __GENOMES_DB__:
-
-        genome, region_type = region_bed_f.lower().split('_')
-        region_bed_f = _get_bed(region_type, genome)
-
-    region_bed = pybedtools.BedTool(region_bed_f).sort().to_dataframe()
-    region_bed['chrom'] = region_bed['chrom'].astype(str)
-    region_bed['name'] = region_bed['name'].astype(str)
-    # Group intervals by gene name
-    cds_grouped = region_bed.groupby('name')
-    if ignore_tx_version:
-        gene_name = re.sub(r'\.[0-9]+', '', gene_name)
-    if gene_name not in region_bed['name'].tolist():
-        print(region_bed['name'])
-        raise RuntimeError('{} not in bed'.format(gene_name))
-
-    gene_group = cds_grouped.get_group(gene_name)
-    gene_cov, _, _, gene_offset_5p, gene_offset_3p = gene_coverage(
-        gene_name, region_bed, bw, gene_group, offset_5p, offset_3p)
-    gene_cov.to_csv(
-        path='{}_coverage.tsv'.format(prefix), sep=str('\t'), index=True)
-
-
 def get_fasta_sequence(fasta, intervals):
     """Extract fasta sequence given a list of intervals.
 
@@ -1128,6 +1026,7 @@ def export_metagene_coverage(bigwig,
     ignore_tx_version : bool
                  Should versions be ignored for gene names
 
+
     Returns
     -------
     metagene_profile : series
@@ -1194,215 +1093,6 @@ def export_metagene_coverage(bigwig,
     return metagene_normalized_coverage
 
 
-def metagene_coverage(bigwig,
-                      region_bed_f,
-                      max_positions=None,
-                      htseq_f=None,
-                      prefix=None,
-                      offset_5p=60,
-                      offset_3p=0,
-                      top_n_meta=-1,
-                      top_n_gene=10,
-                      ignore_tx_version=True,
-                      calculate_welch=False):
-    """Calculate metagene coverage.
-
-    Parameters
-    ----------
-    bigwig : str
-             Path to bigwig file
-    region_bed_f : str
-                   Path to region bed file (CDS/3'UTR/5'UTR)
-                   with bed name column as gene
-                   or a genome name (hg38_cds, hg38_utr3, hg38_utr5)
-    max_positions: int
-                   Number of positions to consider while
-                   calculating the normalized coverage
-                   -1 for the entore length of gene
-                   Higher values lead to slower implementation
-    htseq_f : str
-              Path to htseq-counts file
-    prefix : str
-             Prefix to write output files
-    offset_5p : int
-                Number of bases to offset upstream(5')
-    offset_3p : int
-                Number of bases to offset downstream(3')
-    top_n_meta : int
-                 Total number of top expressed genes
-                 to use for calculating metagene profile
-    top_n_gene : int
-                 Number of gene profiles to output
-    ignore_tx_version : bool
-                 Should versions be ignored for gene names
-
-    Returns
-    -------
-    metagene_profile : series
-                       Metagene profile
-    """
-    welch_var = None
-    bw = WigReader(bigwig)
-    if region_bed_f.lower().split('_')[0] in __GENOMES_DB__:
-
-        genome, region_type = region_bed_f.lower().split('_')
-        region_bed_f = _get_bed(region_type, genome)
-
-    region_bed = pybedtools.BedTool(region_bed_f).sort().to_dataframe()
-    region_bed['chrom'] = region_bed['chrom'].astype(str)
-    region_bed['name'] = region_bed['name'].astype(str)
-    # Group intervals by gene name
-    cds_grouped = region_bed.groupby('name')
-
-    # Get region sizes
-    if htseq_f:
-        ranked_genes = htseq_to_tpm(htseq_f, region_bed_f).index.tolist()
-        # region_sizes = get_region_sizes(region_bed_f)
-        # Only consider genes which are in cds_grouped.keys
-        ranked_genes = [
-            gene for gene in ranked_genes
-            if gene in list(cds_grouped.groups.keys())
-        ]
-    else:
-        # Use all genes when no htseq present
-        ranked_genes = list(cds_grouped.groups.keys())
-    genewise_offsets = {}
-    gene_position_counter = Counter()
-    genewise_normalized_coverage = pd.Series()
-    genewise_raw_coverage = pd.Series()
-
-    if top_n_meta == -1:
-        # Use all
-        top_meta_genes = ranked_genes
-    else:
-        # Not useful if htseq-counts missing
-        top_meta_genes = ranked_genes[:top_n_meta]
-
-    topgene_normalized_coverage = pd.Series()
-    topgene_position_counter = Counter()
-
-    if top_n_gene == -1:
-        # Use all genes! Not recommended
-        top_genes = ranked_genes
-    elif top_n_gene == 0:
-        top_genes = []
-    else:
-        # Top  genes individual plot
-        top_genes = ranked_genes[:top_n_gene]
-    index = 0
-    for gene_name, gene_group in cds_grouped:
-        if ignore_tx_version:
-            gene_name = re.sub(r'\.[0-9]+', '', gene_name)
-        gene_cov, _, gene_offset_5p, gene_offset_3p = gene_coverage(
-            gene_name, region_bed_f, bw, gene_group, offset_5p, offset_3p)
-        if max_positions is not None and len(gene_cov.index) > 0:
-            min_index = min(gene_cov.index.tolist())
-            gene_length = max(gene_cov.index.tolist())
-            # gene_length = len(gene_cov.inex) + min_index
-
-            # Keep only important positions
-            gene_cov = gene_cov[np.arange(min_index,
-                                          min(gene_length, max_positions))]
-
-        # Generate individual plot for top genes
-        if gene_name in top_genes and prefix:
-            mkdir_p(os.path.dirname(prefix))
-            pickle.dump(gene_cov,
-                        open('{}_{}.pickle'.format(prefix, gene_name), 'wb'),
-                        __PICKLE_PROTOCOL__)
-
-        # Generate top gene version metagene plot
-        norm_cov = gene_cov / gene_cov.mean()
-        if index == 0:
-            previous_gene_coverage = norm_cov
-            previous_variance = None
-            old_n_counter = Counter(gene_cov.index.tolist())
-            welch_carried_forward = None
-        if index == 1:
-            old_n_counter += Counter(gene_cov.index.tolist())
-
-        if index >= 1:
-            new_gene_coverage = norm_cov
-        if gene_name in top_meta_genes:
-            topgene_normalized_coverage = topgene_normalized_coverage.add(
-                norm_cov, fill_value=0)
-            topgene_position_counter += Counter(gene_cov.index.tolist())
-
-        genewise_normalized_coverage = genewise_normalized_coverage.add(
-            norm_cov, fill_value=0)
-        if index > 1 and len(new_gene_coverage) > 1 and len(
-                previous_gene_coverage) > 1 and calculate_welch:
-            welch_mean, welch_var, welch_n_obs, welch_carried_forward = summary_stats_two_arrays_welch(
-                old_mean_array=previous_gene_coverage,
-                new_array=new_gene_coverage,
-                old_var_array=previous_variance,
-                old_n_counter=old_n_counter,
-                carried_forward_observations=welch_carried_forward)
-            previous_gene_coverage = welch_mean.copy()
-            previous_variance = welch_var.copy()
-            old_n_counter = welch_n_obs.copy()
-
-        genewise_raw_coverage = genewise_raw_coverage.add(
-            gene_cov, fill_value=0)
-        gene_position_counter += Counter(gene_cov.index.tolist())
-        """
-        if index > 1:
-            if not (pd.Series(welch_n_obs) == pd.Series(gene_position_counter)
-                    ).all():
-                print('welch_n_ob n obs :{}'.format(pd.Series(welch_n_obs)))
-                print('gene pos obs :{}'.format(
-                    pd.Series(gene_position_counter)))
-        """
-        genewise_offsets[gene_name] = gene_offset_5p
-        index += 1
-
-    if len(gene_position_counter) != len(genewise_normalized_coverage):
-        raise RuntimeError('Gene normalizaed counter mismatch')
-        sys.exit(1)
-
-    gene_position_counter = pd.Series(gene_position_counter)
-    metagene_normalized_coverage = genewise_normalized_coverage.div(
-        gene_position_counter)
-    metagene_raw_coverage = genewise_raw_coverage
-
-    if len(topgene_position_counter) != len(topgene_normalized_coverage):
-        raise RuntimeError('Top gene normalizaed counter mismatch')
-        sys.exit(1)
-
-    topgene_position_counter = pd.Series(topgene_position_counter)
-    topgene_normalized_coverage = topgene_normalized_coverage.div(
-        topgene_position_counter)
-
-    if prefix:
-        mkdir_p(os.path.dirname(prefix))
-        pickle.dump(ranked_genes,
-                    open('{}_ranked_genes.pickle'.format(prefix), 'wb'),
-                    __PICKLE_PROTOCOL__)
-        pickle.dump(gene_position_counter,
-                    open('{}_gene_position_counter.pickle'.format(prefix),
-                         'wb'), __PICKLE_PROTOCOL__)
-        pickle.dump(metagene_normalized_coverage,
-                    open('{}_metagene_normalized.pickle'.format(prefix), 'wb'),
-                    __PICKLE_PROTOCOL__)
-        pickle.dump(metagene_raw_coverage,
-                    open('{}_metagene_raw.pickle'.format(prefix), 'wb'),
-                    __PICKLE_PROTOCOL__)
-        if welch_var is not None:
-            pickle.dump(welch_var,
-                        open('{}_metagene_var.pickle'.format(prefix), 'wb'),
-                        __PICKLE_PROTOCOL__)
-        pickle.dump(genewise_offsets,
-                    open('{}_genewise_offsets.pickle'.format(prefix), 'wb'),
-                    __PICKLE_PROTOCOL__)
-        pickle.dump(topgene_position_counter,
-                    open('{}_topgene_position_counter.pickle'.format(prefix),
-                         'wb'), __PICKLE_PROTOCOL__)
-        pickle.dump(topgene_normalized_coverage,
-                    open('{}_topgene_normalized.pickle'.format(prefix), 'wb'),
-                    __PICKLE_PROTOCOL__)
-    return metagene_normalized_coverage
-
-
 def read_htseq(htseq_f):
     """Read HTSeq file.
 
@@ -1454,28 +1144,6 @@ def read_length_distribution(bam, saveto):
         with open(saveto, 'w') as output:
             output.write(to_write)
     return read_counts
-
-
-def summarize_counters(samplewise_dict):
-    """Summarize gene counts for a collection of samples.
-
-    Parameters
-    ----------
-    samplewise_dict : dict
-                      A dictionary with key as sample name and value
-                      as another dictionary of counts for each gene
-
-    Returns
-    -------
-    totals : dict
-             A dictionary with key as sample name and value as total gene count
-
-    """
-    totals = {}
-    for key, sample_dict in six.iteritems(samplewise_dict):
-        totals[key] = np.nansum(
-            [np.nansum(d) for d in list(sample_dict.values)])
-    return totals
 
 
 def unique_mapping_reads_count(bam):
@@ -1565,7 +1233,7 @@ def collapse_gene_coverage_to_metagene(gene_coverages,
         return metagene
 
 
-def count_reads_per_gene_htseq(bam, bed, prefix=None):
+def count_reads_bed(bam, bed, prefix=None):
     """Count number of reads following in each region.
 
     Parameters
@@ -1612,16 +1280,8 @@ def count_reads_per_gene_htseq(bam, bed, prefix=None):
         df = pd.concat(
             [counts_by_region, length_by_region, counts_normalized_by_length],
             axis=1)
-        df.columns = ['counts', 'length', 'normalized_counts']
+        df = df.reset_index()
+        df.columns = ['gene', 'counts', 'length', 'normalized_counts']
         df.to_csv(
-            '{}.tsv'.format(prefix), index=True, header=True, sep=str('\t'))
-        pickle.dump(counts_by_region,
-                    open('{}_counts.pickle'.format(prefix), 'wb'),
-                    __PICKLE_PROTOCOL__)
-        pickle.dump(length_by_region,
-                    open('{}_lengths.pickle'.format(prefix), 'wb'),
-                    __PICKLE_PROTOCOL__)
-        pickle.dump(counts_normalized_by_length,
-                    open('{}_counts_lengths_normalized.pickle'.format(prefix),
-                         'wb'), __PICKLE_PROTOCOL__)
+            '{}.tsv'.format(prefix), index=False, header=True, sep=str('\t'))
     return counts_by_region, length_by_region, counts_normalized_by_length

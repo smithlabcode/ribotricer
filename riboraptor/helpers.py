@@ -690,3 +690,25 @@ def collapse_bed_intervals(intervals,
         # but the start and end were both transformed to 0-based since we used range before
         fasta_onebased_intervals.append((chrom, start, stop, strand))
     return query_intervals, fasta_onebased_intervals, gene_offset_5p, gene_offset_3p
+
+
+def summarize_counters(samplewise_dict):
+    """Summarize gene counts for a collection of samples.
+
+    Parameters
+    ----------
+    samplewise_dict : dict
+                      A dictionary with key as sample name and value
+                      as another dictionary of counts for each gene
+
+    Returns
+    -------
+    totals : dict
+             A dictionary with key as sample name and value as total gene count
+
+    """
+    totals = {}
+    for key, sample_dict in six.iteritems(samplewise_dict):
+        totals[key] = np.nansum(
+            [np.nansum(d) for d in list(sample_dict.values)])
+    return totals

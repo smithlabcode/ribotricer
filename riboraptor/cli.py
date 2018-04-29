@@ -14,6 +14,7 @@ from .coherence import naive_periodicity
 
 from .count import bam_to_bedgraph
 from .count import bedgraph_to_bigwig
+from .count import count_reads_bed
 from .count import unique_mapping_reads_count
 from .count import extract_uniq_mapping_reads
 from .count import export_gene_coverages
@@ -44,15 +45,29 @@ def cli():
 ##############################################################################
 
 
+@cli.command(
+    'count-reads-bed',
+    context_settings=CONTEXT_SETTINGS,
+    help=
+    'Count reads in given feature bed file\n Assorted by \'name\' column in the bed'
+)
+@click.option('--bam', help='Path to bigwig file', required=True)
+@click.option('--bed', help='Path to feature file', required=True)
+@click.option('--prefix', help='Prefix to write pickled contents')
+def count_reads_bed_cmd(bam, bed, prefix):
+    counts, lengths, normalized_counts = count_reads_bed(bam, bed, prefix)
+
+
 ###################### export-gene-coverages #################################
 @cli.command(
     'export-gene-coverages',
     context_settings=CONTEXT_SETTINGS,
     help='Export gene level coverage for all genes for given region')
 @click.option('--bigwig', '-bw', help='Path to bigwig', required=True)
-@click.option('--region_bed', 
-              help='Path to bed file or a genome name (hg38_utr5, hg38_cds, hg38_utr3)', 
-              required=True)
+@click.option(
+    '--region_bed',
+    help='Path to bed file or a genome name (hg38_utr5, hg38_cds, hg38_utr3)',
+    required=True)
 @click.option('--saveto', help='Path to write gene coverages tsv file')
 @click.option(
     '--offset_5p',
@@ -154,9 +169,10 @@ def rld_cmd(bam, saveto):
     'export-bed-fasta',
     context_settings=CONTEXT_SETTINGS,
     help='Export gene level fasta from specified bed regions')
-@click.option('--region_bed', 
-              help='Path to bed file or a genome name (hg38_utr5, hg38_cds, hg38_utr3)',
-              required=True)
+@click.option(
+    '--region_bed',
+    help='Path to bed file or a genome name (hg38_utr5, hg38_cds, hg38_utr3)',
+    required=True)
 @click.option('--fasta', help='Path to fasta file', required=True)
 @click.option(
     '--prefix',

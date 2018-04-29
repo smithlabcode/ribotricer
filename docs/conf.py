@@ -40,18 +40,15 @@ import riboraptor
 
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
-extensions = ['matplotlib.sphinxext.only_directives',
-              'matplotlib.sphinxext.plot_directive',
-              'IPython.sphinxext.ipython_directive',
-              'IPython.sphinxext.ipython_console_highlighting',
-              'sphinx.ext.mathjax',
-              'sphinx.ext.autodoc',
-              'sphinx.ext.autosummary',
-              'sphinx.ext.doctest',
-              'sphinx.ext.viewcode',
-              'sphinx.ext.inheritance_diagram',
-              'numpydoc',
-              'sphinxcontrib.fulltoc']
+extensions = [
+    'matplotlib.sphinxext.only_directives',
+    'matplotlib.sphinxext.plot_directive',
+    'IPython.sphinxext.ipython_directive',
+    'IPython.sphinxext.ipython_console_highlighting', 'sphinx.ext.mathjax',
+    'sphinx.ext.autodoc', 'sphinx.ext.autosummary', 'sphinx.ext.doctest',
+    'sphinx.ext.viewcode', 'sphinx.ext.inheritance_diagram', 'numpydoc',
+    'sphinxcontrib.fulltoc'
+]
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -116,7 +113,6 @@ pygments_style = 'sphinx'
 # If true, keep warnings as "system message" paragraphs in the built
 # documents.
 #keep_warnings = False
-
 
 # -- Options for HTML output -------------------------------------------
 
@@ -201,7 +197,6 @@ html_theme = 'alabaster'
 # Output file base name for HTML help builder.
 htmlhelp_basename = 'riboraptordoc'
 
-
 # -- Options for LaTeX output ------------------------------------------
 
 latex_elements = {
@@ -219,8 +214,7 @@ latex_elements = {
 # (source start file, target name, title, author, documentclass
 # [howto/manual]).
 latex_documents = [
-    ('index', 'riboraptor.tex',
-     u'riboraptor Documentation',
+    ('index', 'riboraptor.tex', u'riboraptor Documentation',
      u'Saket Choudhary', 'manual'),
 ]
 
@@ -244,20 +238,15 @@ latex_documents = [
 # If false, no module index is generated.
 #latex_domain_indices = True
 
-
 # -- Options for manual page output ------------------------------------
 
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
-man_pages = [
-    ('index', 'riboraptor',
-     u'riboraptor Documentation',
-     [u'Saket Choudhary'], 1)
-]
+man_pages = [('index', 'riboraptor', u'riboraptor Documentation',
+              [u'Saket Choudhary'], 1)]
 
 # If true, show URL addresses after external links.
 #man_show_urls = False
-
 
 # -- Options for Texinfo output ----------------------------------------
 
@@ -265,12 +254,8 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-    ('index', 'riboraptor',
-     u'riboraptor Documentation',
-     u'Saket Choudhary',
-     'riboraptor',
-     'One line description of project.',
-     'Miscellaneous'),
+    ('index', 'riboraptor', u'riboraptor Documentation', u'Saket Choudhary',
+     'riboraptor', 'One line description of project.', 'Miscellaneous'),
 ]
 
 # Documents to append as an appendix to all manuals.
