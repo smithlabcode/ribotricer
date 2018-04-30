@@ -173,9 +173,8 @@ def export_all_fasta(region_bed_f,
                       'w') as fh_fasta:
                 fh_fasta.write('>{}_5poffset-{}_3poffset-{}\n{}'.format(
                     gene_name, gene_offset_5p, gene_offset_3p, seq))
-            outfile.write('{}\t{}\t{}\t{}\n'.format(gene_name,
-                                                    int(gene_offset_5p),
-                                                    int(gene_offset_3p), seq))
+            outfile.write('{}\t{}\t{}\t{}\n'.format(
+                gene_name, int(gene_offset_5p), int(gene_offset_3p), seq))
 
 
 def complete_gene_fasta(utr5_bed_f, cds_bed_f, utr3_bed_f, fasta_f, prefix):

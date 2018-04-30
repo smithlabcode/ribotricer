@@ -264,15 +264,14 @@ def plot_framewise_counts(counts,
     setup_axis(ax, **kwargs)
     ax.set_ylabel('Number of reads')
     ax.set_xlim(
-        min(counts.index) - 0.6,
-        round_to_nearest(max(counts.index), 10) + 0.6)
+        min(counts.index) - 0.6, round_to_nearest(max(counts.index), 10) + 0.6)
     barlist = ax.bar(counts.index, counts.values)
     barplot_colors = list(
         islice(cycle(__FRAME_COLORS__), None, len(counts.index)))
     for index, cbar in enumerate(barlist):
         cbar.set_color(barplot_colors[index])
-    ax.legend((barlist[0], barlist[1], barlist[2]),
-              ('Frame 1', 'Frame 2', 'Frame 3'))
+    ax.legend((barlist[0], barlist[1], barlist[2]), ('Frame 1', 'Frame 2',
+                                                     'Frame 3'))
     if title:
         ax.set_title(title)
     sns.despine(trim=True, offset=20)
@@ -299,7 +298,7 @@ def plot_framewise_counts(counts,
 
 def plot_read_counts(read_counts,
                      ax=None,
-                     marker=False,
+                     marker=None,
                      color='royalblue',
                      title=None,
                      label=None,
@@ -397,10 +396,10 @@ def plot_read_counts(read_counts,
 
     if millify_labels:
         ax.set_yticklabels(list([millify(x) for x in ax.get_yticks()]))
-    ax.set_xlim(
-        round_to_nearest(min(counts.index) - 15, 10) - 1,
-        round_to_nearest(max(counts.index), 10) + 1)
     setup_axis(ax, **kwargs)
+    ax.set_xlim(
+        round_to_nearest(min(counts.index), 10) - 1,
+        round_to_nearest(max(counts.index), 10) + 1)
     if ylabel:
         ax.set_ylabel(ylabel)
     if title:

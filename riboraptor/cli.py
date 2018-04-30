@@ -99,7 +99,8 @@ def export_gene_coverages_cmd(bigwig, region_bed, saveto, offset_5p, offset_3p,
     '--region_bed',
     help='Path to bed file or a genome name (hg38_utr5, hg38_cds, hg38_utr3)',
     required=True)
-@click.option('--saveto', help='Path to write metagene coverage tsv file', required=True)
+@click.option(
+    '--saveto', help='Path to write metagene coverage tsv file', required=True)
 @click.option(
     '--max_positions', help='maximum positions to count', default=500)
 @click.option(
@@ -217,7 +218,7 @@ def export_all_fasta_cmd(region_bed, chrom_sizes, fasta, prefix, offset_5p,
     '--marker',
     help='Marker (o/x) for plots',
     type=click.Choice(['o', 'x']),
-    default='o')
+    default=None)
 @click.option('--color', help='Color', default='royalblue')
 @click.option(
     '--millify_labels',
@@ -233,9 +234,14 @@ def export_all_fasta_cmd(region_bed, chrom_sizes, fasta, prefix, offset_5p,
     show_default=True)
 @click.option(
     '--ylabel', help='Y axix label', default='Normalized RPF density')
-@click.option('--ascii', help='Do not plot ascii', is_flag=True)
+@click.option(
+    '--yrotation', default=0, help='Rotate y axis labels by', type=int)
+@click.option(
+    '--xrotation', default=0, help='Rotate x axis labels by', type=int)
+@click.option('--ascii', help='Plot ascii', is_flag=True)
 def plot_read_counts_cmd(counts, title, marker, color, millify_labels,
-                         identify_peak, positions, saveto, ylabel, ascii):
+                         identify_peak, positions, saveto, ylabel, xrotation,
+                         yrotation, ascii):
     if counts:
         plot_read_counts(
             counts,
@@ -247,7 +253,9 @@ def plot_read_counts_cmd(counts, title, marker, color, millify_labels,
             identify_peak=identify_peak,
             ylabel=ylabel,
             saveto=saveto,
-            ascii=ascii)
+            ascii=ascii,
+            xrotation=xrotation,
+            yrotation=yrotation)
     else:
         plot_read_counts(
             sys.stdin.readlines(),
@@ -260,7 +268,9 @@ def plot_read_counts_cmd(counts, title, marker, color, millify_labels,
             saveto=saveto,
             ylabel=ylabel,
             ascii=ascii,
-            input_is_stream=True)
+            input_is_stream=True,
+            xrotation=xrotation,
+            yrotation=yrotation)
 
 
 ######################## plot-read-length ####################################
