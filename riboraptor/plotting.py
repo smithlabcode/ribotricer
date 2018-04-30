@@ -342,7 +342,6 @@ def plot_read_counts(read_counts,
     elif isinstance(read_counts, six.string_types):
         try:
             # Try opening as a pickle first
-            print(read_counts)
             counts = load_pickle(read_counts)
         except IndexError:
             counts = pd.read_table(read_counts)

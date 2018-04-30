@@ -225,7 +225,7 @@ def export_all_fasta_cmd(region_bed, chrom_sizes, fasta, prefix, offset_5p,
     is_flag=True)
 @click.option('--identify_peak', help='Identify Peak?', is_flag=True)
 @click.option(
-    '--positions', help='Range of positions to plot', default='-60:100')
+    '--positions', help='Range of positions to plot', default='-60:500')
 @click.option(
     '--saveto',
     help='Path to file (png/pdf) to save to',
