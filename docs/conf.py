@@ -16,16 +16,24 @@
 import sys
 import os
 import sys
+import mock
 from mock import Mock as MagicMock
+
 
 class Mock(MagicMock):
     @classmethod
     def __getattr__(cls, name):
         return MagicMock()
 
-MOCK_MODULES = ['pyBigWig', 'numpy', 'pandas', 'scipy', 'matplotlib', 'scipy.stats',
-                'biopython', 'statsmodels', 'HTSeq', 'pyfaidx', 'pysam', 'seaborn']
-sys.modules.update((mod_name, Mock()) for mod_name in MOCK_MODULES)
+
+MOCK_MODULES = [
+    'numpy', 'scipy', 'scipy.stats.mstats', 'scipy.stats', 'scipy.spatial',
+    'scipy.spatial.distance', 'HTSeq', 'pandas', 'pyBigWig', 'matplotlib',
+    'seaborn', 'matplotlib.pyplot', 'matplotlib.ticker', 'biopython', 'Bio',
+    'Bio.Seq', 'Bio.Alphabet', 'statsmodels', 'statsmodels.api', 'pyfaidx',
+    'pysam'
+]
+sys.modules.update((mod_name, mock.Mock()) for mod_name in MOCK_MODULES)
 
 # If extensions (or modules to document with autodoc) are in another
 # directory, add these directories to sys.path here. If the directory is
@@ -52,8 +60,6 @@ import riboraptor
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
 extensions = [
-    'matplotlib.sphinxext.only_directives',
-    'matplotlib.sphinxext.plot_directive',
     'IPython.sphinxext.ipython_directive',
     'IPython.sphinxext.ipython_console_highlighting', 'sphinx.ext.mathjax',
     'sphinx.ext.autodoc', 'sphinx.ext.autosummary', 'sphinx.ext.doctest',

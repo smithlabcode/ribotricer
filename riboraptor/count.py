@@ -20,7 +20,7 @@ import pybedtools
 from pyfaidx import Fasta
 import pysam
 import six
-from scipy.stats import norm
+from scipy import stats
 
 from .genome import _get_sizes
 from .genome import _get_bed
@@ -703,8 +703,9 @@ def read_enrichment(read_lengths,
 
     # mean_length_floor = np.floor(mean_length)
     # 1 - P(x1 < X <x2) = P(X<x1) + P(X>x2) = cdf(x1) + sf(x2)
-    cdf_min = norm.cdf(min(enrichment_range), mean_length, std_dev_length)
-    sf_max = norm.sf(max(enrichment_range), mean_length, std_dev_length)
+    cdf_min = stats.norm.cdf(
+        min(enrichment_range), mean_length, std_dev_length)
+    sf_max = stats.norm.sf(max(enrichment_range), mean_length, std_dev_length)
     pvalue = cdf_min + sf_max
     ratio = rpf_signal / float(total_signal)
     return ratio, pvalue

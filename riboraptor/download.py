@@ -4,7 +4,10 @@ from __future__ import (absolute_import, division, print_function,
 
 from subprocess import Popen, PIPE
 
-def run_download_sra_script(download_root_location=None, ascp_key_path=None, srp_id_file=None,
+
+def run_download_sra_script(download_root_location=None,
+                            ascp_key_path=None,
+                            srp_id_file=None,
                             srp_id_list=None):
     """Download data from SRA.
 

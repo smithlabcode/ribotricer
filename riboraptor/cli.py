@@ -400,7 +400,11 @@ def uniq_mapping_cmd(bam):
     help='Download SRA data')
 @click.option('--out', help='root directory to download all datasets')
 @click.option('-a', '--ascp', help='Path to ascp private key')
-@click.option('-f', '--file', '--srpfile', help='File containing list of SRPs one per line')
+@click.option(
+    '-f',
+    '--file',
+    '--srpfile',
+    help='File containing list of SRPs one per line')
 @click.argument('srp_id_list', nargs=-1)
 def download_srp_cmd(out, ascp, srpfile, srp_id_list):
     print(srp_id_list)
