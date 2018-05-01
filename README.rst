@@ -53,9 +53,11 @@ Installing dependencies
 
 .. code-block:: bash
 
-   conda create --name riboraptor python=3.6 matplotlib numpy pandas pybedtools \
+   conda create --name riboraptor python=3.6 gcc matplotlib numpy pandas pybedtools \
    pyBigWig pyfaidx pysam scipy seaborn statsmodels six click click-help-colors htseq biopython \
-   snakemake sra-tools star fastqc trim-galore ucsc-bedgraphtobigwig ucsc-bedsort
+   snakemake sra-tools star fastqc trim-galore ucsc-bedgraphtobigwig ucsc-bedsort r-rcurl \
+   r-rsqlite r-devtools r-optparse bioconductor-biocinstaller bioconductor-annotationdbi \
+   bioconductor-geometadb bioconductor-geoquery
 
 Installing riboraptor
 ~~~~~~~~~~~~~~~~~~~~~
@@ -65,7 +67,7 @@ Installing riboraptor
    source activate riboraptor
    git clone git@github.com:saketkc/riboraptor.git
    cd riboraptor
-   python setup.py install --single-version-externally-managed --record=/tmp/record.txt
+   python setup.py install --single-version-externally-managed --record=record.txt
 
 
 Using riboraptor
@@ -104,16 +106,7 @@ Downloading datasets from SRA
 -----------------------------
 
 #. Install `aspera connect`_ 
-#. Install additional dependencies
 
-.. code-block:: bash
-
-   source activate riboraptor
-   conda install gcc
-   conda install -c r r=3.4.1
-   conda install -c bioconda bioconductor-annotationdbi bioconductor-geometadb
-   conda install -c r r-devtools
- 
 Since there is currently bug with bioconductor-sradb, we will install it from github
 
 .. code-block:: bash
