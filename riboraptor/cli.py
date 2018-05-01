@@ -404,4 +404,4 @@ def uniq_mapping_cmd(bam):
 @click.argument('srp_id_list', nargs=-1)
 def download_srp_cmd(out, ascp, srpfile, srp_id_list):
     print(srp_id_list)
-    run_download_sra_script(out, ascp, srpfile, srp_id_list)
+    run_download_sra_script(out, ascp, srpfile, list(srp_id_list))
