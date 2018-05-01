@@ -28,6 +28,14 @@ riboraptor.count module
     :undoc-members:
     :show-inheritance:
 
+riboraptor.download module
+--------------------------
+
+.. automodule:: riboraptor.download
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 riboraptor.dtw module
 ---------------------
 
