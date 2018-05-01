@@ -12,6 +12,9 @@ riboraptor : a pipeline for analysing ribosome profiling data
 .. image:: https://img.shields.io/badge/install%20with-bioconda-brightgreen.svg?style=flat-square
         :target: http://bioconda.github.io/recipes/riboraptor/README.html
 
+.. image:: https://readthedocs.org/projects/riboraptor/badge/?version=latest
+        :target: http://riboraptor.readthedocs.io/en/latest/?badge=latest&style=flat-square
+
 .. .. image:: https://pyup.io/repos/github/saketkc/riboraptor/shield.svg
      :target: https://pyup.io/repos/github/saketkc/riboraptor/
      :alt: Updates
