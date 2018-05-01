@@ -21,7 +21,7 @@ install:
 - conda create -q -n test-environment python=$TRAVIS_PYTHON_VERSION
 - source activate test-environment
 - pip install -r requirements.txt
-- pip install -U sphinx
+- pip install -U sphinx mock
 - pip install https://github.com/Syntaf/travis-sphinx/archive/master.zip
 - pip install -U numpydoc ipython sphinxcontrib-fulltoc guzzle_sphinx_theme
 - python setup.py install
