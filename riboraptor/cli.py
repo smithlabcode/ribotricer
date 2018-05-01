@@ -21,6 +21,7 @@ from .count import export_gene_coverages
 from .count import export_metagene_coverage
 from .count import read_length_distribution
 
+from .download import run_download_sra_script
 from .fasta import export_all_fasta
 
 from .plotting import plot_read_counts
@@ -390,3 +391,17 @@ def uniq_mapping_cmd(bam):
     count = unique_mapping_reads_count(bam)
     sys.stdout.write(str(count))
     sys.stdout.write(os.linesep)
+
+
+###################### download function #########################################
+@cli.command(
+    'download-sra',
+    context_settings=CONTEXT_SETTINGS,
+    help='Download SRA data')
+@click.option('--out', help='root directory to download all datasets')
+@click.option('-a', '--ascp', help='Path to ascp private key')
+@click.option('-f', '--file', '--srpfile', help='File containing list of SRPs one per line')
+@click.argument('srp_id_list', nargs=-1)
+def download_srp_cmd(out, ascp, srpfile, srp_id_list):
+    print(srp_id_list)
+    run_download_sra_script(out, ascp, srpfile, srp_id_list)

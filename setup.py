@@ -32,6 +32,7 @@ setup(
     },
     #data_files=[('riboraptor', ['annotation/*.*'])],
     entry_points={'console_scripts': ['riboraptor=riboraptor.cli:cli']},
+    scripts=['scripts/download_sra_data', 'scripts/convert_gse_to_srp'],
     include_package_data=True,
     install_requires=requirements,
     license="BSD license",
