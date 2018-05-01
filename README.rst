@@ -15,15 +15,14 @@ riboraptor : a pipeline for analysing ribosome profiling data
 .. image:: https://readthedocs.org/projects/riboraptor/badge/?version=latest
         :target: http://riboraptor.readthedocs.io/en/latest/?badge=latest&style=flat-square
 
-.. .. image:: https://pyup.io/repos/github/saketkc/riboraptor/shield.svg
-     :target: https://pyup.io/repos/github/saketkc/riboraptor/
-     :alt: Updates
 
 .. _Miniconda: https://conda.io/miniconda.html
-.. _`aspera connect`: http://downloads.asperasoft.com/en/downloads/8?list
+.. _`aspera connect`: http://downloads.asperasoft.com/connect2/
 .. _`Line4 snakemake/jobscript.sh`: https://github.com/saketkc/riboraptor/blob/47c8a50753c2bcc96b57d43b525a47bb8fde2d04/snakemake/jobscript.sh#L4
 .. _`Line6 snakemake/cluster.yaml`: https://github.com/saketkc/riboraptor/blob/47c8a50753c2bcc96b57d43b525a47bb8fde2d04/snakemake/cluster.yaml#L6
 .. _`Line7 snakemake/cluster.yaml`: https://github.com/saketkc/riboraptor/blob/47c8a50753c2bcc96b57d43b525a47bb8fde2d04/snakemake/cluster.yaml#L7
+.. _`SRAdb`: https://www.bioconductor.org/packages/3.7/bioc/html/SRAdb.html
+
 
 
 Python package to analyse ribosome profiling data
@@ -61,6 +60,27 @@ Installing dependencies
    snakemake sra-tools star fastqc trim-galore ucsc-bedgraphtobigwig ucsc-bedsort r-rcurl \
    r-rsqlite r-devtools r-optparse bioconductor-biocinstaller bioconductor-annotationdbi \
    bioconductor-geometadb bioconductor-geoquery
+   
+   We also have the following two dependencies for processing SRA datasets:
+   
+#. `aspera connect`_ : For allowing '.fasp' downloads from SRA
+
+#. `SRAdb' : For fetching all experiments of a SRA project with the associated metadata
+
+Since there is currently bug with bioconductor-sradb, we will install it from github
+
+.. code-block:: bash
+
+   git clone https://github.com/seandavi/SRAdb
+   cd SRAdb
+   
+Run `R`, and install SRAdb within `R` use `devtools`
+
+.. code-block:: r
+
+   library(devtools)
+   devtools::install(".")
+
 
 Installing riboraptor
 ~~~~~~~~~~~~~~~~~~~~~
@@ -107,22 +127,6 @@ In progress: http://nucleus.usc.edu:8050/
 
 Downloading datasets from SRA
 -----------------------------
-
-#. Install `aspera connect`_ 
-
-Since there is currently bug with bioconductor-sradb, we will install it from github
-
-.. code-block:: bash
-
-   git clone https://github.com/seandavi/SRAdb
-   cd SRAdb
-   
-Run `R`, and install SRAdb within `R` use `devtools`
-
-.. code-block:: r
-
-   library(devtools)
-   devtools::install(".")
 
 
 Features
