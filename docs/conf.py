@@ -23,7 +23,8 @@ class Mock(MagicMock):
     def __getattr__(cls, name):
         return MagicMock()
 
-MOCK_MODULES = ['pyBigWig', 'numpy', 'pandas', 'scipy', 'matplotlib', 'biopython', 'statsmodels', 'HTSeq']
+MOCK_MODULES = ['pyBigWig', 'numpy', 'pandas', 'scipy', 'matplotlib',
+                'biopython', 'statsmodels', 'HTSeq', 'pyfaidx', 'pysam', 'seaborn']
 sys.modules.update((mod_name, Mock()) for mod_name in MOCK_MODULES)
 
 # If extensions (or modules to document with autodoc) are in another
