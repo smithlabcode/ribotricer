@@ -61,11 +61,11 @@ Installing dependencies
    r-rsqlite r-devtools r-optparse bioconductor-biocinstaller bioconductor-annotationdbi \
    bioconductor-geometadb bioconductor-geoquery
    
-   We also have the following two dependencies for processing SRA datasets:
+We also have the following two dependencies for processing SRA datasets:
    
 #. `aspera connect`_ : For allowing '.fasp' downloads from SRA
 
-#. `SRAdb' : For fetching all experiments of a SRA project with the associated metadata
+#. `SRAdb`_ : For fetching all experiments of a SRA project with the associated metadata
 
 Since there is currently bug with bioconductor-sradb, we will install it from github
 
