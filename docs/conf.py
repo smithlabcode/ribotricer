@@ -31,7 +31,7 @@ MOCK_MODULES = [
     'scipy.spatial.distance', 'HTSeq', 'pandas', 'pyBigWig', 'matplotlib',
     'seaborn', 'matplotlib.pyplot', 'matplotlib.ticker', 'biopython', 'Bio',
     'Bio.Seq', 'Bio.Alphabet', 'statsmodels', 'statsmodels.api', 'pyfaidx',
-    'pysam', 'click', 'click_help_colors', 'six'
+    'pysam', 'click', 'click_help_colors', 'pybedtools'
 ]
 sys.modules.update((mod_name, mock.Mock()) for mod_name in MOCK_MODULES)
 

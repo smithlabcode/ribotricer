@@ -1,5 +1,7 @@
+mock
 sphinx
 numpydoc
 ipython
 sphinxcontrib-fulltoc
 guzzle_sphinx_theme
+six
