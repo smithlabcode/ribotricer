@@ -27,7 +27,7 @@ Python package to analyse ribosome profiling data
 
 
 * Free software: BSD license
-* Documentation: http://saketkc.github.io/riboraptor/
+* Documentation: https://riboraptor.readthedocs.io/en/latest/
 
 
 Installation
@@ -91,7 +91,7 @@ Usage mode 1: use riboraptor as a Snakemake based workflow
 Usage mode 2: use riboraptor as a standalone toolkit
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-See: http://saketkc.github.io/riboraptor/
+See: https://riboraptor.readthedocs.io/en/latest/
   
 Usage mode 3: use riboraptor in a Galaxy environment
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -125,6 +125,6 @@ Run `R`, and install SRAdb within `R` use `devtools`
 Features
 --------
 
-See: http://saketkc.github.io/riboraptor/cmd-manual.html
+See: https://riboraptor.readthedocs.io/en/latest/cmd-manual.html
 
 
