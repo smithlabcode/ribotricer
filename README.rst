@@ -75,14 +75,14 @@ We also have the following two dependencies for processing and downloading SRA d
 
 #. `SRAdb`_ : For fetching all experiments of a SRA project with the associated metadata
 
-Since there is currently bug with bioconductor-sradb, we will install it from github. Please make sure your `riboraptor` environment is already activated. (`source activate riboraptor`)
+Since there is currently bug with bioconductor-sradb, we will install it from github. 
 
 .. code-block:: bash
    
    git clone https://github.com/seandavi/SRAdb
    cd SRAdb
    
-Run `R`, and install SRAdb within `R` use `devtools`
+Run `R`, and install SRAdb within `R` use `devtools`. Please make sure your `riboraptor` environment is already activated. (`source activate riboraptor`):
 
 .. code-block:: r
 
