@@ -80,6 +80,9 @@ rule all:
         expand('mapped/gene_coverages/UTR5/{sample}_gene_coverages.tsv', sample=SRX_ID_DICT_KEYS),
         expand('mapped/gene_coverages/CDS/{sample}_gene_coverages.tsv', sample=SRX_ID_DICT_KEYS),
         expand('mapped/gene_coverages/UTR3/{sample}_gene_coverages.tsv', sample=SRX_ID_DICT_KEYS),
+        expand('mapped/plots/metagene/{sample}.pdf', sample=SRX_ID_DICT_KEYS),
+        expand('mapped/plots/read_length/{sample}.pdf', sample=SRX_ID_DICT_KEYS),
+        expand('mapped/genewise_counts_CDS/{sample}.tsv', sample=SRX_ID_DICT_KEYS),
 
 
 rule sra_to_fastq:
@@ -202,47 +205,92 @@ rule create_uniqmulti_bigwig_from_uniqmulti_bedgraph_raw:
 rule export_utr5_coverage:
     input: 'mapped/bigWigs/{sample}Unique.bw'
     params:
-        prefix = 'mapped/gene_coverages/UTR5/{sample}',
         offset_5p = 10
     output: 'mapped/gene_coverages/UTR5/{sample}_gene_coverages.tsv'
     shell: r'''riboraptor export-gene-coverages \
            --bigwig {input} \
            --region_bed {UTR5_BED} \
-           --prefix {params.prefix} \
+           --saveto {output} \
            --offset_5p {params.offset_5p}'''
 
 
 rule export_cds_coverage:
     input: 'mapped/bigWigs/{sample}Unique.bw'
     params:
-        prefix = 'mapped/gene_coverages/CDS/{sample}',
         offset_5p = 10
     output: 'mapped/gene_coverages/CDS/{sample}_gene_coverages.tsv'
     shell: r'''riboraptor export-gene-coverages \
            --bigwig {input} \
            --region_bed {CDS_BED} \
-           --prefix {params.prefix} \
+           --saveto {output} \
            --offset_5p {params.offset_5p}'''
 
 
 rule export_utr3_coverage:
     input: 'mapped/bigWigs/{sample}Unique.bw'
     params:
-        prefix = 'mapped/gene_coverages/UTR3/{sample}',
         offset_5p = 10
     output: 'mapped/gene_coverages/UTR3/{sample}_gene_coverages.tsv'
     shell: r'''riboraptor export-gene-coverages \
            --bigwig {input} \
            --region_bed {UTR3_BED} \
-           --prefix {params.prefix} \
+           --saveto {output} \
            --offset_5p {params.offset_5p}'''
 
 
-rule fragment_length_pickle:
+rule extract_uniq_mapping:
     input: 'mapped/bams/{sample}.bam'
-    params:
-        prefix= 'mapped/fragment_length_pickle/{sample}'
-    output: 'mapped/fragment_length_pickle/{sample}.pickle'
+    output: 'mapped/bams_unique/{sample}.bam'
+    threads: 16
     shell:
-        r'''riboraptor read-length-dist --bam {input} --prefix {params.prefix}'''
+        r'''samtools view -b -q 255 {input} -o {output}.temp \
+        && samtools sort -@ {threads} {output}.temp -o {output} -T /tmp/{wildcards.sample}_sort \
+        && rm -rf {output}.temp \
+        && samtools index {output}'''
 
+rule fragment_length_pickle:
+    input: 'mapped/bams_unique/{sample}.bam'
+    output: 'mapped/fragment_length_pickle/{sample}.tsv'
+    shell:
+        r'''riboraptor read-length-dist --bam {input} --saveto {output}'''
+
+
+rule export_read_length:
+    input: 'mapped/bams_unique/{sample}.bam'
+    output: 'mapped/read_lengths/{sample}.tsv'
+    shell: 
+        r'''
+        riboraptor export-read-length --bam {input} --saveto {output}
+        '''
+
+rule plot_read_length:
+    input: 'mapped/read_lengths/{sample}.tsv'
+    output: 'mapped/plots/read_length/{sample}.pdf'
+    shell:
+        r'''
+        riboraptor plot-read-length --millify_labels --read-lengths {input} --saveto {output}
+        '''
+
+rule export_metagenge:
+    input: 'mapped/bigWigs/{sample}Unique.bw'
+    output: 'mapped/metagene_coverages/{sample}.tsv'
+    shell:
+        r'''
+        riboraptor export-metagene-coverage --bigwig {input} \
+        --region_bed hg38_cds --ignore_tx_version --saveto {output}
+        '''
+
+rule plot_metagene:
+    input: 'mapped/metagene_coverages/{sample}.tsv'
+    output: 'mapped/plots/metagene/{sample}.pdf'
+    shell: 
+        r'''
+        riboraptor plot-metagene --counts {input} --saveto {output} --positions -60:300 --xrotation 90
+        '''
+
+rule metagene_coverage_cds2:
+    input: 'mapped/bams_unique/{sample}.bam'
+    output: 'mapped/genewise_counts_CDS/{sample}.tsv'
+    shell:
+        r'''riboraptor count-reads-bed --bam {input} --bed hg38_cds --saveto {output}
+        '''
