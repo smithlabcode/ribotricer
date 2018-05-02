@@ -128,12 +128,7 @@ Using riboraptor
 Usage mode 1: use riboraptor as a Snakemake based workflow
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-
-
-.. code-block:: bash
-
-   cd snakemake
-   bash submitall.sh myNewProject
+See example workflow.
 
 Usage mode 2: use riboraptor as a standalone toolkit
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -167,7 +162,7 @@ We will be working with the first published Ribo-seq dataset `GSE37744`_ from In
 At this point, we assume you have already completed all the steps under `Installing dependencies`_. 
 
 
-#. Step 1: Downloading datasets
+# Step 1: Downloading datasets
 
 We will download all SRA files corresponding to GSE13750.
 
@@ -180,7 +175,7 @@ We will download all SRA files corresponding to GSE13750.
 GEO IDs are automatatiicaly converted to corresponding SRP IDs. GSE37744 corresponds to SRP012648.
 We will now use Snakemake to run all the downstream steps.
 
-#. Step 2: Copy template
+# Step 2: Copy template
 
 .. code-block:: bash
    
@@ -219,7 +214,7 @@ We will now use Snakemake to run all the downstream steps.
    ## Path to bed file containing 3'UTR coordinates coordinates
    UTR3_BED = '/home/cmb-panasas2/skchoudh/riboraptor/riboraptor/annotation/hg38/utr3.bed'
 
-#. Step 3 : Change your miniconda path in `Line4 snakemake/jobscript.sh`_
+# Step 3 : Change your miniconda path in `Line4 snakemake/jobscript.sh`_
 
    An example path would be:
 .. code-block:: bash  
@@ -227,7 +222,7 @@ We will now use Snakemake to run all the downstream steps.
    export PATH="/home/cmb-panasas2/wenzhenl/miniconda3/bin:$PATH"
 
 
-#. Step 4: Edit `Line6 snakemake/cluster.yaml`_ and `Line7 snakemake/cluster.yaml`_ to point to your log directory error log file
+# Step 4: Edit `Line6 snakemake/cluster.yaml`_ and `Line7 snakemake/cluster.yaml`_ to point to your log directory error log file
   
    An example path would be:
    
@@ -238,7 +233,7 @@ We will now use Snakemake to run all the downstream steps.
 
 You would want to just edit the directory path leading to `/home/cmb-06/as/wenzhenl/logs/` and leave the rest as it is.
 
-#. Step 5: Submit job
+# Step 5: Submit job
 
 .. code-block:: bash
 
