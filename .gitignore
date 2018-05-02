@@ -68,9 +68,10 @@ target/
 
 #snakemake
 snakemake/*.stats
-snakemake/configs/*
-!snakemake/configs/template.py
+snakemake/configs/*.sample
 
 #utils
-utils/*.sqlite
-utils/*.txt
+*.sqlite
+*.sqlite.gz
+*.sra
+

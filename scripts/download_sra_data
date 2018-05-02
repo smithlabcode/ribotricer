@@ -29,7 +29,7 @@ arguments <- parse_args (parser, positional_arguments=TRUE)
 opt <- arguments$options
 args <- arguments$args
 if (is.null(opt$file) && (!(length(args) == 1L && nzchar(args))) ){
-    cat('Usage: download_sra_data <SRP_ID1> <SRP_ID2>\n')
+    cat('Usage: download_sra_data <SRP_ID1> <SRP_ID2>\nDetailed help: download_sra_data -h\n')
     quit(status=1)
 }
 
@@ -49,8 +49,8 @@ if (!file.exists(ascpKeyPath)){
     cat("Using slow download mode ...")
     shouldUseASCP <- FALSE
 }
-SRAsqlfile <- opt$sradb
-GEOsqlfile <- opt$geodb
+SRAsqlfile <- file.path(opt$sradb)
+GEOsqlfile <- file.path(opt$geodb)
 ascpCMD <- paste0('ascp -k 1 -QT -l 2000m -i ', ascpKeyPath)
 if(!file.exists(SRAsqlfile)) SRAsqlfile <<- getSRAdbFile()
 if(!file.exists(GEOsqlfile)) GEOsqlfile <<- getSQLiteFile()
