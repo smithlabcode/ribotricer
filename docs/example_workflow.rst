@@ -34,8 +34,9 @@ Step 2: Copy template
    cd snakemake
    cp configs/template.py.sample configs/SRP012648.py
    
-   Edit the paths inside `SRP012648.py` to point to your RAW data, GTF and BED files.
-   An example of a config would be:
+
+Edit the paths inside `SRP012648.py` to point to your RAW data, GTF and BED files.
+An example of a config would be:
    
 .. code-block:: python
    
