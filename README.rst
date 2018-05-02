@@ -75,7 +75,7 @@ We also have the following two dependencies for processing and downloading SRA d
 
 #. `SRAdb`_ : For fetching all experiments of a SRA project with the associated metadata
 
-Since there is currently bug with bioconductor-sradb, we will install it from github. 
+Since there is currently a bug in bioconductor-sradb, we will install it from github. 
 
 .. code-block:: bash
    
