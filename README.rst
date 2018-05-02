@@ -2,7 +2,6 @@
 riboraptor : a pipeline for analysing ribosome profiling data
 =============================================================
 
-
 .. image:: https://img.shields.io/pypi/v/riboraptor.svg?style=flat-square
         :target: https://pypi.python.org/pypi/riboraptor
 

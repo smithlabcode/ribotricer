@@ -46,6 +46,7 @@ Contents:
    :maxdepth: 2
 
    installation
+   example_workflow
    cmd-manual
    api-usage
    scores
