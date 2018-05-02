@@ -22,6 +22,7 @@ riboraptor : a pipeline for analysing ribosome profiling data
 .. _`Line6 snakemake/cluster.yaml`: https://github.com/saketkc/riboraptor/blob/47c8a50753c2bcc96b57d43b525a47bb8fde2d04/snakemake/cluster.yaml#L6
 .. _`Line7 snakemake/cluster.yaml`: https://github.com/saketkc/riboraptor/blob/47c8a50753c2bcc96b57d43b525a47bb8fde2d04/snakemake/cluster.yaml#L7
 .. _`SRAdb`: https://www.bioconductor.org/packages/3.7/bioc/html/SRAdb.html
+.. _`GSE13750`: https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE13750
 
 
 
@@ -108,6 +109,16 @@ Installing riboraptor
    cd riboraptor
    python setup.py install --single-version-externally-managed --record=record.txt
 
+We will assume you have the following directory structure for the rest of our analysis:
+
+| some_root_directory
+| ├── riboraptor
+| │   ├── snakemake
+| │   └── setup.py
+| ├── riboraptor-data
+| │   ├── GEOmetadb.sqlite
+| │   └── SRAmetadb.sqlite
+
 
 Using riboraptor
 ----------------
@@ -150,4 +161,29 @@ Features
 
 See: https://riboraptor.readthedocs.io/en/latest/cmd-manual.html
 
+
+Example Workflow
+----------------
+
+We will be working with the first published Ribo-seq dataset `GSE13750`_ from Ingolia et al. (2009) which has samples for both mRNA-seq and Ribo-seq from Yeast grown in starved and nutrient rich media.
+
+At this point, we assume you have already completed all the steps under `Installing dependencies`_. 
+
+
+#. Step 1: Downloading datasets
+
+We will download all SRA files corresponding to GSE13750.
+
+.. code-block:: bash
+   
+   cd riboraptor
+   download_sra_data --sradb=../riboraptor-data/SRAmetadb.sqlite --geodb=../riboraptor-data/GEOmetadb.sqlite GSE13750
+
+GEO IDs are automatatiicaly converted to corresponding SRP IDs. GSE13750 corresponds to SRP000637.
+
+#. Step 2: Create template
+
+
+  
+   
 
