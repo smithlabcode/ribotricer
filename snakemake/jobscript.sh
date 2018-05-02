@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 DIR=$(dirname "$(readlink -f "$0")")
 
-export PATH="/home/cmb-panasas2/wenzhenl/miniconda3/bin:$PATH"
+export PATH="/home/cmb-panasas2/skchoudh/software_frozen/anaconda27/bin:$PATH"
 source activate riboraptor
 echo "=============================="
 cd $SLURM_SUBMIT_DIR

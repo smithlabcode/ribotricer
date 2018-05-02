@@ -68,7 +68,6 @@ target/
 
 #snakemake
 snakemake/*.stats
-snakemake/configs/*.sample
 
 #utils
 *.sqlite

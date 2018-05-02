@@ -44,11 +44,11 @@ TOTAL_GENOME_SIZE = total_genome_size()
 ## See STAR manual 2.2.5
 SA_INDEX_Nbases = int(np.floor(min(14, np.log2(TOTAL_GENOME_SIZE)/2.0-1)))
 
-ALL_SRA_FILES = glob.glob('{}/**/*.sra'.format(RAWDATA_DIR), recursive=True)
+ALL_SRA_FILES = glob.glob('{}/**/*.fastq'.format(RAWDATA_DIR), recursive=True)
 SRX_ID_DICT = defaultdict(list)
 for sample in ALL_SRA_FILES:
     srx, srr = sample.replace('{}'.format(RAWDATA_DIR),'').lstrip('/').rstrip('/').split('/')
-    SRX_ID_DICT[srx].append(srr.replace('.sra', ''))
+    SRX_ID_DICT[srx].append(srr.replace('.fastq', ''))
 print(SRX_ID_DICT)
 
 SRX_ID_DICT_VALUES = list(SRX_ID_DICT.values())
@@ -66,7 +66,7 @@ def sra_to_fastq_input(wildcards):
         value = SRX_ID_DICT[key]
         if srr_id in list(value):
             srx_id = key
-            return str(os.path.join(RAWDATA_DIR, srx_id, srr_id+'.sra'))
+            return str(os.path.join(RAWDATA_DIR, srx_id, srr_id+'.fastq'))
     print("WRONG encodeterend: {}".format(srr_id))
 print (ALL_SRR)
 
@@ -80,7 +80,10 @@ rule all:
         expand('mapped/gene_coverages/UTR5/{sample}_gene_coverages.tsv', sample=SRX_ID_DICT_KEYS),
         expand('mapped/gene_coverages/CDS/{sample}_gene_coverages.tsv', sample=SRX_ID_DICT_KEYS),
         expand('mapped/gene_coverages/UTR3/{sample}_gene_coverages.tsv', sample=SRX_ID_DICT_KEYS),
-
+        expand('mapped/metagene_coverage/CDS/{sample}_metagene_coverage.tsv', sample=SRX_ID_DICT_KEYS),
+        expand('mapped/metagene_coverage/CDS/{sample}_metagene_plot.png', sample=SRX_ID_DICT_KEYS),
+        expand('mapped/read_length/{sample}_read_length.tsv', sample=SRX_ID_DICT_KEYS),
+        expand('mapped/read_length/{sample}_read_length_plot.png', sample=SRX_ID_DICT_KEYS),
 
 rule sra_to_fastq:
     input: sra_to_fastq_input
@@ -88,8 +91,7 @@ rule sra_to_fastq:
     params:
         prefix='sratofastq/{sample}.fastq'
     shell:
-        r'''fastq-dump --split-3 -O sratofastq {input} && gzip {params.prefix}
-        '''
+        r'''gzip -c {input} > {output}'''
 
 
 rule perfom_trimming:
@@ -201,48 +203,63 @@ rule create_uniqmulti_bigwig_from_uniqmulti_bedgraph_raw:
 
 rule export_utr5_coverage:
     input: 'mapped/bigWigs/{sample}Unique.bw'
-    params:
-        prefix = 'mapped/gene_coverages/UTR5/{sample}',
-        offset_5p = 10
     output: 'mapped/gene_coverages/UTR5/{sample}_gene_coverages.tsv'
     shell: r'''riboraptor export-gene-coverages \
            --bigwig {input} \
            --region_bed {UTR5_BED} \
-           --prefix {params.prefix} \
-           --offset_5p {params.offset_5p}'''
+           --saveto {output}'''
 
 
 rule export_cds_coverage:
     input: 'mapped/bigWigs/{sample}Unique.bw'
-    params:
-        prefix = 'mapped/gene_coverages/CDS/{sample}',
-        offset_5p = 10
     output: 'mapped/gene_coverages/CDS/{sample}_gene_coverages.tsv'
     shell: r'''riboraptor export-gene-coverages \
            --bigwig {input} \
            --region_bed {CDS_BED} \
-           --prefix {params.prefix} \
-           --offset_5p {params.offset_5p}'''
+           --saveto {output}'''
 
 
 rule export_utr3_coverage:
     input: 'mapped/bigWigs/{sample}Unique.bw'
-    params:
-        prefix = 'mapped/gene_coverages/UTR3/{sample}',
-        offset_5p = 10
     output: 'mapped/gene_coverages/UTR3/{sample}_gene_coverages.tsv'
     shell: r'''riboraptor export-gene-coverages \
            --bigwig {input} \
            --region_bed {UTR3_BED} \
-           --prefix {params.prefix} \
-           --offset_5p {params.offset_5p}'''
+           --saveto {output}'''
 
 
-rule fragment_length_pickle:
-    input: 'mapped/bams/{sample}.bam'
+rule export_cds_metagene_coverage:
+    input: 'mapped/bigWigs/{sample}Unique.bw'
+    output: 'mapped/metagene_coverage/CDS/{sample}_metagene_coverage.tsv'
+    shell: r'''riboraptor export-metagene-coverage \
+           --bigwig {input} \
+           --region_bed {CDS_BED} \
+           --saveto {output}'''
+        
+rule plot_cds_metagene:
+    input: 'mapped/metagene_coverage/CDS/{sample}_metagene_coverage.tsv'
     params:
-        prefix= 'mapped/fragment_length_pickle/{sample}'
-    output: 'mapped/fragment_length_pickle/{sample}.pickle'
-    shell:
-        r'''riboraptor read-length-dist --bam {input} --prefix {params.prefix}'''
+        positions_to_plot = '-60:300'
+    output: 'mapped/metagene_coverage/CDS/{sample}_metagene_plot.png'
+    shell: r'''riboraptor plot-metagene \
+           --counts {input} \
+           --positions {params.positions_to_plot} \
+           --title {wildcards.sample} \
+           --saveto {output}'''
 
+        
+rule export_read_length:
+    input: 'mapped/bams/{sample}.bam'
+    output: 'mapped/read_length/{sample}_read_length.tsv'
+    shell:
+        r'''riboraptor export-read-length --bam {input} --saveto {output}'''
+
+        
+rule plot_read_length:
+    input: 'mapped/read_length/{sample}_read_length.tsv'
+    output: 'mapped/read_length/{sample}_read_length_plot.png'
+    shell:
+        r'''riboraptor plot-read-length \
+        --read-lengths {input} \
+        --title {wildcards.sample} \
+        --saveto {output}'''
