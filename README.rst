@@ -52,25 +52,33 @@ Setting up conda
 
 Installing dependencies
 ~~~~~~~~~~~~~~~~~~~~~~~
+We will create a searate envirnoment inside conda for running `riboraptor`. The enrironment name is also `riboraptor`.
+If you already have a conda environment named `riboraptor`, you can delete it by running:
+
+.. code-block:: bash
+
+   source deactivate riboraptor && conda env remove -n riboraptor
+
+We will now install all the dependencies:
 
 .. code-block:: bash
 
    conda create --name riboraptor python=3.6 gcc matplotlib numpy pandas pybedtools \
    pyBigWig pyfaidx pysam scipy seaborn statsmodels six click click-help-colors htseq biopython \
-   snakemake sra-tools star fastqc trim-galore ucsc-bedgraphtobigwig ucsc-bedsort r-rcurl \
+   trackhub snakemake sra-tools star fastqc trim-galore ucsc-bedgraphtobigwig ucsc-bedsort r-rcurl \
    r-rsqlite r-devtools r-optparse bioconductor-biocinstaller bioconductor-annotationdbi \
-   bioconductor-geometadb bioconductor-geoquery
-   
-We also have the following two dependencies for processing SRA datasets:
+   bioconductor-geometadb bioconductor-geoquery && source activate riboraptor
+  
+We also have the following two dependencies for processing and downloading SRA datasets:
    
 #. `aspera connect`_ : For allowing '.fasp' downloads from SRA
 
 #. `SRAdb`_ : For fetching all experiments of a SRA project with the associated metadata
 
-Since there is currently bug with bioconductor-sradb, we will install it from github
+Since there is currently bug with bioconductor-sradb, we will install it from github. Please make sure your `riboraptor` environment is already activated. (`source activate riboraptor`)
 
 .. code-block:: bash
-
+   
    git clone https://github.com/seandavi/SRAdb
    cd SRAdb
    
@@ -81,6 +89,14 @@ Run `R`, and install SRAdb within `R` use `devtools`
    library(devtools)
    devtools::install(".")
 
+And finally, we need two metadata files for processing SRA records:
+
+.. code-block:: bash
+    
+   mkdir riboraptor-data && cd riboraptor-data
+   wget -c http://starbuck1.s3.amazonaws.com/sradb/GEOmetadb.sqlite.gz && gunzip GEOmetadb.sqlite.gz
+   wget -c https://starbuck1.s3.amazonaws.com/sradb/SRAmetadb.sqlite.gz && gunzip SRAmetadb.sqlite.gz
+  
 
 Installing riboraptor
 ~~~~~~~~~~~~~~~~~~~~~
