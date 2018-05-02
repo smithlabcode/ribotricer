@@ -52,7 +52,7 @@ Setting up conda
 
 Installing dependencies
 ~~~~~~~~~~~~~~~~~~~~~~~
-We will create a searate envirnoment inside conda for running `riboraptor`. The enrironment name is also `riboraptor`.
+We will create a searate environment inside conda for running `riboraptor`. The environment name is also `riboraptor`.
 If you already have a conda environment named `riboraptor`, you can delete it by running:
 
 .. code-block:: bash
