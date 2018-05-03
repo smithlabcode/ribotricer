@@ -28,7 +28,16 @@ We will download all SRA files corresponding to GSE13750.
 
 GEO IDs are automatatiicaly converted to corresponding SRP IDs.
 GSE37744 corresponds to SRP012648.
-We will now use Snakemake to run all the downstream steps.
+
+There are 6 experiments in total (SRX003184-SRX003191), but we will be working with only two: `SRX003187`and `SRX003191`
+one of which is mRNA-seq while other is Ribo-seq. (We will figure out which is which later.)
+You can delete are SRX directories except the above two.
+
+We will now use Snakemake to run all the downstream steps. Here is what the overall workflow looks like:
+
+.. image:: images/dag.svg
+
+
 
 Step 2: Copy template
 ~~~~~~~~~~~~~~~~~~~~~~

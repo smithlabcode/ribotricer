@@ -3,8 +3,8 @@ __default__:
     time: '12:00:00'
     mem: '4gb'
     cores: 1
-    logout: '/home/cmb-06/as/skchoudh/logs/{rule}.{wildcards.sample}.out'
-    logerror: '/home/cmb-06/as/skchoudh/logs/{rule}.{wildcards.sample}.err'
+    logout: '/home/cmb-06/as/skchoudh/logs/{rule}.{wildcards}.out'
+    logerror: '/home/cmb-06/as/skchoudh/logs/{rule}.{wildcards}.err'
 
 create_index:
     cores: 16
@@ -45,3 +45,7 @@ pickle_counts_utr3:
 pickle_counts_utr5:
     cores: 1
     mem: '40gb'
+
+report:
+    cores: 1
+    mem: '4gb'
