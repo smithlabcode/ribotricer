@@ -59,3 +59,4 @@
 
 - [ ] Add instructions to output logs in OUT_DIR
 - [ ] Add insttuctions about slurm/qsub change
+- [ ] riboraptor_output.html should be reanmed?
