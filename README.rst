@@ -74,6 +74,8 @@ We also have the following two dependencies for processing and downloading SRA d
    
 #. `aspera connect`_ : For allowing '.fasp' downloads from SRA
 
+Linux download link: https://download.asperasoft.com/download/sw/connect/3.7.4/aspera-connect-3.7.4.147727-linux-64.tar.gz
+
 #. `SRAdb`_ : For fetching all experiments of a SRA project with the associated metadata
 
 Since there is currently a bug in bioconductor-sradb, we will install it from github. 
