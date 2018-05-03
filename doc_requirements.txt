@@ -5,3 +5,4 @@ ipython
 sphinxcontrib-fulltoc
 guzzle_sphinx_theme
 six
+image
