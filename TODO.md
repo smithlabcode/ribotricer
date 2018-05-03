@@ -54,3 +54,8 @@
 - [ ] Add a module for guessing strand protocol of the library
 - [ ] Examples where strand information is essential
 - [ ] Fragment length wise distribution of 3'UTR/CDS/5'UTR => Which fragments are truly periodic?
+
+# Install instructions
+
+- [ ] Add instructions to output logs in OUT_DIR
+- [ ] Add insttuctions about slurm/qsub change
