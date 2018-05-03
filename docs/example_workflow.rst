@@ -36,7 +36,7 @@ You can delete are SRX directories except the above two.
 We will now use Snakemake to run all the downstream steps. Here is what the overall workflow looks like:
 
 .. figure:: images/dag.svg
-   :scale: 50%
+   :scale: 30%
 
 
 
