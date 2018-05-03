@@ -47,3 +47,10 @@
 - [ ] For template use one empty line and one commented version of the line
 - [ ] Change /tmp paths
 
+
+# Features missing
+
+- [ ] Metagene plots should be separated for fragment length
+- [ ] Add a module for guessing strand protocol of the library
+- [ ] Examples where strand information is essential
+- [ ] Fragment length wise distribution of 3'UTR/CDS/5'UTR => Which fragments are truly periodic?
