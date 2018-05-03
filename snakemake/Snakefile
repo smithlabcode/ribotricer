@@ -82,11 +82,11 @@ rule all:
         expand('preprocessed/{sample}_trimmed.fq.gz', sample=ALL_SRR),
         expand('mapped/bams/{sample}.bam', sample=SRX_ID_DICT_KEYS),
         expand('mapped/bigWigs/{sample}.bw', sample=SRX_ID_DICT_KEYS),
-        expand('mapped/gene_coverages/CDS/{sample}_gene_coverages.tsv', sample=SRX_ID_DICT_KEYS),
         expand('mapped/plots/metagene/{sample}.png', sample=SRX_ID_DICT_KEYS),
         expand('mapped/plots/read_length/{sample}.png', sample=SRX_ID_DICT_KEYS),
         expand('mapped/genewise_counts_CDS/{sample}.tsv', sample=SRX_ID_DICT_KEYS),
         'riboraptor_report.html'
+        #expand('mapped/gene_coverages/CDS/{sample}_gene_coverages.tsv', sample=SRX_ID_DICT_KEYS),
         #expand('mapped/gene_coverages/UTR5/{sample}_gene_coverages.tsv', sample=SRX_ID_DICT_KEYS),
         #expand('mapped/gene_coverages/UTR3/{sample}_gene_coverages.tsv', sample=SRX_ID_DICT_KEYS),
 
