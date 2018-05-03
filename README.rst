@@ -22,6 +22,7 @@ riboraptor : a pipeline for analysing ribosome profiling data
 .. _`Line7 snakemake/cluster.yaml`: https://github.com/saketkc/riboraptor/blob/47c8a50753c2bcc96b57d43b525a47bb8fde2d04/snakemake/cluster.yaml#L7
 .. _`SRAdb`: https://www.bioconductor.org/packages/3.7/bioc/html/SRAdb.html
 .. _`GSE37744`: https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE37744
+.. _`example workflow`: ./docs/example_workflow.rst
 
 
 
@@ -127,7 +128,7 @@ Using riboraptor
 Usage mode 1: use riboraptor as a Snakemake based workflow
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-See example workflow.
+See `example workflow`_
 
 Usage mode 2: use riboraptor as a standalone toolkit
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
