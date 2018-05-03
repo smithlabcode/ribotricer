@@ -1,0 +1,30 @@
+## Path to SRP directory
+RAWDATA_DIR = '/staging/as/skchoudh/SRA_datasets/SRP000637_two_samples'
+
+## Output directory (will be created if does not exist)
+OUT_DIR = '/home/cmb-panasas2/skchoudh/riboraptor-analysis/SRP000637_two_samples'
+
+## Genome fasta location
+GENOME_FASTA = '/home/cmb-06/as/skchoudh/genomes/sacCerR64/fasta/Saccharomyces_cerevisiae.R64-1-1.dna.toplevel.fa'
+
+## Chromosome sizes location
+CHROM_SIZES = '/home/cmb-06/as/skchoudh/genomes/sacCerR64/fasta/Saccharomyces_cerevisiae.R64-1-1.dna.toplevel.sizes'
+
+## Path to STAR index (will be generated if does not exist)
+STAR_INDEX = '/home/cmb-06/as/skchoudh/genomes/sacCerR64/star_annotated'
+
+## GTF path
+GTF = '/home/cmb-06/as/skchoudh/genomes/sacCerR64/annotation/Saccharomyces_cerevisiae.R64-1-1.91.gtf'
+
+
+## Path to bed file containing Intron coordinates
+INTRON_BED = '/home/cmb-panasas2/skchoudh/github_projects/riboraptor/riboraptor/annotation/sacCerR64/intron.bed'
+
+## Path to bed file containing CDS coordinates
+CDS_BED = '/home/cmb-panasas2/skchoudh/github_projects/riboraptor/riboraptor/annotation/sacCerR64/cds.bed'
+
+## Path to bed file containing 5'UTR coordinates
+UTR5_BED = '/home/cmb-panasas2/skchoudh/github_projects/riboraptor/riboraptor/annotation/sacCerR64/utr5.bed'
+
+## Path to bed file containing 3'UTR coordinates
+UTR3_BED = '/home/cmb-panasas2/skchoudh/github_projects/riboraptor/riboraptor/annotation/sacCerR64/utr3.bed'
