@@ -127,3 +127,8 @@ Step 5: Submit job
 
 The `submitall.sh` looks for a file named `SRP000637.py` in the configs directory, so make sure `SRP000637.py` exists inside
 `configs/` directory.
+
+Visualizing Results
+~~~~~~~~~~~~~~~~~~~~
+
+When the entire pipeline as run, it will create an html file `riboraptor_report.html` as output. You can copy it locally to visualize metagene profiles and read length distribution for all samples.
