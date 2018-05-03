@@ -13,6 +13,7 @@ import pandas as pd
 import numpy as np
 from snakemake.utils import report
 from textwrap import dedent
+import base64
 
 TMP_DIR_ROOT = None
 INTRON_BED = None
@@ -298,44 +299,46 @@ rule report:
         html='riboraptor_report.html'
     run:
         text = dedent("""
-        =================
-        riboraptor report
-        =================
-
-        Fragment Length Distribution
-        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        <html>
+        <center>
+        <h1> Fragment Length Distribution </h1>
 
 
         """)
 
-        for m in input.fragment_lengthe:
+        for m in input.fragment_length:
+            with open(m, 'rb') as f:
+                encoded = base64.b64encode(f.read())
+            img_tag = '<img alt="" src="data:image/png;base64,{0}" height="400px">'.format(str((encoded), 'utf-8'))
+
             text += dedent('''
-                    
-                    .. figure:: {data}
-                       :scale: 100%
-                       :alt: fragment_length
+            <figure>
+            {img_tag}
+            <figcaption> {fig_name} </figcaption>
+            </figure>''').format(img_tag=img_tag, fig_name=m.split('/')[-1].replace('.png', ''))
 
-                       {fig_name}
-
-                    ''').format(data=m, fig_name=m.split('/')[-1].replace('.png', ''))
         text += dedent('''
-                
-                Metagene Plots
-                ~~~~~~~~~~~~~~
 
+        <h1> Metagene Plots </h1>
 
                 ''')
+
         for m in input.metagene:
+            with open(m, 'rb') as f:
+                encoded = base64.b64encode(f.read())
+            img_tag = '<img alt="" src="data:image/png;base64,{0}" height="400px">'.format(str((encoded), 'utf-8'))
+
             text += dedent('''
-                    
-                    .. figure:: {data}
-                       :scale: 100%
-                       :alt: fragment_length
+            <figure>
+            {img_tag}
+            <figcaption> {fig_name} </figcaption>
+            </figure>''').format(img_tag=img_tag, fig_name=m.split('/')[-1].replace('.png', ''))
 
-                       {fig_name}
-
-                    ''').format(data=m, fig_name=m.split('/')[-1].replace('.png', ''))
-
-       
-        report(text=text, path=output.html, **input)
+        text += dedent("""
+        </center>
+        </html>
+        """)
+        #report(text=text, path=output.html, **input)
+        with open(output.html, 'w') as f:
+            f.write(text)
 
