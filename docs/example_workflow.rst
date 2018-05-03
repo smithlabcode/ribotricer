@@ -26,7 +26,7 @@ We will download all SRA files corresponding to GSE13750.
 
    cd riboraptor
    download_sra_data --sradb=../riboraptor-data/SRAmetadb.sqlite \
-   --geodb=../riboraptor-data/GEOmetadb.sqlite GSE37744
+   --geodb=../riboraptor-data/GEOmetadb.sqlite GSE13750
 
 GEO IDs are automatatiicaly converted to corresponding SRP IDs.
 GSE13750 corresponds to SRP000637.
