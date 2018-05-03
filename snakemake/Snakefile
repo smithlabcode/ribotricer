@@ -165,7 +165,7 @@ rule merge_bams:
             with tempfile.TemporaryDirectory(dir=TMP_DIR_ROOT) as temp_dir:
                 cmd = ' -in '.join(input)
                 shell(r'''bamtools merge -in {cmd} -out {output}.unsorted \
-                && samtools sort -@ {threads} -T {tmp_dir}/{wildcards.sample}_merge_bam -o {output} {output}.unsorted \
+                && samtools sort -@ {threads} -T {temp_dir}/{wildcards.sample}_merge_bam -o {output} {output}.unsorted \
                 && samtools index {output} \
                 && yes | rm -rf {output}.unsorted''')
         elif len(input) == 1:
