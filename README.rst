@@ -144,9 +144,6 @@ Usage mode 4: ribopod - database
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 In progress: http://nucleus.usc.edu:8050/
 
-Downloading datasets from SRA
------------------------------
-
 
 Features
 --------
