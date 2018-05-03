@@ -66,8 +66,8 @@ We will now install all the dependencies:
 
    conda create --name riboraptor python=3.6 gcc matplotlib numpy pandas pybedtools \
    pyBigWig pyfaidx pysam scipy seaborn statsmodels six click click-help-colors htseq biopython \
-   trackhub snakemake sra-tools star fastqc trim-galore ucsc-bedgraphtobigwig ucsc-bedsort r-rcurl \
-   r-rsqlite r-devtools r-optparse bioconductor-biocinstaller bioconductor-annotationdbi \
+   trackhub snakemake sra-tools star fastqc trim-galore ucsc-bedgraphtobigwig ucsc-bedsort bamtools \
+   r-rcurl r-rsqlite r-devtools r-optparse bioconductor-biocinstaller bioconductor-annotationdbi \
    bioconductor-geometadb bioconductor-geoquery && source activate riboraptor
   
 We also have the following two dependencies for processing and downloading SRA datasets:
