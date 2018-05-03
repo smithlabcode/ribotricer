@@ -104,7 +104,7 @@ Installing riboraptor
 .. code-block:: bash
 
    source activate riboraptor
-   git clone git@github.com:saketkc/riboraptor.git
+   git clone https://github.com/saketkc/riboraptor.git
    cd riboraptor
    python setup.py install --single-version-externally-managed --record=record.txt
 
