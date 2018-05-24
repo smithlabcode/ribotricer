@@ -296,7 +296,7 @@ def plot_framewise_counts(counts,
     return ax
 
 
-def plot_read_counts(read_counts,
+def plot_read_counts(counts,
                      ax=None,
                      marker=None,
                      color='royalblue',
@@ -338,14 +338,14 @@ def plot_read_counts(read_counts,
             splitted = list([int(x) for x in line.strip().split('\t')])
             counts_counter[splitted[0]] = splitted[1]
         counts = Counter(counts_counter)
-    elif isinstance(read_counts, six.string_types):
+    elif isinstance(counts, six.string_types):
         try:
             # Try opening as a pickle first
-            counts = load_pickle(read_counts)
+            counts = load_pickle(counts)
         except IndexError:
-            counts = pd.read_table(read_counts)
+            counts_pd = pd.read_table(counts)
             counts = pd.Series(
-                counts['count'].tolist(), index=counts['position'].tolist())
+                counts_pd['count'].tolist(), index=counts_pd['position'].tolist())
         except KeyError:
             pass
     if not isinstance(counts, pd.Series):
