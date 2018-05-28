@@ -50,7 +50,7 @@
 
 
 # Features missing
-
+- [ ] Compare with [plastid](https://plastid.readthedocs.io/en/latest)
 - [ ] Metagene plots should be separated for fragment length - S
 - [ ] Add a module for guessing strand protocol of the library - S
 - [ ] Examples where strand information is essential - S
