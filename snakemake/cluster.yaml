@@ -3,8 +3,8 @@ __default__:
     time: '12:00:00'
     mem: '4gb'
     cores: 1
-    logout: '/home/cmb-06/as/skchoudh/logs/{rule}.{wildcards}.out'
-    logerror: '/home/cmb-06/as/skchoudh/logs/{rule}.{wildcards}.err'
+    logout: 'slurm-logs/snakemake-slurm-logs-{rule}.{wildcards}.out'
+    logerror: 'slurm-logs/snakemake-slurm-logs-{rule}.{wildcards}.err'
 
 create_index:
     cores: 16

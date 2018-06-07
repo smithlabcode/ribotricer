@@ -1,5 +1,10 @@
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
+"""Command line interface for riboraptor
+"""
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+from __future__ import unicode_literals
+
 import os
 import sys
 
@@ -10,20 +15,21 @@ import pandas as pd
 
 from . import __version__
 
-from .coherence import naive_periodicity
-
-from .count import bam_to_bedgraph
-from .count import bedgraph_to_bigwig
-from .count import count_reads_bed
-from .count import unique_mapping_reads_count
-from .count import extract_uniq_mapping_reads
 from .count import export_gene_coverages
 from .count import export_metagene_coverage
-from .count import read_length_distribution
+from .count import export_read_counts
+from .count import merge_gene_coverages
+from .count import export_read_length
+from .count import read_enrichment
+from .count import bedgraph_to_bigwig
+from .count import bam_to_bedgraph
+from .count import count_uniq_mapping_reads
+from .count import extract_uniq_mapping_reads
+
+from .sequence import export_gene_sequences
 
 from .download import run_download_sra_script
-from .fasta import export_all_fasta
-
+from .coherence import naive_periodicity
 from .plotting import plot_read_counts
 from .plotting import plot_read_length_dist
 
@@ -41,53 +47,32 @@ def cli():
     pass
 
 
-##############################################################################
-#################### COUNT RELATED FUNCTIONS #################################
-##############################################################################
-
-
-@cli.command(
-    'count-reads-bed',
-    context_settings=CONTEXT_SETTINGS,
-    help=
-    'Count reads in given feature bed file\n Assorted by \'name\' column in the bed'
-)
-@click.option('--bam', help='Path to bigwig file', required=True)
-@click.option('--bed', help='Path to feature file', required=True)
-@click.option('--saveto', help='Path to save gene counts tsv', required=True)
-def count_reads_bed_cmd(bam, bed, saveto):
-    counts, lengths, normalized_counts = count_reads_bed(bam, bed, saveto)
-
-
 ###################### export-gene-coverages #################################
 @cli.command(
     'export-gene-coverages',
     context_settings=CONTEXT_SETTINGS,
-    help='Export gene level coverage for all genes for given region')
-@click.option('--bigwig', '-bw', help='Path to bigwig', required=True)
+    help='Export gene level coverage for all genes of given region')
 @click.option(
-    '--region_bed',
+    '--bed',
     help='Path to bed file or a genome name (hg38_utr5, hg38_cds, hg38_utr3)',
     required=True)
-@click.option('--saveto', help='Path to write gene coverages tsv file')
+@click.option('--bw', help='Path to bigwig file', required=True)
+@click.option(
+    '--saveto', help='Path to write output', default=None, show_default=True)
 @click.option(
     '--offset_5p',
     help='Number of upstream bases to count(5\')',
     type=int,
-    default=60)
+    default=0,
+    show_default=True)
 @click.option(
     '--offset_3p',
     help='Number of downstream bases to count(3\')',
     type=int,
-    default=0)
-@click.option(
-    '--ignore_tx_version',
-    help='Ignore version (.xyz) in gene names',
-    is_flag=True)
-def export_gene_coverages_cmd(bigwig, region_bed, saveto, offset_5p, offset_3p,
-                              ignore_tx_version):
-    export_gene_coverages(bigwig, region_bed, saveto, offset_5p, offset_3p,
-                          ignore_tx_version)
+    default=0,
+    show_default=True)
+def export_gene_coverages_cmd(bed, bw, saveto, offset_5p, offset_3p):
+    export_gene_coverages(bed, bw, saveto, offset_5p, offset_3p)
 
 
 ###################### export-metagene-coverages ##############################
@@ -95,42 +80,109 @@ def export_gene_coverages_cmd(bigwig, region_bed, saveto, offset_5p, offset_3p,
     'export-metagene-coverage',
     context_settings=CONTEXT_SETTINGS,
     help='Export metagene coverage for given region')
-@click.option('--bigwig', '-bw', help='Path to bigwig', required=True)
 @click.option(
-    '--region_bed',
+    '--bed',
     help='Path to bed file or a genome name (hg38_utr5, hg38_cds, hg38_utr3)',
     required=True)
+@click.option('--bw', help='Path to bigwig file', required=True)
 @click.option(
-    '--saveto', help='Path to write metagene coverage tsv file', required=True)
+    '--max_positions',
+    help='maximum positions to count',
+    type=int,
+    default=500,
+    show_default=True)
 @click.option(
-    '--max_positions', help='maximum positions to count', default=500)
+    '--saveto', help='Path to write output', default=None, show_default=True)
 @click.option(
     '--offset_5p',
     help='Number of upstream bases to count(5\')',
     type=int,
-    default=60)
+    default=0,
+    show_default=True)
 @click.option(
     '--offset_3p',
     help='Number of downstream bases to count(3\')',
     type=int,
-    default=0)
+    default=0,
+    show_default=True)
 @click.option(
-    '--ignore_tx_version',
-    help='Ignore version (.xyz) in gene names',
+    '--no-ignore-tx-version',
+    help='transript versions should not be ignored',
     is_flag=True)
-def export_metagene_coverage_cmd(bigwig, region_bed, max_positions, saveto,
-                                 offset_5p, offset_3p, ignore_tx_version):
-    metagene_profile = export_metagene_coverage(
-        bigwig=bigwig,
-        region_bed_f=region_bed,
-        max_positions=max_positions,
-        saveto=saveto,
-        offset_5p=offset_5p,
-        offset_3p=offset_3p,
-        ignore_tx_version=ignore_tx_version)
+def export_metagene_coverage_cmd(bed, bw, max_positions, saveto, offset_5p,
+                                 offset_3p, no_ignore_tx_version):
+    metagene_profile = export_metagene_coverage(bed, bw, max_positions, saveto,
+                                                offset_5p, offset_3p,
+                                                not no_ignore_tx_version)
+
     for i, count in six.iteritems(metagene_profile):
         sys.stdout.write('{}\t{}'.format(i, count))
         sys.stdout.write(os.linesep)
+
+
+###################### export-read-counts ##############################
+@cli.command(
+    'export-read-counts',
+    context_settings=CONTEXT_SETTINGS,
+    help='Export read counts from gene coverages file')
+@click.option(
+    '--gene_coverages', help='Path to gene coverages file', required=True)
+@click.option(
+    '--saveto', help='Path to write output', default=None, show_default=True)
+@click.option(
+    '--keep_offsets',
+    help='whether keep the 5\' and 3\' offsets',
+    is_flag=True)
+def export_read_counts_cmd(gene_coverages, saveto, keep_offsets):
+    export_read_counts(gene_coverages, saveto, keep_offsets)
+
+
+###################### merge-gene-coverages ##############################
+@cli.command(
+    'merge-gene-coverages',
+    context_settings=CONTEXT_SETTINGS,
+    help='merge gene coverages to generate metagene coverage')
+@click.option(
+    '--gene_coverages', help='Path to gene coverages file', required=True)
+@click.option(
+    '--max_positions',
+    help='maximum positions to count',
+    type=int,
+    default=500,
+    show_default=True)
+@click.option(
+    '--saveto', help='Path to write output', default=None, show_default=True)
+def merge_gene_coverages_cmd(gene_coverages, max_positions, saveto):
+    merge_gene_coverages(gene_coverages, max_positions, saveto)
+
+
+#################### export-read-length ######################################
+@cli.command(
+    'export-read-length',
+    context_settings=CONTEXT_SETTINGS,
+    help='Calculate read length distribution')
+@click.option('--bam', help='Path to BAM file', required=True)
+@click.option('--saveto', help='Path to write read length dist tsv output')
+def export_read_length_cmd(bam, saveto):
+    counts = export_read_length(bam, saveto)
+    for i, count in six.iteritems(dict(counts)):
+        sys.stdout.write('{}\t{}'.format(i, count))
+        sys.stdout.write(os.linesep)
+
+
+#################### read-enrichment ######################################
+@cli.command(
+    'read-enrichment',
+    context_settings=CONTEXT_SETTINGS,
+    help='Calculate read enrichment for a certain range of lengths')
+@click.option('--read_lengths', help='Path to read length tsv', required=True)
+@click.option('--min_length', help='The low end of the range', default=28)
+@click.option('--max_length', help='The high end of the range', default=32)
+def read_enrichment_cmd(read_lengths, min_length, max_length):
+    ratio = read_enrichment(read_lengths, min_length, max_length)
+    sys.stdout.write('Enrichment of length range {}-{}: {}'.format(
+        min_length, max_length, ratio))
+    sys.stdout.write(os.linesep)
 
 
 #################### periodicity #############################################
@@ -152,60 +204,30 @@ def periodicity_cmd(counts):
     sys.stdout.write(os.linesep)
 
 
-#################### export-read-length ######################################
+#################### export-gene-sequences ####################################
 @cli.command(
-    'export-read-length',
+    'export-gene-sequences',
     context_settings=CONTEXT_SETTINGS,
-    help='Calculate read length distribution')
-@click.option('--bam', help='Path to BAM file', required=True)
-@click.option('--saveto', help='Path to write read length dist tsv output')
-def rld_cmd(bam, saveto):
-    counts = read_length_distribution(bam, saveto)
-    for i, count in six.iteritems(dict(counts)):
-        sys.stdout.write('{}\t{}'.format(i, count))
-        sys.stdout.write(os.linesep)
-
-
-#################### export-bed-fasta ######################################
-@cli.command(
-    'export-bed-fasta',
-    context_settings=CONTEXT_SETTINGS,
-    help='Export gene level fasta from specified bed regions')
+    help='Export gene level sequence for all genes of given region')
 @click.option(
-    '--region_bed',
+    '--bed',
     help='Path to bed file or a genome name (hg38_utr5, hg38_cds, hg38_utr3)',
     required=True)
 @click.option('--fasta', help='Path to fasta file', required=True)
 @click.option(
-    '--prefix',
-    '-o',
-    help='Path to write output',
-    default=None,
-    show_default=True)
-@click.option('--chrom_sizes', help='Path to chrom.sizes', required=True)
+    '--saveto', help='Path to write output', default=None, show_default=True)
 @click.option(
     '--offset_5p',
     help='Number of upstream bases to count(5\')',
     type=int,
-    default=60)
+    default=0)
 @click.option(
     '--offset_3p',
     help='Number of downstream bases to count(3\')',
     type=int,
     default=0)
-@click.option(
-    '--ignore_tx_version',
-    help='Ignore version (.xyz) in gene names',
-    is_flag=True)
-def export_all_fasta_cmd(region_bed, chrom_sizes, fasta, prefix, offset_5p,
-                         offset_3p, ignore_tx_version):
-    export_all_fasta(region_bed, chrom_sizes, fasta, prefix, offset_5p,
-                     offset_3p, ignore_tx_version)
-
-
-##############################################################################
-#################### PLOTING RELATED FUNCTIONS ###############################
-##############################################################################
+def export_gene_sequences_cmd(bed, fasta, saveto, offset_5p, offset_3p):
+    export_gene_sequences(bed, fasta, saveto, offset_5p, offset_3p)
 
 
 ######################## plot-metagene ####################################
@@ -311,11 +333,6 @@ def plot_read_length_dist_cmd(read_lengths, title, millify_labels, saveto,
             ascii=ascii)
 
 
-##############################################################################
-#################### BAMTOOLS STYLE FUNCTIONS ################################
-##############################################################################
-
-
 ####################### bam-to-bedgraph ######################################
 @cli.command(
     'bam-to-bedgraph',
@@ -388,7 +405,7 @@ def bedgraph_to_bigwig_cmd(bedgraph, sizes, saveto):
     help='Count number of unique mapping reads')
 @click.option('--bam', help='Path to BAM file', required=True)
 def uniq_mapping_cmd(bam):
-    count = unique_mapping_reads_count(bam)
+    count = count_uniq_mapping_reads(bam)
     sys.stdout.write(str(count))
     sys.stdout.write(os.linesep)
 

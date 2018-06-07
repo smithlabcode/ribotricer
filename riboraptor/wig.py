@@ -28,15 +28,14 @@ class WigReader(object):
 
         Parameters
         ----------
-        intervals : list(tuple)
-                    A list of tuples with the following format:
-                        (chr, chrStart, chrEnd, strand)
+        intervals : list of Interval 
 
         Returns
         -------
-        scores : array_like
-                 A numpy array containing scores for each tuple
-
+        scores : array of array
+                 A numpy array containing scores for each Interval
+                 This function is agnostic of the strand information,
+                 the position in the scores is corresponding to the interval
 
         .. currentmodule:: .WigReader
         .. autosummary::
@@ -44,31 +43,29 @@ class WigReader(object):
 
         """
         scores = []
-        chrom_lengths = self.get_chromosomes
-        for chrom, chrom_start, chrom_end, strand in intervals:
-            if chrom not in list(chrom_lengths.keys()):
+        chrom_lengths = self.chromosomes
+        for i in intervals:
+            if i.chrom not in list(chrom_lengths.keys()):
                 warnings.warn(
                     'Chromosome {} does not appear in the bigwig'.format(
-                        chrom), UserWarning)
+                        i.chrom), UserWarning)
                 continue
 
-            chrom_length = chrom_lengths[chrom]
-            if int(chrom_start) > chrom_length:
+            chrom_length = chrom_lengths[i.chrom]
+            if i.start > chrom_length:
                 raise Exception(
                     'Chromsome start point exceeds chromosome length: {}>{}'.
-                    format(chrom_start, chrom_length))
-            elif int(chrom_end) > chrom_length:
+                    format(i.start, chrom_length))
+            elif i.end > chrom_length:
                 raise Exception(
                     'Chromsome end point exceeds chromosome length: {}>{}'.
-                    format(chrom_end, chrom_length))
-            score = self.wig.values(chrom, int(chrom_start), int(chrom_end))
-            if strand == '-':
-                score.reverse()
+                    format(i.end, chrom_length))
+            score = self.wig.values(i.chrom, i.start, i.end)
             scores.append(score)
         return np.array(scores)
 
     @property
-    def get_chromosomes(self):
+    def chromosomes(self):
         """Return list of chromsome and their sizes
         as in the wig file.
 

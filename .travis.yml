@@ -13,22 +13,27 @@ install:
 - export PATH="$HOME/miniconda/bin:$PATH"
 - hash -r
 - conda config --set always_yes yes --set changeps1 no
+- conda config --add channels r
+- conda config --add channels defaults
 - conda config --add channels conda-forge
+- conda config --add channels bioconda
 - conda update --yes conda
 - sudo rm -rf /dev/shm
 - sudo ln -s /run/shm /dev/shm
 - conda info -a
 - conda create -q -n test-environment python=$TRAVIS_PYTHON_VERSION
 - source activate test-environment
-- pip install -r requirements.txt
-- pip install -U sphinx mock
-- pip install https://github.com/Syntaf/travis-sphinx/archive/master.zip
+- conda install numpy scipy matplotlib pandas seaborn statsmodels pyfaidx pysam six pytest click click-help-colors pybigwig biopython htseq ucsc-bedgraphtobigwig ucsc-bedsort pybedtools
+- pip install -U sphinx mock pytest-cov codecov
 - pip install -U numpydoc ipython sphinxcontrib-fulltoc guzzle_sphinx_theme
-- python setup.py install
+- pip install https://github.com/Syntaf/travis-sphinx/archive/master.zip
+- make install
 script:
 - riboraptor
+- make test
 - travis-sphinx build --source=$TRAVIS_BUILD_DIR/docs
 after_success:
+- codecov --token=60f295c4-8b5c-45f3-a65e-8f45d7e59a11
 - travis-sphinx deploy
 deploy:
   provider: pypi

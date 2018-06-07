@@ -18,6 +18,9 @@ import numpy as np
 import pandas as pd
 import six
 
+import warnings
+from .interval import Interval
+
 CBB_PALETTE = [
     "#000000", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2",
     "#D55E00", "#CC79A7"
@@ -522,25 +525,16 @@ def codon_to_anticodon(codon):
     return ''.join(pairs[c] for c in codon)[::-1]
 
 
-def collapse_bed_intervals(intervals,
-                           chromosome_lengths=None,
-                           offset_5p=0,
-                           offset_3p=0):
+def merge_intervals(intervals,
+                    chromosome_lengths=None,
+                    offset_5p=0,
+                    offset_3p=0,
+                    zero_based=True):
     """Collapse intervals into non overlapping manner
-
-
-    # NOTE
-    # TODO : This function has a subtle bug that it will be offset by 1
-    # position when the gene is on negative strand
-    # So essentially if you have CDS on a negative strand
-    # The first position should be discarded
-    # Similary for the last position in the gene on + strand
-    # you have an extra position in the end
-
+    
     Parameters
     ----------
-    intervals : list of tuples
-                Like [('chr1', 310, 320, '+'), ('chr1', 321, 330, '+')]
+    intervals : list of Interval
     chromosome_lengths : dict
                          A map of each chromosome'e length
                          Only used with offset_3p, offset_5p>0
@@ -548,148 +542,115 @@ def collapse_bed_intervals(intervals,
                 Number of bases to count upstream (5')
     offset_3p : int (positive)
                 Number of bases to count downstream (3')
+    zero_based: bool
+                Indicate if the intervals are zero-based
+                True means zero-based half open
+                False means one-based full closed
 
     Returns
     -------
-    interval_combined : list of tuples
-                        A collapsed version of interval
+    interval_combined : list of Interval sorted by the start
+                        A merged version of intervals
                         This is useful when the annotations are overlapping.
                         Example:
                         chr1 310 320 gene1 +
                         chr1 319 324 gene1 +
                         Returns:
                         chr1 310 324 gene1 +
-
-    intervals_for_fasta_read : list of tuples
-                               This list can be used to directly fetch
-                               fasta from pyfaidx.
-                               NOTE: DO NOT do offset adjustments
-                               as they are already adjusted for pyfaidx format
-                               (1-end both start and end)
-
-    gene_offset_5p, gene_offset_3 : in
-                                    Gene wise offsets.
-                                    This might be different from offset_5p in cases where
-                                    `offset_5p` leads to a negative coordinate
+    
+    gene_offset_5p: Gene wise 5 prime offset
+                    This might be different from `offset_5p` in cases where
+                    `offset_5p` leads to a negative coordinate
+    gene_offset_3p: Gene wise 3 prime offset
+                    This might be different from `offset_3p` in cases where
+                    `offset_3p` leads to position beyond chromsome length
     """
-    chrom = intervals[0][0]
-    strand = intervals[0][3]
-    chroms = list(set([i[0] for i in intervals]))
-    strands = list(set([i[3] for i in intervals]))
+    if not intervals:
+        return ([], offset_5p, offset_3p)
+
+    chroms = list(set([i.chrom for i in intervals]))
+    strands = list(set([i.strand for i in intervals]))
 
     if len(chroms) != 1:
-        sys.stderr.write('Error chromosomes should be unique')
-        return
+        sys.stderr.write('Error: chromosomes should be unique')
+        return ([], offset_5p, offset_3p)
     if len(strands) != 1:
-        sys.stderr.write('Error strands should be unique')
-        return
+        sys.stderr.write('Error: strands should be unique')
+        return ([], offset_5p, offset_3p)
 
-    intervals_list = [list(element) for element in list(intervals)[:]]
+    chrom = chroms[0]
+    strand = strands[0]
 
-    first_interval = intervals_list[0]
-    last_interval = intervals_list[-1]
-    if offset_5p != 0 and offset_3p != 0:
-        chrom_length = chromosome_lengths[str(first_interval[0])]
+    # Sort intervals by start
+    intervals.sort(key=lambda x: x.start)
+
+    # Find first interval
+    first_interval = intervals[0]
+
+    # Find last interval
+    last_interval = intervals[-1]
+    for i in intervals:
+        if i.end > last_interval.end:
+            last_interval = i
+
+    if offset_5p != 0 or offset_3p != 0:
+        if str(chrom) in chromosome_lengths:
+            chrom_length = chromosome_lengths[str(chrom)]
+        else:
+            warnings.warn('Chromosome {} does not exist'.format(chrom),
+                          UserWarning)
+            chrom_length = np.inf
     else:
         chrom_length = np.inf
-    # Need to convert to list instead frm tuples
-    # TODO fix this?
-    # intervals = list(map(list, list(intervals)))
-    if strand == '+':
-        # For positive strand shift
-        # start codon position first_interval[1] by -offset
-        if first_interval[1] - offset_5p >= 0:
-            first_interval[1] = first_interval[1] - offset_5p
-            gene_offset_5p = offset_5p
-        else:
-            sys.stderr.write('Cannot offset beyond 0 for interval: {}. \
-                Set to start of chromsome.\n'.format(first_interval))
-            # Reset offset to minimum possible
-            gene_offset_5p = first_interval[1]
-            first_interval[1] = 0
 
-        if (last_interval[2] + offset_3p <= chrom_length):
-            last_interval[2] = last_interval[2] + offset_3p
-            gene_offset_3p = offset_3p
-        else:
-            sys.stderr.write('Cannot offset beyond 0 for interval: {}. \
-                             Set to end of chromsome.\n'.format(last_interval))
-            gene_offset_3p = chrom_length - last_interval[2]
-            # 1-end so chrom_length
-            last_interval[2] = chrom_length
+    if zero_based:
+        lower_bound = 0
     else:
-        # Else shift cooridnate of last element in intervals stop by + offset
-        if (last_interval[2] + offset_5p <= chrom_length):
-            last_interval[2] = last_interval[2] + offset_5p
+        lower_bound = 1
+    upper_bound = chrom_length
+
+    if strand == '+':
+        if first_interval.start - offset_5p >= lower_bound:
+            first_interval.start -= offset_5p
             gene_offset_5p = offset_5p
         else:
-            sys.stderr.write('Cannot offset beyond 0 for interval: {}. \
-                             Set to end of chromsome.\n'.format(last_interval))
-            gene_offset_5p = chrom_length - last_interval[2]
-            # 1-end so chrom_length
-            last_interval[2] = chrom_length
-        if first_interval[1] - offset_3p >= 0:
-            first_interval[1] = first_interval[1] - offset_3p
+            gene_offset_5p = first_interval.start - lower_bound
+            first_interval.start = lower_bound
+
+        if last_interval.end + offset_3p <= upper_bound:
+            last_interval.end += offset_3p
             gene_offset_3p = offset_3p
         else:
-            sys.stderr.write('Cannot offset beyond 0 for interval: {}. \
-                Set to start of chromsome.\n'.format(first_interval))
-            # Reset offset to minimum possible
-            gene_offset_5p = first_interval[1]
-            first_interval[1] = 0
+            gene_offset_3p = upper_bound - last_interval.end
+            last_interval.end = upper_bound
+    else:
+        if last_interval.end + offset_5p <= upper_bound:
+            last_interval.end += offset_5p
+            gene_offset_5p = offset_5p
+        else:
+            gene_offset_5p = upper_bound - last_interval.end
+            last_interval.end = upper_bound
 
-    intervals = [tuple(element) for element in intervals_list]
+        if first_interval.start - offset_3p >= lower_bound:
+            first_interval.start -= offset_3p
+            gene_offset_3p = offset_3p
+        else:
+            gene_offset_3p = first_interval.start - lower_bound
+            first_interval.start = lower_bound
 
-    interval_coverage_list = []
-    for index, interval in enumerate(intervals):
-        strand = interval[3]
-        if strand == '+':
-            series_range = list(range(interval[1], interval[2]))
-        elif strand == '-':
-            series_range = list(range(interval[2], interval[1], -1))
+    # Merge overlapping intervals
+    to_merge = Interval(chrom, first_interval.start, first_interval.end,
+                        strand)
+    intervals_combined = []
+    for i in intervals:
+        if i.start <= to_merge.end:
+            to_merge.end = max(to_merge.end, i.end)
+        else:
+            intervals_combined.append(to_merge)
+            to_merge = Interval(chrom, i.start, i.end, strand)
+    intervals_combined.append(to_merge)
 
-        series = pd.Series(series_range, index=series_range)
-        interval_coverage_list.append(series)
-
-    if len(interval_coverage_list) == 0:
-        # Some genes might not be present in the bigwig at all
-        sys.stderr.write('Got empty list! intervals  for chr : {}\n'.format(
-            first_interval[0]))
-        return (pd.Series([]), pd.Series([]), pd.Series([]), 0, 0)
-
-    interval_combined = interval_coverage_list[0]
-    for interval in interval_coverage_list[1:]:
-        interval_combined = interval_combined.combine_first(interval)
-    interval_index = np.arange(len(interval_combined)) - gene_offset_5p
-    index_to_genomic_pos_map = pd.Series(
-        interval_combined.index.tolist(), index=interval_index)
-    """
-    intervals_for_fasta_read = []
-    for pos in index_to_genomic_pos_map.values:
-        # we use 1-based indexing (both start and end) for fetching fasta
-        intervals_for_fasta_read.append((chrom, pos + 1, pos + 1, strand))
-    """
-    interval_combined = interval_combined.reset_index(drop=True)
-    interval_combined = interval_combined.rename(lambda x: x - gene_offset_5p)
-    interval_zero_start = list_to_ranges(
-        interval_combined.sort_values().astype(int).values.tolist())
-    interval_one_start = list_to_ranges(
-        (1 + interval_combined).sort_values().astype(int).values.tolist())
-    query_intervals = []
-    for index, (start, stop) in enumerate(interval_zero_start):
-        # our intervals were already 0-based start and 1-based end
-        # so we want to retain that
-        # it is tricky
-        # but the start and end were both transformed to 0-based since we used range before
-        query_intervals.append((chrom, start, stop + 1, strand))
-    fasta_onebased_intervals = []
-    for index, (start, stop) in enumerate(interval_one_start):
-        # our intervals were already 0-based start and 1-based end
-        # so we want to retain that
-        # it is tricky
-        # but the start and end were both transformed to 0-based since we used range before
-        fasta_onebased_intervals.append((chrom, start, stop, strand))
-    return query_intervals, fasta_onebased_intervals, gene_offset_5p, gene_offset_3p
+    return (intervals_combined, gene_offset_5p, gene_offset_3p)
 
 
 def summarize_counters(samplewise_dict):

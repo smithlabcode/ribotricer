@@ -68,6 +68,14 @@ riboraptor.helpers module
     :undoc-members:
     :show-inheritance:
 
+riboraptor.interval module
+--------------------------
+
+.. automodule:: riboraptor.interval
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 riboraptor.normalization module
 -------------------------------
 

@@ -1,41 +1,142 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-"""
-test_riboraptor
-----------------------------------
-
-Tests for `riboraptor` module.
-"""
-
+from __future__ import absolute_import
+from __future__ import print_function
 import pytest
 
-from contextlib import contextmanager
-from click.testing import CliRunner
-
-from riboraptor import cli
-
-
-@pytest.fixture
-def response():
-    """Sample pytest fixture.
-    See more at: http://doc.pytest.org/en/latest/fixture.html
-    """
-    # import requests
-    # return requests.get('https://github.com/audreyr/cookiecutter-pypackage')
+from riboraptor.count import gene_coverage
+from riboraptor.count import count_uniq_mapping_reads
+from riboraptor.fasta import FastaReader
+from riboraptor.helpers import merge_intervals
+from riboraptor.interval import Interval
+from riboraptor.sequence import gene_sequence
+from riboraptor.sequence import export_gene_sequences
+from riboraptor.wig import WigReader
 
 
-def test_content(response):
-    """Sample pytest test function with the pytest fixture as an argument.
-    """
-    # from bs4 import BeautifulSoup
-    # assert 'GitHub' in BeautifulSoup(response.content).title.string
+def test_interval():
+    iv = Interval()
+    assert (iv.chrom == None and iv.start == 0 and iv.end == 0
+            and iv.strand == None)
+    iv = Interval('chr1', 1, 15, '+')
+    assert (iv.chrom == 'chr1' and iv.start == 1 and iv.end == 15
+            and iv.strand == '+')
 
 
-def test_command_line_interface():
-    runner = CliRunner()
-    result = runner.invoke(cli.main)
-    assert result.exit_code == 0
-    assert 'riboraptor.cli.main' in result.output
-    help_result = runner.invoke(cli.main, ['--help'])
-    assert help_result.exit_code == 0
-    assert '--help  Show this message and exit.' in help_result.output
+def test_merge_intervals():
+    bw = WigReader('tests/data/SRX2536403_subsampled.unique.bigWig')
+    chromosome_lengths = bw.chromosomes
+
+    # test when intervals are empty
+    intervals = []
+    intervals_combined = merge_intervals(intervals, chromosome_lengths, 30, 30)
+    assert (intervals_combined == ([], 30, 30))
+
+    # test when only one interval
+    intervals = [Interval('chr1', 10, 20, '-')]
+    intervals_combined = merge_intervals(intervals, chromosome_lengths, 30, 30)
+    assert (intervals_combined == ([Interval('chr1', 0, 50, '-')], 30, 10))
+
+    # test overlapping intervals
+    intervals = [
+        Interval('chr1', x[0], x[1], '-')
+        for x in [(1, 9), (7, 15), (30, 40), (13, 18), (3, 4)]
+    ]
+    intervals_combined = merge_intervals(intervals, chromosome_lengths, 30, 30)
+    expected = [Interval('chr1', x[0], x[1], '-') for x in [(0, 18), (30, 70)]]
+    assert (intervals_combined == (expected, 30, 1))
+
+    # test more tricky intervals
+    intervals = [
+        Interval('chr1', x[0], x[1], '-')
+        for x in [(260, 400), (200, 300), (280, 300)]
+    ]
+    intervals_combined = merge_intervals(intervals, chromosome_lengths, 30, 30)
+    assert (intervals_combined == ([Interval('chr1', 170, 430, '-')], 30, 30))
+
+    # test intervals near the end of chrom for neg strand
+    chr1_length = chromosome_lengths['chr1']
+    intervals = [
+        Interval('chr1', x[0], x[1], '-')
+        for x in [(chr1_length - 10,
+                   chr1_length - 2), (260, 400), (200, 300), (280, 300)]
+    ]
+    intervals_combined = merge_intervals(intervals, chromosome_lengths, 30, 30)
+    assert (intervals_combined == ([
+        Interval('chr1', 170, 400, '-'),
+        Interval('chr1', chr1_length - 10, chr1_length, '-')
+    ], 2, 30))
+
+    # test intervals near the end of chrom for pos strand
+    chr1_length = chromosome_lengths['chr1']
+    intervals = [
+        Interval('chr1', x[0], x[1], '+')
+        for x in [(chr1_length - 10,
+                   chr1_length - 2), (260, 400), (200, 300), (280, 300)]
+    ]
+    intervals_combined = merge_intervals(intervals, chromosome_lengths, 10, 30)
+    assert (intervals_combined == ([
+        Interval('chr1', 190, 400, '+'),
+        Interval('chr1', chr1_length - 10, chr1_length, '+')
+    ], 10, 2))
+
+    # test intervals of one-based near start
+    chr1_length = chromosome_lengths['chr1']
+    intervals = [
+        Interval('chr1', x[0], x[1], '+')
+        for x in [(chr1_length - 10,
+                   chr1_length - 2), (260, 400), (5, 300), (280, 300)]
+    ]
+    intervals_combined = merge_intervals(intervals, chromosome_lengths, 10, 30,
+                                         False)
+    assert (intervals_combined == ([
+        Interval('chr1', 1, 400, '+'),
+        Interval('chr1', chr1_length - 10, chr1_length, '+')
+    ], 4, 2))
+
+
+def test_wig():
+    bw = WigReader('tests/data/SRX2536403_subsampled.unique.bigWig')
+    intervals = [
+        Interval('chr1', x[0], x[1], '-')
+        for x in [(999594, 999595), (999597, 999598)]
+    ]
+    coverages = bw.query(intervals)
+    assert (coverages[0] == [1] and coverages[1] == [1])
+
+
+def test_fasta():
+    fasta = FastaReader('tests/data/hg38.fa')
+    chrom_length = fasta.chromosomes['chr1']
+    assert (chrom_length == 89950)
+    sequences = fasta.query(
+        [Interval('chr1', 89948, 89950),
+         Interval('chr1', 99, 100)])
+    assert (sequences == ['TTA', 'AC'])
+
+    assert (fasta.complement('TCGA') == 'AGCT')
+    assert (fasta.reverse_complement('TCGA') == 'TCGA')
+
+
+def test_gene_coverage():
+    gene_name = 'ENSG00000035115'
+    bed = 'riboraptor/annotation/hg38/cds.bed.gz'
+    bw = 'tests/data/SRX2536403_subsampled.unique.bigWig'
+    coverage, offset_5p, offset_3p = gene_coverage(gene_name, bed, bw, 30, 30)
+    assert (coverage.sum() == 1)
+
+
+def test_gene_coverage_from_internal_bed():
+    gene_name = 'ENSG00000035115'
+    bed = 'hg38_cds'
+    bw = 'tests/data/SRX2536403_subsampled.unique.bigWig'
+    coverage, offset_5p, offset_3p = gene_coverage(gene_name, bed, bw, 30, 30)
+    assert (coverage.sum() == 1)
+
+
+def test_uniq_mapping_count():
+    bam = 'tests/data/SRX2536403_subsampled.unique.bam'
+    counts = count_uniq_mapping_reads(bam)
+    assert (int(counts) == 358514)
+
+
+if __name__ == '__main__':
+    pytest.main([__file__])

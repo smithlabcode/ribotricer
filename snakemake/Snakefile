@@ -14,6 +14,8 @@ import numpy as np
 from snakemake.utils import report
 from textwrap import dedent
 import base64
+from riboraptor.helpers import mkdir_p
+
 
 TMP_DIR_ROOT = None
 INTRON_BED = None
@@ -23,6 +25,7 @@ include:
 
 workdir: OUT_DIR
 
+mkdir_p(join(OUT_DIR, 'slurm-logs'))
 if not TMP_DIR_ROOT:
     TMP_DIR_ROOT = '/tmp'
 
@@ -85,11 +88,11 @@ rule all:
         expand('mapped/bigWigs/{sample}.bw', sample=SRX_ID_DICT_KEYS),
         expand('mapped/plots/metagene/{sample}.png', sample=SRX_ID_DICT_KEYS),
         expand('mapped/plots/read_length/{sample}.png', sample=SRX_ID_DICT_KEYS),
-        expand('mapped/genewise_counts_CDS/{sample}.tsv', sample=SRX_ID_DICT_KEYS),
         'riboraptor_report.html'
         #expand('mapped/gene_coverages/CDS/{sample}_gene_coverages.tsv', sample=SRX_ID_DICT_KEYS),
         #expand('mapped/gene_coverages/UTR5/{sample}_gene_coverages.tsv', sample=SRX_ID_DICT_KEYS),
         #expand('mapped/gene_coverages/UTR3/{sample}_gene_coverages.tsv', sample=SRX_ID_DICT_KEYS),
+        #expand('mapped/genewise_counts_CDS/{sample}.tsv', sample=SRX_ID_DICT_KEYS),
 
 
 rule sra_to_fastq:
@@ -201,8 +204,8 @@ rule export_utr5_coverage:
         offset_5p = 10
     output: 'mapped/gene_coverages/UTR5/{sample}_gene_coverages.tsv'
     shell: r'''riboraptor export-gene-coverages \
-           --bigwig {input} \
-           --region_bed {UTR5_BED} \
+           --bw {input} \
+           --bed {UTR5_BED} \
            --saveto {output} \
            --offset_5p {params.offset_5p}'''
 
@@ -213,8 +216,8 @@ rule export_cds_coverage:
         offset_5p = 10
     output: 'mapped/gene_coverages/CDS/{sample}_gene_coverages.tsv'
     shell: r'''riboraptor export-gene-coverages \
-           --bigwig {input} \
-           --region_bed {CDS_BED} \
+           --bw {input} \
+           --bed {CDS_BED} \
            --saveto {output} \
            --offset_5p {params.offset_5p}'''
 
@@ -225,8 +228,8 @@ rule export_utr3_coverage:
         offset_5p = 10
     output: 'mapped/gene_coverages/UTR3/{sample}_gene_coverages.tsv'
     shell: r'''riboraptor export-gene-coverages \
-           --bigwig {input} \
-           --region_bed {UTR3_BED} \
+           --bw {input} \
+           --bed {UTR3_BED} \
            --saveto {output} \
            --offset_5p {params.offset_5p}'''
 
@@ -272,8 +275,8 @@ rule export_metagene:
     output: 'mapped/metagene_coverages/{sample}.tsv'
     shell:
         r'''
-        riboraptor export-metagene-coverage --bigwig {input} \
-        --region_bed {CDS_BED} --ignore_tx_version --saveto {output}
+        riboraptor export-metagene-coverage --bw {input} \
+        --bed {CDS_BED} --saveto {output}
         '''
 
 rule plot_metagene:

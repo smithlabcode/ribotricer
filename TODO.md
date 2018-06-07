@@ -59,6 +59,6 @@
 # Install instructions
 
 - [ ] Add instructions to output logs in OUT_DIR
-- [ ] Add insttuctions about slurm/qsub change
-- [ ] riboraptor_output.html should be reanmed?
+- [ ] Add instructions about slurm/qsub change
+- [ ] riboraptor_output.html should be renamed?
 - [ ] Pipeline requires storage for sqlite

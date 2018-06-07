@@ -14,6 +14,8 @@ riboraptor : a pipeline for analysing ribosome profiling data
 .. image:: https://readthedocs.org/projects/riboraptor/badge/?version=latest
         :target: http://riboraptor.readthedocs.io/en/latest/?badge=latest&style=flat-square
 
+.. image:: https://codecov.io/gh/saketkc/riboraptor/branch/master/graph/badge.svg?token=klaHhNsttK
+        :target: https://codecov.io/gh/saketkc/riboraptor
 
 .. _Miniconda: https://conda.io/miniconda.html
 .. _`aspera connect`: http://downloads.asperasoft.com/connect2/

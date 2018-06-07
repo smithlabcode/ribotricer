@@ -74,3 +74,10 @@ snakemake/*.stats
 *.sqlite.gz
 *.sra
 
+#pytest
+.pytest_cache/
+utils/*
+snakemake/configs/test*
+tests/data/.hg38*
+tests/data/hg38.fa.fai
+record.txt

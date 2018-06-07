@@ -71,11 +71,11 @@ def dtw(X, Y, metric='euclidean', ddtw=False, ddtw_order=1):
             # shape will be M-1 x D
             Y_diff = np.diff(Y, axis=0)
 
-            X_mod[1:m - 1, :] = 0.5 * (
-                X_diff[:m - 2, :] + 0.5 * X_diff[1:m - 1])
+            X_mod[1:m -
+                  1, :] = 0.5 * (X_diff[:m - 2, :] + 0.5 * X_diff[1:m - 1])
 
-            Y_mod[1:n - 1, :] = 0.5 * (
-                Y_diff[:n - 2, :] + 0.5 * Y_diff[1:n - 1])
+            Y_mod[1:n -
+                  1, :] = 0.5 * (Y_diff[:n - 2, :] + 0.5 * Y_diff[1:n - 1])
 
             X_mod[0, :] = X_mod[1, :]
             X_mod[m - 1, :] = X_mod[m - 2, :]

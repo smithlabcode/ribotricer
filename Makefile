@@ -51,7 +51,7 @@ lint: ## check style with flake8
 	flake8 riboraptor tests
 
 test: ## run tests quickly with the default Python
-	py.test
+	coverage run --branch -m pytest -s && coverage report -m
 	
 
 test-all: ## run tests on every Python version with tox
