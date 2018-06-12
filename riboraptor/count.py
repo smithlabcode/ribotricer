@@ -206,11 +206,11 @@ def export_gene_coverages(bed, bw, saveto, offset_5p=0, offset_3p=0):
                 gene_name, bed, bw, offset_5p, offset_3p)
             coverage = coverage.fillna(0)
             coverage = coverage.tolist()
+            coverage = [int(x) for x in coverage]
 
-            if sum(coverage) > 0:
-                outfile.write('{}\t{}\t{}\t{}\n'.format(
-                    gene_name, int(gene_offset_5p), int(gene_offset_3p),
-                    coverage))
+            outfile.write('{}\t{}\t{}\t{}\n'.format(
+                gene_name, int(gene_offset_5p), int(gene_offset_3p),
+                coverage))
 
             sys.stdout.write('\rProgress: {0:.2f}%\r'.format(
                 cnt / len(bed_grouped) * 100))
