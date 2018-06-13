@@ -19,6 +19,7 @@ from .count import export_gene_coverages
 from .count import export_metagene_coverage
 from .count import export_read_counts
 from .count import merge_gene_coverages
+from .count import merge_read_counts
 from .count import export_read_length
 from .count import read_enrichment
 from .count import bedgraph_to_bigwig
@@ -154,6 +155,20 @@ def export_read_counts_cmd(gene_coverages, saveto, keep_offsets):
     '--saveto', help='Path to write output', default=None, show_default=True)
 def merge_gene_coverages_cmd(gene_coverages, max_positions, saveto):
     merge_gene_coverages(gene_coverages, max_positions, saveto)
+
+
+###################### merge-read-counts ##############################
+@cli.command(
+    'merge-read-counts',
+    context_settings=CONTEXT_SETTINGS,
+    help='merge read counts to generate count table')
+@click.option(
+    '--read_counts', help='Path to file containing read counts paths', 
+    required=True)
+@click.option(
+    '--saveto', help='Path to write output', required=True)
+def merge_read_counts_cmd(read_counts, saveto):
+    merge_read_counts(read_counts, saveto)
 
 
 #################### export-read-length ######################################
