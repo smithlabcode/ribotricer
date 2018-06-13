@@ -8,6 +8,7 @@ from __future__ import unicode_literals
 import warnings
 
 from collections import Counter
+from functools import reduce
 import os
 import re
 import subprocess
@@ -413,6 +414,38 @@ def merge_gene_coverages(gene_coverages, max_positions=None, saveto=None):
         to_write.to_csv(saveto, sep=str('\t'), index=False)
 
     return metagene_coverage
+
+
+def merge_read_counts(read_counts, saveto):
+    """merge read counts tsv files to one count table
+
+    Parameters
+    ----------
+    read_counts: str
+                 Path to file which contains paths of all read counts
+                 tsv file you want to merge
+    saveto: str
+            Path to save output tsv
+
+    """
+    with open(read_counts) as f:
+        samples = f.readlines()
+    samples = [x.strip() for x in samples]
+    dfs = []
+    for sample in samples:
+        name = os.path.basename(sample)
+        name = name.split('_')[0]
+        df = pd.read_table(sample, index_col=0)
+        df = df[['count']]
+        df.rename(columns={'count': name}, inplace=True)
+        dfs.append(df)
+    df_merged = reduce(lambda left, right: pd.merge(
+                                             left, right, how='outer',
+                                             left_index=True,
+                                             right_index=True), dfs)
+    df_merged.fillna(0, inplace=True)
+    df_merged = df_merged.astype(int)
+    df_merged.to_csv(saveto, sep=str('\t'))
 
 
 def export_read_length(bam, saveto=None):
