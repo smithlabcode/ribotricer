@@ -81,12 +81,7 @@ def _is_read_uniq_mapping(read):
     return False
 
 
-def gene_coverage(gene_name,
-                  bed,
-                  bw,
-                  offset_5p=0,
-                  offset_3p=0,
-                  ignore_tx_version=True):
+def gene_coverage(gene_name, bed, bw, offset_5p=0, offset_3p=0):
     """Get gene coverage.
 
     Parameters
@@ -113,9 +108,6 @@ def gene_coverage(gene_name,
                     This might be different from `offset_3p` in cases where
                     `offset_3p` leads to position beyond chromsome length
     """
-    if ignore_tx_version:
-        gene_name = re.sub(r'\.[0-9]+', '', gene_name)
-
     if offset_5p < 0 or offset_3p < 0:
         raise RuntimeError('Offsets must be non-negative')
         sys.exit(1)
@@ -223,8 +215,7 @@ def export_metagene_coverage(bed,
                              max_positions=None,
                              saveto=None,
                              offset_5p=0,
-                             offset_3p=0,
-                             ignore_tx_version=True):
+                             offset_3p=0):
     """Export metagene coverage.
 
     Parameters
@@ -270,9 +261,6 @@ def export_metagene_coverage(bed,
     cnt = 0
     sys.stdout.write('total # of genes: {}\n'.format(len(bed_grouped)))
     for gene_name, gene_group in bed_grouped:
-        if ignore_tx_version:
-            gene_name = re.sub(r'\.[0-9]+', '', gene_name)
-
         cnt += 1
         coverage, _, _ = gene_coverage(gene_name, bed, bw, offset_5p,
                                        offset_3p)

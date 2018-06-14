@@ -106,15 +106,10 @@ def export_gene_coverages_cmd(bed, bw, saveto, offset_5p, offset_3p):
     type=int,
     default=0,
     show_default=True)
-@click.option(
-    '--no-ignore-tx-version',
-    help='transript versions should not be ignored',
-    is_flag=True)
 def export_metagene_coverage_cmd(bed, bw, max_positions, saveto, offset_5p,
-                                 offset_3p, no_ignore_tx_version):
+                                 offset_3p):
     metagene_profile = export_metagene_coverage(bed, bw, max_positions, saveto,
-                                                offset_5p, offset_3p,
-                                                not no_ignore_tx_version)
+                                                offset_5p, offset_3p)
 
     for i, count in six.iteritems(metagene_profile):
         sys.stdout.write('{}\t{}'.format(i, count))
