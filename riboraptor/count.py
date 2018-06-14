@@ -179,13 +179,12 @@ def export_gene_coverages(bed, bw, saveto, offset_5p=0, offset_3p=0):
         coverage, gene_offset_5p, gene_offset_3p = gene_coverage(
             gene_group, bw, offset_5p, offset_3p)
         coverage = coverage.fillna(0)
-        if sum(coverage) > 0:
-            coverage = coverage.astype(int)
-            coverage = coverage.tolist()
+        coverage = coverage.astype(int)
+        coverage = coverage.tolist()
 
-            to_write += '{}\t{}\t{}\t{}\n'.format(
-                gene_name, int(gene_offset_5p), int(gene_offset_3p),
-                coverage)
+        to_write += '{}\t{}\t{}\t{}\n'.format(
+            gene_name, int(gene_offset_5p), int(gene_offset_3p),
+            coverage)
 
     mkdir_p(os.path.dirname(saveto))
     with open(saveto, 'w') as outfile:
