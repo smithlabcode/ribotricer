@@ -23,15 +23,13 @@ from .interval import Interval
 from .fasta import FastaReader
 
 
-def gene_sequence(gene_name, bed, fasta, offset_5p=0, offset_3p=0):
+def gene_sequence(gene_group, fasta, offset_5p=0, offset_3p=0):
     """Extract seq genewise given coordinates in bed file
 
     Parameters
     ----------
-    gene_name: str
-                Gene name
-    bed: str
-          Path to CDS or 5'UTR or 3'UTR bed
+    gene_group: DataFrame
+                gene group from bed file
     fasta  str
            Path to fasta file
     offset_5p: int (positive)
@@ -56,18 +54,6 @@ def gene_sequence(gene_name, bed, fasta, offset_5p=0, offset_3p=0):
     if not isinstance(fasta, FastaReader):
         fasta = FastaReader(fasta)
     chromosome_lengths = fasta.chromosomes
-    if bed.lower().split('_')[0] in __GENOMES_DB__:
-        genome, region_type = bed.lower().split('_')
-        bed = _get_bed(region_type, genome)
-    bed_df = pybedtools.BedTool(bed).sort().to_dataframe()
-    bed_df['chrom'] = bed_df['chrom'].astype(str)
-    bed_df['name'] = bed_df['name'].astype(str)
-
-    if gene_name not in bed_df['name'].tolist():
-        raise RuntimeError('Failed to find gene in bed file')
-        sys.exit(1)
-
-    gene_group = bed_df[bed_df['name'] == gene_name]
 
     if len(gene_group['strand'].unique()) != 1:
         raise RuntimeError('Multiple strands?: {}'.format(gene_group))
@@ -121,16 +107,16 @@ def export_gene_sequences(bed, fasta, saveto=None, offset_5p=0, offset_3p=0):
     bed_df['chrom'] = bed_df['chrom'].astype(str)
     bed_df['name'] = bed_df['name'].astype(str)
     bed_grouped = bed_df.groupby('name')
-    lines_to_write = 'gene_name\toffset_5p\toffset_3p\tsequence\n'
+    to_write = 'gene_name\toffset_5p\toffset_3p\tsequence\n'
     for gene_name, gene_group in bed_grouped:
         sequence, gene_offset_5p, gene_offset_3p = gene_sequence(
-            gene_name, bed, fasta, offset_5p, offset_3p)
-        lines_to_write += '{}\t{}\t{}\t{}\n'.format(gene_name,
-                                                    int(gene_offset_5p),
-                                                    int(gene_offset_3p),
-                                                    sequence)
+            gene_group, fasta, offset_5p, offset_3p)
+        to_write += '{}\t{}\t{}\t{}\n'.format(gene_name,
+                                              int(gene_offset_5p),
+                                              int(gene_offset_3p),
+                                              sequence)
     if not saveto:
-        return lines_to_write
+        return to_write
     else:
         with open(saveto, 'w') as outfile:
-            outfile.write(lines_to_write)
+            outfile.write(to_write)
