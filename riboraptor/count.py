@@ -196,26 +196,27 @@ def export_gene_coverages(bed, bw, saveto, offset_5p=0, offset_3p=0):
     if not isinstance(bw, WigReader):
         bw = WigReader(bw)
 
+    to_write = 'gene_name\toffset_5p\toffset_3p\tcoverage\n'
+    cnt = 0
+    sys.stdout.write('total # of genes: {}\n'.format(len(bed_grouped)))
+    for gene_name, gene_group in bed_grouped:
+        cnt += 1
+        coverage, gene_offset_5p, gene_offset_3p = gene_coverage(
+            gene_name, bed, bw, offset_5p, offset_3p)
+        coverage = coverage.fillna(0)
+        coverage = coverage.astype(int)
+        coverage = coverage.tolist()
+
+        to_write += '{}\t{}\t{}\t{}\n'.format(
+            gene_name, int(gene_offset_5p), int(gene_offset_3p),
+            coverage)
+
+        sys.stdout.write('\rProgress: {0:.2f}%\r'.format(
+            cnt / len(bed_grouped) * 100))
+
     mkdir_p(os.path.dirname(saveto))
     with open(saveto, 'w') as outfile:
-        outfile.write('gene_name\toffset_5p\toffset_3p\tcoverage\n')
-        cnt = 0
-        sys.stdout.write('total # of genes: {}\n'.format(len(bed_grouped)))
-        for gene_name, gene_group in bed_grouped:
-            cnt += 1
-            coverage, gene_offset_5p, gene_offset_3p = gene_coverage(
-                gene_name, bed, bw, offset_5p, offset_3p)
-            coverage = coverage.fillna(0)
-            coverage = coverage.tolist()
-            coverage = [int(x) for x in coverage]
-
-            outfile.write('{}\t{}\t{}\t{}\n'.format(
-                gene_name, int(gene_offset_5p), int(gene_offset_3p),
-                coverage))
-
-            sys.stdout.write('\rProgress: {0:.2f}%\r'.format(
-                cnt / len(bed_grouped) * 100))
-
+        outfile.write(to_write)
 
 def export_metagene_coverage(bed,
                              bw,
