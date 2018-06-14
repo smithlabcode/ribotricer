@@ -81,15 +81,13 @@ def _is_read_uniq_mapping(read):
     return False
 
 
-def gene_coverage(gene_name, bed, bw, offset_5p=0, offset_3p=0):
+def gene_coverage(gene_group, bw, offset_5p=0, offset_3p=0):
     """Get gene coverage.
 
     Parameters
     ----------
-    gene_name: str
-               Gene name
-    bed: str
-         Path to CDS or 5'UTR or 3'UTR bed
+    gene_group: DataFrame
+                gene group from bed file
     bw: str
         Path to bigwig to fetch the scores from
     offset_5p: int (positive)
@@ -113,19 +111,7 @@ def gene_coverage(gene_name, bed, bw, offset_5p=0, offset_3p=0):
         sys.exit(1)
     if not isinstance(bw, WigReader):
         bw = WigReader(bw)
-    if bed.lower().split('_')[0] in __GENOMES_DB__:
-        genome, region_type = bed.lower().split('_')
-        bed = _get_bed(region_type, genome)
     chromosome_lengths = bw.chromosomes
-    bed_df = pybedtools.BedTool(bed).sort().to_dataframe()
-    bed_df['chrom'] = bed_df['chrom'].astype(str)
-    bed_df['name'] = bed_df['name'].astype(str)
-
-    if gene_name not in bed_df['name'].tolist():
-        raise RuntimeError('Failed to find gene in bed file')
-        sys.exit(1)
-
-    gene_group = bed_df[bed_df['name'] == gene_name]
 
     if len(gene_group['strand'].unique()) != 1:
         raise RuntimeError('Multiple strands?: {}'.format(gene_group))
@@ -191,7 +177,7 @@ def export_gene_coverages(bed, bw, saveto, offset_5p=0, offset_3p=0):
     to_write = 'gene_name\toffset_5p\toffset_3p\tcoverage\n'
     for gene_name, gene_group in bed_grouped:
         coverage, gene_offset_5p, gene_offset_3p = gene_coverage(
-            gene_name, bed, bw, offset_5p, offset_3p)
+            gene_group, bw, offset_5p, offset_3p)
         coverage = coverage.fillna(0)
         if sum(coverage) > 0:
             coverage = coverage.astype(int)
@@ -254,7 +240,7 @@ def export_metagene_coverage(bed,
     metagene_coverage = pd.Series()
 
     for gene_name, gene_group in bed_grouped:
-        coverage, _, _ = gene_coverage(gene_name, bed, bw, offset_5p,
+        coverage, _, _ = gene_coverage(gene_group, bw, offset_5p,
                                        offset_3p)
         coverage = coverage.fillna(0)
 
