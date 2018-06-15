@@ -1,6 +1,9 @@
 from __future__ import absolute_import
 from __future__ import print_function
 import pytest
+import pybedtools
+
+from riboraptor.genome import _get_bed
 
 from riboraptor.count import gene_coverage
 from riboraptor.count import count_uniq_mapping_reads
@@ -120,7 +123,13 @@ def test_gene_coverage():
     gene_name = 'ENSG00000035115'
     bed = 'riboraptor/annotation/hg38/cds.bed.gz'
     bw = 'tests/data/SRX2536403_subsampled.unique.bigWig'
-    coverage, offset_5p, offset_3p = gene_coverage(gene_name, bed, bw, 30, 30)
+    bed_df = pybedtools.BedTool(bed).sort().to_dataframe()
+    bed_df['chrom'] = bed_df['chrom'].astype(str)
+    bed_df['name'] = bed_df['name'].astype(str)
+    bed_grouped = bed_df.groupby('name')
+    gene_group = bed_df[bed_df['name'] == gene_name]
+
+    coverage, offset_5p, offset_3p = gene_coverage(gene_group, bw, 30, 30)
     assert (coverage.sum() == 1)
 
 
@@ -128,7 +137,16 @@ def test_gene_coverage_from_internal_bed():
     gene_name = 'ENSG00000035115'
     bed = 'hg38_cds'
     bw = 'tests/data/SRX2536403_subsampled.unique.bigWig'
-    coverage, offset_5p, offset_3p = gene_coverage(gene_name, bed, bw, 30, 30)
+    
+    genome, region_type = bed.lower().split('_')
+    bed = _get_bed(region_type, genome)
+    bed_df = pybedtools.BedTool(bed).sort().to_dataframe()
+    bed_df['chrom'] = bed_df['chrom'].astype(str)
+    bed_df['name'] = bed_df['name'].astype(str)
+    bed_grouped = bed_df.groupby('name')
+    gene_group = bed_df[bed_df['name'] == gene_name]
+
+    coverage, offset_5p, offset_3p = gene_coverage(gene_group, bw, 30, 30)
     assert (coverage.sum() == 1)
 
 
