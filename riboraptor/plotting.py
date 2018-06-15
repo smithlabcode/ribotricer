@@ -347,7 +347,8 @@ def plot_read_counts(counts,
         except IndexError:
             counts_pd = pd.read_table(counts)
             counts = pd.Series(
-                counts_pd['count'].tolist(), index=counts_pd['position'].tolist())
+                counts_pd['count'].tolist(),
+                index=counts_pd['position'].tolist())
         except KeyError:
             pass
     if not isinstance(counts, pd.Series):

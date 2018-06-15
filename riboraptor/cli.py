@@ -158,10 +158,10 @@ def merge_gene_coverages_cmd(gene_coverages, max_positions, saveto):
     context_settings=CONTEXT_SETTINGS,
     help='merge read counts to generate count table')
 @click.option(
-    '--read_counts', help='Path to file containing read counts paths', 
+    '--read_counts',
+    help='Path to file containing read counts paths',
     required=True)
-@click.option(
-    '--saveto', help='Path to write output', required=True)
+@click.option('--saveto', help='Path to write output', required=True)
 def merge_read_counts_cmd(read_counts, saveto):
     merge_read_counts(read_counts, saveto)
 

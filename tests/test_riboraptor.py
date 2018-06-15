@@ -137,7 +137,7 @@ def test_gene_coverage_from_internal_bed():
     gene_name = 'ENSG00000035115'
     bed = 'hg38_cds'
     bw = 'tests/data/SRX2536403_subsampled.unique.bigWig'
-    
+
     genome, region_type = bed.lower().split('_')
     bed = _get_bed(region_type, genome)
     bed_df = pybedtools.BedTool(bed).sort().to_dataframe()

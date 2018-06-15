@@ -111,10 +111,8 @@ def export_gene_sequences(bed, fasta, saveto=None, offset_5p=0, offset_3p=0):
     for gene_name, gene_group in bed_grouped:
         sequence, gene_offset_5p, gene_offset_3p = gene_sequence(
             gene_group, fasta, offset_5p, offset_3p)
-        to_write += '{}\t{}\t{}\t{}\n'.format(gene_name,
-                                              int(gene_offset_5p),
-                                              int(gene_offset_3p),
-                                              sequence)
+        to_write += '{}\t{}\t{}\t{}\n'.format(gene_name, int(gene_offset_5p),
+                                              int(gene_offset_3p), sequence)
     if not saveto:
         return to_write
     else:

@@ -182,13 +182,13 @@ def export_gene_coverages(bed, bw, saveto, offset_5p=0, offset_3p=0):
         coverage = coverage.astype(int)
         coverage = coverage.tolist()
 
-        to_write += '{}\t{}\t{}\t{}\n'.format(
-            gene_name, int(gene_offset_5p), int(gene_offset_3p),
-            coverage)
+        to_write += '{}\t{}\t{}\t{}\n'.format(gene_name, int(gene_offset_5p),
+                                              int(gene_offset_3p), coverage)
 
     mkdir_p(os.path.dirname(saveto))
     with open(saveto, 'w') as outfile:
         outfile.write(to_write)
+
 
 def export_metagene_coverage(bed,
                              bw,
@@ -239,8 +239,7 @@ def export_metagene_coverage(bed,
     metagene_coverage = pd.Series()
 
     for gene_name, gene_group in bed_grouped:
-        coverage, _, _ = gene_coverage(gene_group, bw, offset_5p,
-                                       offset_3p)
+        coverage, _, _ = gene_coverage(gene_group, bw, offset_5p, offset_3p)
         coverage = coverage.fillna(0)
 
         if max_positions is not None and len(coverage.index) > 0:
