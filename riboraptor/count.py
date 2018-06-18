@@ -397,7 +397,7 @@ def merge_read_counts(read_counts, saveto):
     dfs = []
     for sample in samples:
         name = os.path.basename(sample)
-        name = name.split('_')[0]
+        name = name[: name.index('_read_counts.tsv')]
         df = pd.read_table(sample, index_col=0)
         df = df[['count']]
         df.rename(columns={'count': name}, inplace=True)
