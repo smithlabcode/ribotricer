@@ -387,20 +387,21 @@ def merge_read_counts(read_counts, saveto):
     read_counts: str
                  Path to file which contains paths of all read counts
                  tsv file you want to merge
+                 format:
+                 sample1 path1
+                 sample2 path2
     saveto: str
             Path to save output tsv
 
     """
     with open(read_counts) as f:
         samples = f.readlines()
-    samples = [x.strip() for x in samples]
+    samples = [x.strip().split() for x in samples]
     dfs = []
-    for sample in samples:
-        name = os.path.basename(sample)
-        name = name[: name.index('_read_counts.tsv')]
-        df = pd.read_table(sample, index_col=0)
+    for sample, path in samples:
+        df = pd.read_table(path, index_col=0)
         df = df[['count']]
-        df.rename(columns={'count': name}, inplace=True)
+        df.rename(columns={'count': sample}, inplace=True)
         dfs.append(df)
     df_merged = reduce(lambda left, right: pd.merge(
                                              left, right, how='outer',
