@@ -1,8 +1,8 @@
 """Utilities to download data from NCBI SRA"""
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
-
-from subprocess import Popen, PIPE
+import sys
+from subprocess import Popen, PIPE, STDOUT
 
 
 def run_download_sra_script(download_root_location=None,
@@ -35,8 +35,12 @@ def run_download_sra_script(download_root_location=None,
         cmd += ' '
         cmd += ' '.join(srp_id_list)
     cmds = cmd.strip().split(' ')
-    proc = Popen(cmds, stdout=PIPE, stderr=PIPE)
-    stdout, stderr = proc.communicate(0)
-    print(stdout)
-    print(stderr)
-    return stdout, stderr
+    proc = Popen(cmds, stdout=PIPE, stderr=STDOUT)
+    while True:
+        output = proc.stdout.readline()
+        if output == '' and proc.poll() is not None:
+            break
+        if output:
+            print(str(output.strip(), 'utf-8'))
+    rc = proc.poll()
+    return rc
