@@ -3,7 +3,7 @@
 ## riboraptor
 
 - [x] Add Snakemake and config template
-- [ ] Add tests - S
+- [x] Add tests - S
 - [x] Make conda requirement strict; Add more detailed installation docs
 - [x] Add annotation BED files for each genome's GTF and associated notebook
 - [ ] Improve documentation:
@@ -27,18 +27,18 @@
 ## cleanup
 
 - Commands to keep;
-  - [ ] export-gene-coverage (Rename?)
-  - [ ] metagene-coverage 
-  - [ ] read-length-dist (Also change pickle => tsv)
-  - [ ] periodicity 
-  - [ ] plot-read-dist (Rename?)
-  - [ ] plot-read-counts (Rename to plot-metagene)
-  - [ ] export-bed-fasta 
-  - [ ] create-bed-region
+  - [x] export-gene-coverage (Rename?)
+  - [x] metagene-coverage 
+  - [x] read-length-dist (Also change pickle => tsv)
+  - [x] periodicity 
+  - [x] plot-read-dist (Rename?)
+  - [x] plot-read-counts (Rename to plot-metagene)
+  - [x] export-bed-fasta 
+  - [x] create-bed-region
  
 ## comments
 - [x] remove /tmp 
-- [ ] make snakemake work locally - S
+- [x] make snakemake work locally - S
 - [ ] make better doc for usage mode - S
 
 
