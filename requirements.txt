@@ -14,3 +14,4 @@ click-help-colors>=0.3
 HTSeq>=0.9.1
 Biopython>=1.70
 pytest>=2.8.7
+bx-python>=0.8.0

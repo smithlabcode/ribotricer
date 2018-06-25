@@ -17,6 +17,7 @@ from scipy import stats
 import numpy as np
 import pandas as pd
 import six
+from bx.intervals.intersection import IntervalTree
 
 import warnings
 from .interval import Interval
@@ -532,7 +533,7 @@ def merge_intervals(intervals,
                     offset_3p=0,
                     zero_based=True):
     """Collapse intervals into non overlapping manner
-    
+
     Parameters
     ----------
     intervals : list of Interval
@@ -558,7 +559,7 @@ def merge_intervals(intervals,
                         chr1 319 324 gene1 +
                         Returns:
                         chr1 310 324 gene1 +
-    
+
     gene_offset_5p: Gene wise 5 prime offset
                     This might be different from `offset_5p` in cases where
                     `offset_5p` leads to a negative coordinate
@@ -674,3 +675,31 @@ def summarize_counters(samplewise_dict):
         totals[key] = np.nansum(
             [np.nansum(d) for d in list(sample_dict.values)])
     return totals
+
+
+def read_refseq_bed(filepath):
+    """Read refseq bed12 from UCSC.
+
+    Parameters
+    ----------
+    filepath: string
+              Location to bed12
+
+    Returns
+    -------
+    refseq: dict
+            dict with keys as gene name and values as intervaltree
+
+    """
+    refseq = defaultdict(IntervalTree)
+    with open(filepath, 'r') as fh:
+        for line in fh:
+            line = line.strip()
+            if line.startswith(('#', 'track', 'browser')):
+                continue
+            fields = line.split('\t')
+            chrom, tx_start, tx_end, name, score, strand = fields[:6]
+            tx_start = int(tx_start)
+            tx_end = int(tx_end)
+            refseq[chrom].insert(tx_start, tx_end, strand)
+    return refseq

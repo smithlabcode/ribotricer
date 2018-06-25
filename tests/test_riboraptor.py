@@ -8,7 +8,6 @@ from riboraptor.genome import _get_bed
 from riboraptor.count import gene_coverage
 from riboraptor.count import count_uniq_mapping_reads
 from riboraptor.fasta import FastaReader
-from riboraptor.helpers import merge_intervals
 from riboraptor.interval import Interval
 from riboraptor.sequence import gene_sequence
 from riboraptor.sequence import export_gene_sequences
@@ -22,78 +21,6 @@ def test_interval():
     iv = Interval('chr1', 1, 15, '+')
     assert (iv.chrom == 'chr1' and iv.start == 1 and iv.end == 15
             and iv.strand == '+')
-
-
-def test_merge_intervals():
-    bw = WigReader('tests/data/SRX2536403_subsampled.unique.bigWig')
-    chromosome_lengths = bw.chromosomes
-
-    # test when intervals are empty
-    intervals = []
-    intervals_combined = merge_intervals(intervals, chromosome_lengths, 30, 30)
-    assert (intervals_combined == ([], 30, 30))
-
-    # test when only one interval
-    intervals = [Interval('chr1', 10, 20, '-')]
-    intervals_combined = merge_intervals(intervals, chromosome_lengths, 30, 30)
-    assert (intervals_combined == ([Interval('chr1', 0, 50, '-')], 30, 10))
-
-    # test overlapping intervals
-    intervals = [
-        Interval('chr1', x[0], x[1], '-')
-        for x in [(1, 9), (7, 15), (30, 40), (13, 18), (3, 4)]
-    ]
-    intervals_combined = merge_intervals(intervals, chromosome_lengths, 30, 30)
-    expected = [Interval('chr1', x[0], x[1], '-') for x in [(0, 18), (30, 70)]]
-    assert (intervals_combined == (expected, 30, 1))
-
-    # test more tricky intervals
-    intervals = [
-        Interval('chr1', x[0], x[1], '-')
-        for x in [(260, 400), (200, 300), (280, 300)]
-    ]
-    intervals_combined = merge_intervals(intervals, chromosome_lengths, 30, 30)
-    assert (intervals_combined == ([Interval('chr1', 170, 430, '-')], 30, 30))
-
-    # test intervals near the end of chrom for neg strand
-    chr1_length = chromosome_lengths['chr1']
-    intervals = [
-        Interval('chr1', x[0], x[1], '-')
-        for x in [(chr1_length - 10,
-                   chr1_length - 2), (260, 400), (200, 300), (280, 300)]
-    ]
-    intervals_combined = merge_intervals(intervals, chromosome_lengths, 30, 30)
-    assert (intervals_combined == ([
-        Interval('chr1', 170, 400, '-'),
-        Interval('chr1', chr1_length - 10, chr1_length, '-')
-    ], 2, 30))
-
-    # test intervals near the end of chrom for pos strand
-    chr1_length = chromosome_lengths['chr1']
-    intervals = [
-        Interval('chr1', x[0], x[1], '+')
-        for x in [(chr1_length - 10,
-                   chr1_length - 2), (260, 400), (200, 300), (280, 300)]
-    ]
-    intervals_combined = merge_intervals(intervals, chromosome_lengths, 10, 30)
-    assert (intervals_combined == ([
-        Interval('chr1', 190, 400, '+'),
-        Interval('chr1', chr1_length - 10, chr1_length, '+')
-    ], 10, 2))
-
-    # test intervals of one-based near start
-    chr1_length = chromosome_lengths['chr1']
-    intervals = [
-        Interval('chr1', x[0], x[1], '+')
-        for x in [(chr1_length - 10,
-                   chr1_length - 2), (260, 400), (5, 300), (280, 300)]
-    ]
-    intervals_combined = merge_intervals(intervals, chromosome_lengths, 10, 30,
-                                         False)
-    assert (intervals_combined == ([
-        Interval('chr1', 1, 400, '+'),
-        Interval('chr1', chr1_length - 10, chr1_length, '+')
-    ], 4, 2))
 
 
 def test_wig():
