@@ -11,7 +11,7 @@
     - [ ] CDS/(UTR5+CDS+UTR3) distribution
     - [ ] Instructions for parsing gene_coverages.tsv file in both Python and R
 - [ ] Add differential translation analysis with Riborex
-- [ ] Add ribotaper for uORF or dORF identification - S
+- [ ] Add translating ORF detection
 - [ ] Add RSEM to Snakemake, make use of mapping weights to use multimapping reads? - S
 
 ## ribopod
