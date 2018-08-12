@@ -92,7 +92,8 @@ def export_gene_coverages_cmd(bed, pos_bw, neg_bw,
     '--bed',
     help='Path to bed file or a genome name (hg38_utr5, hg38_cds, hg38_utr3)',
     required=True)
-@click.option('--bw', help='Path to bigwig file', required=True)
+@click.option('--pos_bw', help='Path to positive bigwig file', required=True)
+@click.option('--neg_bw', help='Path to negative bigwig file', required=True)
 @click.option(
     '--max_positions',
     help='maximum positions to count',
@@ -113,9 +114,10 @@ def export_gene_coverages_cmd(bed, pos_bw, neg_bw,
     type=int,
     default=0,
     show_default=True)
-def export_metagene_coverage_cmd(bed, bw, max_positions, saveto, offset_5p,
-                                 offset_3p):
-    metagene_profile = export_metagene_coverage(bed, bw, max_positions, saveto,
+def export_metagene_coverage_cmd(bed, pos_bw, neg_bw, max_positions, saveto,
+                                 offset_5p, offset_3p):
+    metagene_profile = export_metagene_coverage(bed, pos_bw, neg_bw,
+                                                max_positions, saveto,
                                                 offset_5p, offset_3p)
 
     for i, count in six.iteritems(metagene_profile):

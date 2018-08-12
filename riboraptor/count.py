@@ -201,7 +201,8 @@ def export_gene_coverages(bed, pos_bw, neg_bw, saveto, offset_5p=0, offset_3p=0)
 
 
 def export_metagene_coverage(bed,
-                             bw,
+                             pos_bw,
+                             neg_bw,
                              max_positions=None,
                              saveto=None,
                              offset_5p=0,
@@ -212,8 +213,10 @@ def export_metagene_coverage(bed,
     ----------
     bed: str
          Path to CDS or 5'UTR or 3'UTR bed
-    bw: str
-        Path to bigwig to fetch the scores from
+    pos_bw: str
+        Path to bigwig of positive strand to fetch the scores from
+    neg_bw: str
+        Path to bigwig of negative strand to fetch the scores from
     max_positions: int
                    Number of positions to consider while
                    calculating the normalized coverage
@@ -242,13 +245,23 @@ def export_metagene_coverage(bed,
     bed_df['name'] = bed_df['name'].astype(str)
     bed_grouped = bed_df.groupby('name')
 
-    if not isinstance(bw, WigReader):
-        bw = WigReader(bw)
+    if not isinstance(pos_bw, WigReader):
+        pos_bw = WigReader(pos_bw)
+
+    if not isinstance(neg_bw, WigReader):
+        neg_bw = WigReader(neg_bw)
 
     position_counter = Counter()
     metagene_coverage = pd.Series()
 
     for gene_name, gene_group in bed_grouped:
+
+        if len(gene_group['strand'].unique()) > 1: continue
+        strand = gene_group['strand'].unique()[0]
+        if strand == '+':
+            bw = pos_bw
+        else:
+            bw = neg_bw
         coverage, _, _ = gene_coverage(gene_group, bw, offset_5p, offset_3p)
         coverage = coverage.fillna(0)
 
