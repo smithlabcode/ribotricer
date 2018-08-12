@@ -427,10 +427,9 @@ def export_read_length(bam, saveto=None):
              Counter of read length and counts
 
     """
-    _create_bam_index(bam)
-    bam = pysam.AlignmentFile(bam, 'rb')
+    bam = pysam.AlignmentFile(bam)
     read_counts = Counter([
-        read.query_length for read in bam.fetch()
+        read.query_length for read in bam
         if _is_read_uniq_mapping(read)
     ])
     if saveto:
@@ -630,10 +629,9 @@ def mapping_reads_summary(bam, saveto=None):
              Counter with keys as number of times read maps
              and values as number of reads of that type
     """
-    _create_bam_index(bam)
-    bam = pysam.AlignmentFile(bam, 'rb')
+    bam = pysam.AlignmentFile(bam)
     counts = Counter()
-    for read in bam.fetch():
+    for read in bam:
         if read.is_secondary:
             continue
         try:
@@ -665,10 +663,9 @@ def count_uniq_mapping_reads(bam):
     n_mapped: int
               Count of uniquely mapped reads
     """
-    _create_bam_index(bam)
-    bam = pysam.AlignmentFile(bam, 'rb')
+    bam = pysam.AlignmentFile(bam)
     n_mapped = 0
-    for read in bam.fetch():
+    for read in bam:
         if _is_read_uniq_mapping(read):
             n_mapped += 1
     bam.close()
@@ -685,10 +682,9 @@ def extract_uniq_mapping_reads(inbam, outbam):
     outbam: string
             Path to write unique reads bam to
     """
-    _create_bam_index(inbam)
-    allreadsbam = pysam.AlignmentFile(inbam, 'rb')
+    allreadsbam = pysam.AlignmentFile(inbam)
     uniquereadsbam = pysam.AlignmentFile(outbam, 'wb', template=allreadsbam)
-    for read in allreadsbam.fetch():
+    for read in allreadsbam:
         if _is_read_uniq_mapping(read):
             uniquereadsbam.write(read)
     allreadsbam.close()
