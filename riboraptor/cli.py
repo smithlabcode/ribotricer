@@ -245,7 +245,7 @@ def export_gene_sequences_cmd(bed, fasta, saveto, offset_5p, offset_3p):
     export_gene_sequences(bed, fasta, saveto, offset_5p, offset_3p)
 
 
-#################### stratify bam ####################################
+#################### split bam ####################################
 @cli.command(
     'split-bam',
     context_settings=CONTEXT_SETTINGS,
