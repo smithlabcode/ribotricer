@@ -62,7 +62,8 @@ def cli():
     '--bed',
     help='Path to bed file or a genome name (hg38_utr5, hg38_cds, hg38_utr3)',
     required=True)
-@click.option('--bw', help='Path to bigwig file', required=True)
+@click.option('--pos_bw', help='Path to positive bigwig file', required=True)
+@click.option('--neg_bw', help='Path to negative bigwig file', required=True)
 @click.option(
     '--saveto', help='Path to write output', default=None, show_default=True)
 @click.option(
@@ -77,8 +78,9 @@ def cli():
     type=int,
     default=0,
     show_default=True)
-def export_gene_coverages_cmd(bed, bw, saveto, offset_5p, offset_3p):
-    export_gene_coverages(bed, bw, saveto, offset_5p, offset_3p)
+def export_gene_coverages_cmd(bed, pos_bw, neg_bw, 
+                              saveto, offset_5p, offset_3p):
+    export_gene_coverages(bed, pos_bw, neg_bw, saveto, offset_5p, offset_3p)
 
 
 ###################### export-metagene-coverages ##############################

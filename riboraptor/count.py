@@ -143,15 +143,17 @@ def gene_coverage(gene_group, bw, offset_5p=0, offset_3p=0):
     return (coverages_combined, gene_offset_5p, gene_offset_3p)
 
 
-def export_gene_coverages(bed, bw, saveto, offset_5p=0, offset_3p=0):
+def export_gene_coverages(bed, pos_bw, neg_bw, saveto, offset_5p=0, offset_3p=0):
     """Export all gene coverages.
 
     Parameters
     ----------
     bed: str
          Path to CDS or 5'UTR or 3'UTR bed
-    bw: str
-        Path to bigwig to fetch the scores from
+    pos_bw: str
+        Path to bigwig of positive strand to fetch the scores from
+    neg_bw: str
+        Path to bigwig of negative strand to fetch the scores from
     saveto: str
             Path to write output tsv file
     offset_5p: int (positive)
@@ -171,11 +173,19 @@ def export_gene_coverages(bed, bw, saveto, offset_5p=0, offset_3p=0):
     bed_df['name'] = bed_df['name'].astype(str)
     bed_grouped = bed_df.groupby('name')
 
-    if not isinstance(bw, WigReader):
-        bw = WigReader(bw)
+    if not isinstance(pos_bw, WigReader):
+        pos_bw = WigReader(pos_bw)
+    if not isinstance(neg_bw, WigReader):
+        neg_bw = WigReader(neg_bw)
 
     to_write = 'gene_name\toffset_5p\toffset_3p\tcoverage\n'
     for gene_name, gene_group in bed_grouped:
+        if len(gene_group['strand'].unique()) > 1: continue
+        strand = gene_group['strand'].unique()[0]
+        if strand == '+':
+            bw = pos_bw
+        else:
+            bw = neg_bw
         coverage, gene_offset_5p, gene_offset_3p = gene_coverage(
             gene_group, bw, offset_5p, offset_3p)
         coverage = coverage.fillna(0)
