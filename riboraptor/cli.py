@@ -28,6 +28,8 @@ from .count import bam_to_bedgraph
 from .count import count_uniq_mapping_reads
 from .count import extract_uniq_mapping_reads
 
+from .orf import split_bam
+
 from .infer_protocol import infer_protocol
 
 from .sequence import export_gene_sequences
@@ -242,6 +244,24 @@ def periodicity_cmd(counts):
 def export_gene_sequences_cmd(bed, fasta, saveto, offset_5p, offset_3p):
     export_gene_sequences(bed, fasta, saveto, offset_5p, offset_3p)
 
+
+#################### stratify bam ####################################
+@cli.command(
+    'split-bam',
+    context_settings=CONTEXT_SETTINGS,
+    help='Split bam file by length and strand into wig files')
+@click.option(
+    '--bam',
+    help='Path to bam file',
+    required=True)
+@click.option(
+    '--protocol',
+    help='Experimenta protocol [forward, reverse]',
+    required=True)
+@click.option(
+    '--prefix', help='Prefix for output wig files')
+def split_bam_cmd(bam, protocol, prefix):
+    split_bam(bam, protocol, prefix)
 
 ######################## plot-metagene ####################################
 @cli.command(
