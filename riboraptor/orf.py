@@ -142,3 +142,56 @@ def align_coverages(coverages, base, saveto):
         to_write += '\tlag of {}: {}\n'.format(length, lag)
     with open(saveto, 'w') as output:
         output.write(to_write)
+
+def merge_wigs(wigs, offsets, strand, saveto):
+    """merge wigs from different lengths into one with shift of offsets
+
+    Parameters
+    ----------
+    wigs: str
+          Path to file which contains paths of all wigs from differnt lengths
+          format:
+          length1 path1
+          length2 path2
+    offsets: str
+             Path to file which contains offset for each length
+             format:
+             length1 offset1
+             length2 offset2
+    strand: str
+            '+' for positive strand,
+            '-' for negative strand
+    saveto: str
+            Path to save merged wig
+    """
+    coverages = defaultdict(int)
+    with open(wigs) as wf:
+        wigs = {int(x.strip().split()[0]): x.strip().split()[1]
+                    for x in wf.readlines()}
+    with open(offsets) as of:
+        offsets = {int(x.strip().split()[0]): int(x.strip().split()[1])
+                       for x in of.readlines()}
+    for length, wig in wigs.items():
+        with open(wig) as f:
+            for line in f:
+                if line.startswith('variableStep'):
+                    line = line.strip()
+                    chrom = line[line.index('=')+1:]
+                else:
+                    pos, count = line.strip().split()
+                    pos, count = int(pos), int(count)
+                    if strand == '+':
+                        pos_shifted = pos + offsets[length]
+                    else:
+                        pos_shifted = pos - offsets[length]
+                    if pos_shifted >= 0:
+                        coverages[(chrom, pos_shifted)] += count
+    to_write = ''
+    cur_chrom = ''
+    for chrom, pos in sorted(coverages):
+        if chrom != cur_chrom:
+            cur_chrom = chrom
+            to_write += 'variableStep chrom={}\n'.format(chrom)
+        to_write += '{}\t{}\n'.format(pos, coverages[(chrom, pos)])
+    with open(saveto, 'w') as output:
+        output.write(to_write)

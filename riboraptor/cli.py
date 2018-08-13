@@ -30,6 +30,7 @@ from .count import extract_uniq_mapping_reads
 
 from .orf import split_bam
 from .orf import align_coverages
+from .orf import merge_wigs
 
 from .infer_protocol import infer_protocol
 
@@ -287,6 +288,30 @@ def split_bam_cmd(bam, protocol, prefix):
     '--saveto', help='path to output tsv file')
 def align_coverages_cmd(coverages, base, saveto):
     align_coverages(coverages, base, saveto)
+
+
+#################### merge wigs ####################################
+@cli.command(
+    'merge-wigs',
+    context_settings=CONTEXT_SETTINGS,
+    help='merge wigs from all lengths by shifting offsets')
+@click.option(
+    '--wigs',
+    help='Path to file containing path to wigs',
+    required=True)
+@click.option(
+    '--offsets',
+    help='Path to file containing offsets',
+    required=True)
+@click.option(
+    '--strand',
+    help='Strand of the wig files',
+    required=True)
+@click.option(
+    '--saveto', help='path to merged wig file')
+def merge_wigs_cmd(wigs, offsets, strand, saveto):
+    merge_wigs(wigs, offsets, strand, saveto)
+
 
 ######################## plot-metagene ####################################
 @cli.command(
