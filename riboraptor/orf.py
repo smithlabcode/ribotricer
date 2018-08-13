@@ -32,13 +32,29 @@ def split_bam(bam, protocol, prefix):
             {prefix}__xxnt_neg.wig
     """
     coverages = defaultdict(lambda: defaultdict(Counter))
-    bam = pysam.AlignmentFile(bam)
-    for r in bam:
-        if r.is_qcfail: continue
-        if r.is_duplicate: continue
-        if r.is_secondary: continue
-        if r.is_unmapped: continue
-        if not _is_read_uniq_mapping(r): continue
+    iteration=qcfail=duplicate=secondary=unmapped=multi=valid=0
+    bam = pysam.AlignmentFile(bam, 'rb')
+    for r in bam.fetch(until_eof=True):
+
+        iteration += 1
+        if iteration % 1000 == 0:
+            print('{} reads processed.'.format(iteration))
+
+        if r.is_qcfail:
+            qcfail += 1
+            continue
+        if r.is_duplicate:
+            duplicate += 1
+            continue
+        if r.is_secondary:
+            secondary += 1
+            continue
+        if r.is_unmapped:
+            unmapped += 1
+            continue
+        if not _is_read_uniq_mapping(r):
+            multi += 1
+            continue
 
         map_strand = '-' if r.is_reverse else '+'
         ref_positions = r.get_reference_positions()
@@ -62,7 +78,15 @@ def split_bam(bam, protocol, prefix):
                 pos = ref_positions[0]
         coverages[length][strand][(chrom, pos)] += 1
 
+        valid += 1
+        
+    summary = 'summary:\n\ttotal_reads: {}\n\tunique_mapped: {}\n' \
+              '\tqcfail: {}\n\tduplicate: {}\n\tsecondary: {}\n' \
+              '\tunmapped:{}\n\tmulti:{}\n\nlength dist:\n'.format(iteration,
+                       valid, qcfail, duplicate, secondary, unmapped, multi)
+
     for length in coverages:
+        reads_of_length = 0
         for strand in coverages[length]:
             to_write = ''
             cur_chrom = ''
@@ -70,9 +94,13 @@ def split_bam(bam, protocol, prefix):
                 if chrom != cur_chrom:
                     cur_chrom = chrom
                     to_write += 'variableStep chrom={}\n'.format(chrom)
-                to_write += '{}\t{}\n'.format(pos, 
+                to_write += '{}\t{}\n'.format(pos,
                         coverages[length][strand][(chrom, pos)])
-            fname = '{}_{}nt_{}.wig'.format(prefix, length, 
+            fname = '{}_{}nt_{}.wig'.format(prefix, length,
                     'pos' if strand == '+' else 'neg')
             with open(fname, 'w') as output:
                 output.write(to_write)
+            reads_of_length += 1
+        summary += '\t{}: {}\n'.format(length, reads_of_length)
+    with open('{}_summary.txt'.format(prefix), 'w') as output:
+        output.write(summary)
