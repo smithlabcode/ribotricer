@@ -29,6 +29,7 @@ from .count import count_uniq_mapping_reads
 from .count import extract_uniq_mapping_reads
 
 from .orf import split_bam
+from .orf import align_coverages
 
 from .infer_protocol import infer_protocol
 
@@ -266,6 +267,26 @@ def export_gene_sequences_cmd(bed, fasta, saveto, offset_5p, offset_3p):
     '--prefix', help='Prefix for output wig files')
 def split_bam_cmd(bam, protocol, prefix):
     split_bam(bam, protocol, prefix)
+
+
+#################### align coverages ####################################
+@cli.command(
+    'align-coverages',
+    context_settings=CONTEXT_SETTINGS,
+    help='Align coverages to a base to get relative lags')
+@click.option(
+    '--coverages',
+    help='Path to file containing path to coverages',
+    required=True)
+@click.option(
+    '--base',
+    help='The reference length, usually the most abundant one',
+    type=int,
+    required=True)
+@click.option(
+    '--saveto', help='path to output tsv file')
+def align_coverages_cmd(coverages, base, saveto):
+    align_coverages(coverages, base, saveto)
 
 ######################## plot-metagene ####################################
 @cli.command(

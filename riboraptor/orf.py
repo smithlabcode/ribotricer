@@ -104,3 +104,41 @@ def split_bam(bam, protocol, prefix):
         summary += '\t{}: {}\n'.format(length, reads_of_length)
     with open('{}_summary.txt'.format(prefix), 'w') as output:
         output.write(summary)
+
+
+def align_coverages(coverages, base, saveto):
+    """align coverages to determine the lag to the base
+
+    Parameters
+    ----------
+    coverages: str
+               Path to file which contains paths of all metagene
+               from different lengths
+               format:
+               length (e.g. 28) path (e.g. metagene_28.tsv)
+               length (e.g. 29) path (e.g. metagene_29.tsv)
+    base: int
+          The reference length to align against
+    saveto: str
+          Path to save the aligned offsets
+    """
+    base = int(base)
+    with open(coverages) as f:
+        cov_lens = f.readlines()
+    cov_lens = {int(x.strip().split()[0]): x.strip().split()[1]
+                    for x in cov_lens}
+    if base not in cov_lens:
+        print('Failed to find base {} in coverages.'.format(base))
+        return
+    reference = pd.read_table(cov_lens[base])['count']
+    to_write = 'relative lag to base: {}\n'.format(base)
+    for length, path in cov_lens.items():
+        cov = pd.read_table(path)['count']
+        xcorr = np.correlate(reference, cov, 'full')
+        origin = len(xcorr) // 2
+        bound = min(base, length)
+        xcorr = xcorr[origin-bound: origin+bound]
+        lag = np.argmax(xcorr) - len(xcorr)//2
+        to_write += '\tlag of {}: {}\n'.format(length, lag)
+    with open(saveto, 'w') as output:
+        output.write(to_write)
