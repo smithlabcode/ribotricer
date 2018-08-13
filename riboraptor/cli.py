@@ -476,7 +476,7 @@ def download_srp_cmd(out, ascp, srpfile, srp_id_list):
 @click.option(
     '--n_reads',
     type=int,
-    default=10000,
+    default=20000,
     help='Number of mapped reads to use for estimation')
 def infer_protocol_cmd(bam, refseq, n_reads):
     protocol, forward_mapped, reverse_mapped = infer_protocol(

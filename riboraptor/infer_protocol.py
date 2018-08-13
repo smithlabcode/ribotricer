@@ -33,10 +33,10 @@ def infer_protocol(bam, refseq, n_reads=20000):
           Proportion of reads of type + mapping to - (+-) or - mapping to + (-+)
     """
     iteration = 0
-    bam = pysam.AlignmentFile(bam)
+    bam = pysam.AlignmentFile(bam, 'rb')
     refseq = read_refseq_bed(refseq)
     strandedness = Counter()
-    for read in bam:
+    for read in bam.fetch(until_eof=True):
         if not _is_read_uniq_mapping(read):
             continue
         if read.is_reverse:
