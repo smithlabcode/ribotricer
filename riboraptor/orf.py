@@ -19,24 +19,18 @@ from .interval import Interval
 from .count import _is_read_uniq_mapping
 
 
-class PutativeORF:
-    """Class for putative ORF"""
-    def __init__(self):
-        self.chrom = None
-        self.feature = None
-        self.strand = None
-        self.intervals = defaultdict(list)
-
 def prepare_orfs(gtf, fasta):
     gtf = pd.read_table(gtf, header=None, skiprows=5)
     gtf.rename(columns={0: 'seqname', 1: 'source', 2: 'feature', 3: 'start',
                         4: 'end', 5: 'score', 6: 'strand', 7: 'frame',
                         8: 'attribute'}, inplace=True)
-    gtf = gtf[gtf['feature'].isin(['CDS', 'UTR', 'start_codon', 'stop_codon'])]
+    gtf = gtf[gtf['feature'].isin(['CDS', 'UTR'])]
     cds = gtf[gtf['feature'] == 'CDS']
     utr = gtf[gtf['feature'] == 'UTR']
+
     iteration = 0
-    orfs = defaultdict(PutativeORF)
+    ### process CDS gtf
+    cds_intervals = defaultdict(lambda: defaultdict(list))
     for i, r in cds.iterrows():
         iteration += 1
         if iteration % 1000 == 0:
@@ -52,14 +46,50 @@ def prepare_orfs(gtf, fasta):
         if 'transcript_id' not in attribute:
             print('missing transcript_id {}: {}-{}'.format(chrom, start, end))
             continue
-        temp_orf_id = attribute['transcript_id'] + '_CDS'
-        orfs[temp_orf_id].chrom = chrom
-        orfs[temp_orf_id].feature = feature
-        orfs[temp_orf_id].strand = strand
-        orfs[temp_orf_id].intervals.append((start, end))
-        for k, v in attribute.items():
-            setattr(orfs[temp_orf_id], k, v)
-        
+        transcript_id = attribute['transcript_id']
+        if 'gene_id' not in attribute:
+            print('missing gene_id {}: {}-{}'.format(chrom, start, end))
+            continue
+        gene_id = attribute['gene_id']
+        cds_intervals[gene_id][transcript_id].append(Interval(chrom, start, end,
+            strand))
+    
+    ### process UTR gtf
+    utr5_intervals = defaultdict(list)
+    utr3_intervals = defaultdict(list)
+    for i, r in utr.iterrows():
+        iteration += 1
+        if iteration % 1000 == 0:
+            print('{} gtf records processed.'.format(iteration))
+        chrom = r['seqname']
+        start = r['start']
+        end = r['end']
+        strand = r['strand']
+        attribute = r['attribute']
+        attribute = {x.strip().split()[0]: x.strip().split()[1]
+                        for x in attribute.split(';') if len(x.split()) > 1}
+        if 'transcript_id' not in attribute:
+            print('missing transcript_id {}: {}-{}'.format(chrom, start, end))
+            continue
+        transcript_id = attribute['transcript_id']
+        if 'gene_id' not in attribute:
+            print('missing gene_id {}: {}-{}'.format(chrom, start, end))
+            continue
+        gene_id = attribute['gene_id']
+        if (gene_id not in cds_intervals or transcript_id not in
+                cds_intervals[gene_id]):
+            print('missing CDS for UTR {}: {}-{}'.format(chrom, start, end))
+        gene_cds = []
+        for transcript in cds_intervals[gene_id]:
+            gene_cds += cds_intervals[gene_id][transcript]
+        first_cds = gene_cds[0]
+        for gc in gene_cds:
+            if gc.start < first_cds.start:
+                first_cds = gc
+        last_cds = gene_cds[-1]
+        for gc in gene_cds:
+            if gc.stop > last_cds.stop:
+                last_cds = gc
 
 
 
