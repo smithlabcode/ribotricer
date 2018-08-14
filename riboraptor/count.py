@@ -29,6 +29,7 @@ from .helpers import mkdir_p
 
 from .wig import WigReader
 from .interval import Interval
+from .coherence import periodicity
 
 # Unmapped, Unmapped+Reverse strand, Not primary alignment,
 # Not primary alignment + reverse strand, supplementary alignment
@@ -307,7 +308,7 @@ def export_read_counts(gene_coverages, saveto, keep_offsets=True):
             gene_name\tcount\tlength
     keep_offsets: bool
                  whether to keep the 5' and 3' offsets in gene coverages
-                 default is False
+                 default is True
     """
     if '.gz' in gene_coverages:
         gene_coverages_df = pd.read_table(gene_coverages, compression='gzip')
@@ -316,7 +317,7 @@ def export_read_counts(gene_coverages, saveto, keep_offsets=True):
     gene_coverages_zipped = list(
         zip(gene_coverages_df['gene_name'], gene_coverages_df['offset_5p'],
             gene_coverages_df['offset_3p'], gene_coverages_df['coverage']))
-    to_write = "gene_name\tcount\tlength\n"
+    to_write = "gene_name\tcount\tlength\tperiodicity\tpval\n"
     for gene_name, offset_5p, offset_3p, cov in gene_coverages_zipped:
         coverage = eval(cov)
         coverage = pd.Series(
@@ -329,7 +330,9 @@ def export_read_counts(gene_coverages, saveto, keep_offsets=True):
             coverage = coverage[np.arange(0, max_index - offset_3p)]
         count = coverage.sum()
         length = len(coverage.tolist())
-        to_write += "{}\t{}\t{}\n".format(gene_name, int(count), int(length))
+        periodicity, pval = cal_periodicity(coverage)
+        to_write += "{}\t{}\t{}\t{}\t{}\n".format(gene_name, 
+                int(count), int(length), periodicity, pval)
 
     mkdir_p(os.path.dirname(saveto))
     with open(saveto, 'w') as output:
