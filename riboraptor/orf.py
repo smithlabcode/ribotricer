@@ -15,8 +15,71 @@ import pandas as pd
 import pysam
 
 from .wig import WigReader
+from .fasta import FastaReader
 from .interval import Interval
 from .count import _is_read_uniq_mapping
+from .helpers import merge_intervals
+
+def transcript_to_genome_iv(start, end, intervals, reverse=False):
+    total_len = sum(i.end - i.start + 1 for i in intervals)
+    if reverse:
+        start = total_len - end
+        end = total_len - start
+    ivs = []
+    start_genome = None
+    end_genome = None
+
+    ### find start in genome
+    cur = 0
+    for i in intervals:
+        i_len = i.end - i.start + 1
+        if cur + i_len > start:
+            start_genome = i.start + start - cur
+            break
+        cur += i_len
+
+    ### find end in genome
+    cur = 0
+    for i in intervals:
+        i_len = i.end - i.start + 1
+        if cur + i_len > end:
+            end_genome = i.start + end - cur
+            break
+        cur += i_len
+    ### find overlap with (start_genome, end_genome)
+    for i in intervals:
+        s = max(i.start, start_genome)
+        e = min(i.end, end_genome)
+        if s <= e:
+            ivs.append(Interval(i.chrom, s, e, i.strand))
+    return ivs
+
+
+    print('pos is out of range')
+    return -1
+
+def search_orfs(fasta, intervals):
+    orfs = []
+    if not isinstance(fasta, FastaReader):
+        fasta = FastaReader(fasta)
+    intervals = merge_intervals(intervals)
+    sequences = fasta.query(intervals)
+    merged_seq = ''.join(sequences)
+    if strand == '-':
+        merged_seq = merged_seq[::-1]
+    start_codons = ['ATG', 'CTG', 'GTG']
+    stop_codons = ['TAG', 'TAA', 'TGA']
+    for sc in start_codons:
+        cur = 0
+        while cur < len(merged_seq):
+            loc = merged_seq.find(sc, cur)
+            if loc == -1:
+                break
+            for i in range(cur, len(merged_seq), 3):
+                if merged_seq[i:i+3] in stop_codons:
+
+
+
 
 
 def prepare_orfs(gtf, fasta):
