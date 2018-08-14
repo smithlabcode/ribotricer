@@ -29,7 +29,7 @@ from .helpers import mkdir_p
 
 from .wig import WigReader
 from .interval import Interval
-from .coherence import periodicity
+from .coherence import cal_periodicity
 
 # Unmapped, Unmapped+Reverse strand, Not primary alignment,
 # Not primary alignment + reverse strand, supplementary alignment
@@ -296,7 +296,7 @@ def export_metagene_coverage(bed,
     return metagene_coverage
 
 
-def export_read_counts(gene_coverages, saveto, keep_offsets=True):
+def export_read_counts(gene_coverages, saveto, keep_offsets=False):
     """export read counts from gene coverages file.
 
     Parameters
@@ -308,7 +308,7 @@ def export_read_counts(gene_coverages, saveto, keep_offsets=True):
             gene_name\tcount\tlength
     keep_offsets: bool
                  whether to keep the 5' and 3' offsets in gene coverages
-                 default is True
+                 default is False
     """
     if '.gz' in gene_coverages:
         gene_coverages_df = pd.read_table(gene_coverages, compression='gzip')
