@@ -22,7 +22,10 @@ from .count import _is_read_uniq_mapping
 class PutativeORF:
     """Class for putative ORF"""
     def __init__(self):
-        pass
+        self.chrom = None
+        self.feature = None
+        self.strand = None
+        self.intervals = defaultdict(list)
 
 def prepare_orfs(gtf, fasta):
     gtf = pd.read_table(gtf, header=None, skiprows=5)
@@ -30,6 +33,35 @@ def prepare_orfs(gtf, fasta):
                         4: 'end', 5: 'score', 6: 'strand', 7: 'frame',
                         8: 'attribute'}, inplace=True)
     gtf = gtf[gtf['feature'].isin(['CDS', 'UTR', 'start_codon', 'stop_codon'])]
+    cds = gtf[gtf['feature'] == 'CDS']
+    utr = gtf[gtf['feature'] == 'UTR']
+    iteration = 0
+    orfs = defaultdict(PutativeORF)
+    for i, r in cds.iterrows():
+        iteration += 1
+        if iteration % 1000 == 0:
+            print('{} gtf records processed.'.format(iteration))
+        chrom = r['seqname']
+        feature = r['feature']
+        start = r['start']
+        end = r['end']
+        strand = r['strand']
+        attribute = r['attribute']
+        attribute = {x.strip().split()[0]: x.strip().split()[1]
+                        for x in attribute.split(';') if len(x.split()) > 1}
+        if 'transcript_id' not in attribute:
+            print('missing transcript_id {}: {}-{}'.format(chrom, start, end))
+            continue
+        temp_orf_id = attribute['transcript_id'] + '_CDS'
+        orfs[temp_orf_id].chrom = chrom
+        orfs[temp_orf_id].feature = feature
+        orfs[temp_orf_id].strand = strand
+        orfs[temp_orf_id].intervals.append((start, end))
+        for k, v in attribute.items():
+            setattr(orfs[temp_orf_id], k, v)
+        
+
+
 
 def split_bam(bam, protocol, prefix):
     """Split bam by read length and strand
