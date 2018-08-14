@@ -18,6 +18,19 @@ from .wig import WigReader
 from .interval import Interval
 from .count import _is_read_uniq_mapping
 
+
+class PutativeORF:
+    """Class for putative ORF"""
+    def __init__(self):
+        pass
+
+def prepare_orfs(gtf, fasta):
+    gtf = pd.read_table(gtf, header=None, skiprows=5)
+    gtf.rename(columns={0: 'seqname', 1: 'source', 2: 'feature', 3: 'start',
+                        4: 'end', 5: 'score', 6: 'strand', 7: 'frame',
+                        8: 'attribute'}, inplace=True)
+    gtf = gtf[gtf['feature'].isin(['CDS', 'UTR', 'start_codon', 'stop_codon'])]
+
 def split_bam(bam, protocol, prefix):
     """Split bam by read length and strand
 
