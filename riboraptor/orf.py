@@ -88,8 +88,23 @@ def prepare_orfs(gtf, fasta):
                 first_cds = gc
         last_cds = gene_cds[-1]
         for gc in gene_cds:
-            if gc.stop > last_cds.stop:
+            if gc.end > last_cds.end:
                 last_cds = gc
+        interval = Interval(chrom, start, end, strand)
+        if start < first_cds.start:
+            if end >= first_cds.start:
+                interval.end = first_cds.start - 1
+            if strand == '+':
+                utr5_intervals[transcript_id].append(interval)
+            else:
+                utr3_intervals.append(interval)
+        elif end > last_cds.end:
+            if start < last_cds.end:
+                interval.start = last_cds.end + 1
+            if strand == '+':
+                utr3_intervals[transcript_id].append(interval)
+            else:
+                utr5_intervals[transcript_id].append(interval)
 
 
 
