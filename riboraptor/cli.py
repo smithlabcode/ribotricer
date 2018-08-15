@@ -31,6 +31,7 @@ from .count import extract_uniq_mapping_reads
 from .orf import split_bam
 from .orf import align_coverages
 from .orf import merge_wigs
+from .orf import prepare_orfs
 
 from .infer_protocol import infer_protocol
 
@@ -289,6 +290,24 @@ def split_bam_cmd(bam, protocol, prefix):
 def align_coverages_cmd(coverages, base, saveto):
     align_coverages(coverages, base, saveto)
 
+
+#################### prepare orfs ####################################
+@cli.command(
+    'prepare-orfs',
+    context_settings=CONTEXT_SETTINGS,
+    help='Create bed file for all putative ORFs')
+@click.option(
+    '--gtf',
+    help='Path to annotation file',
+    required=True)
+@click.option(
+    '--fasta',
+    help='Path to reference genome',
+    required=True)
+@click.option(
+    '--prefix', help='Prefix to all output files')
+def prepare_orfs_cmd(gtf, fasta, prefix):
+    prepare_orfs(gtf, fasta, prefix)
 
 #################### merge wigs ####################################
 @cli.command(

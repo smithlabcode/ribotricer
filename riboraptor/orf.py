@@ -61,6 +61,8 @@ def search_orfs(fasta, intervals):
     if not isinstance(fasta, FastaReader):
         fasta = FastaReader(fasta)
     intervals = merge_intervals(intervals)
+    for i in intervals:
+        print(type(i))
     sequences = fasta.query(intervals)
     merged_seq = ''.join(sequences)
     reverse = False
@@ -146,6 +148,7 @@ def prepare_orfs(gtf, fasta, prefix):
         if (gene_id not in cds_intervals or transcript_id not in
                 cds_intervals[gene_id]):
             print('missing CDS for UTR {}: {}-{}'.format(chrom, start, end))
+            continue
         gene_cds = []
         for transcript in cds_intervals[gene_id]:
             gene_cds += cds_intervals[gene_id][transcript]
@@ -164,9 +167,9 @@ def prepare_orfs(gtf, fasta, prefix):
             if strand == '+':
                 utr5_intervals[transcript_id].append(interval)
             else:
-                utr3_intervals.append(interval)
+                utr3_intervals[transcript_id].append(interval)
         elif end > last_cds.end:
-            if start < last_cds.end:
+            if start <= last_cds.end:
                 interval.start = last_cds.end + 1
             if strand == '+':
                 utr3_intervals[transcript_id].append(interval)
