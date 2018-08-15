@@ -23,8 +23,7 @@ from .helpers import merge_intervals
 def transcript_to_genome_iv(start, end, intervals, reverse=False):
     total_len = sum(i.end - i.start + 1 for i in intervals)
     if reverse:
-        start = total_len - end
-        end = total_len - start
+        start, end = total_len - end - 1, total_len - start - 1
     ivs = []
     start_genome = None
     end_genome = None
@@ -84,7 +83,8 @@ def search_orfs(fasta, intervals):
                 if merged_seq[i:i+3] in stop_codons:
                     ### found orf
                     ivs = transcript_to_genome_iv(start, i+2, intervals, reverse)
-                    orfs.append(ivs)
+                    if ivs:
+                        orfs.append(ivs)
                     break
     return orfs
 
