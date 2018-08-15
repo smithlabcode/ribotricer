@@ -142,11 +142,11 @@ def prepare_orfs(gtf, fasta, prefix):
         if 'transcript_id' not in attribute:
             print('missing transcript_id {}: {}-{}'.format(chrom, start, end))
             continue
-        transcript_id = attribute['transcript_id']
+        transcript_id = attribute['transcript_id'].strip('"')
         if 'gene_id' not in attribute:
             print('missing gene_id {}: {}-{}'.format(chrom, start, end))
             continue
-        gene_id = attribute['gene_id']
+        gene_id = attribute['gene_id'].strip('"')
         if (gene_id not in cds_intervals or transcript_id not in
                 cds_intervals[gene_id]):
             print('missing CDS for UTR {}: {}-{}'.format(chrom, start, end))
