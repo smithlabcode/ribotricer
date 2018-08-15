@@ -75,12 +75,12 @@ def search_orfs(fasta, intervals):
             start = merged_seq.find(sc, cur)
             if start == -1:
                 break
+            cur = start + 1
             for i in range(start, len(merged_seq), 3):
                 if merged_seq[i:i+3] in stop_codons:
                     ### found orf
                     ivs = transcript_to_genome_iv(start, i+2, intervals, reverse)
                     orfs.append(ivs)
-                    cur = i+3
                     break
     return orfs
 
