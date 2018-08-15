@@ -85,7 +85,7 @@ def search_orfs(fasta, intervals):
     return orfs
 
 
-def prepare_orfs(gtf, fasta):
+def prepare_orfs(gtf, fasta, prefix):
 
     gtf = pd.read_table(gtf, header=None, skiprows=5)
     gtf.rename(columns={0: 'seqname', 1: 'source', 2: 'feature', 3: 'start',
@@ -174,9 +174,6 @@ def prepare_orfs(gtf, fasta):
                 utr5_intervals[transcript_id].append(interval)
 
     ### sort the intervals
-    for gene in cds_intervals:
-        for transcript in cds_intervals[gene]:
-            cds_intervals[gene][transcript].sort(key=lambda x: x.start)
     for transcript in utr5_intervals:
         utr5_intervals[transcript].sort(key=lambda x: x.start)
     for transcript in utr3_intervals:
@@ -204,6 +201,32 @@ def prepare_orfs(gtf, fasta):
             total_len = sum(i.end - i.start + 1 for i in orf)
             orf_id = '{}_{}_{}_{}'.format(tid, start, end, total_len)
             dorfs[orf_id] = orf
+
+    ### save to bed file
+    cds_bed = ''
+    for gid in cds_intervals:
+        for tid in cds_intervals[gid]:
+            for iv in cds_intervals[gid][tid]:
+                cds_bed += '{}\t{}\t{}\t{}\t{}\t{}\n'.format(iv.chrom, iv.start,
+                        iv.end, tid, '.', iv.strand)
+    with open('{}_cds.bed'.format(prefix), 'w') as output:
+        output.write(cds_bed)
+
+    utr5_bed = ''
+    for oid in uorfs:
+        for iv in uorfs[oid]:
+            utr5_bed += '{}\t{}\t{}\t{}\t{}\t{}\t{}\n'.format(iv.chrom,
+                    iv.start, iv.end, oid, '.', iv.strand)
+    with open('{}_utr5.bed'.format(prefix), 'w') as output:
+        output.write(utr5_bed)
+
+    utr3_bed = ''
+    for oid in dorfs:
+        for iv in dorfs[oid]:
+            utr3_bed += '{}\t{}\t{}\t{}\t{}\t{}\t{}\n'.format(iv.chrom,
+                    iv.start, iv.end, oid, '.', iv.strand)
+    with open('{}_utr3.bed'.format(prefix), 'w') as output:
+        output.write(utr3_bed)
 
 
 def split_bam(bam, protocol, prefix):
