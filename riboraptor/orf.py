@@ -55,9 +55,6 @@ def transcript_to_genome_iv(start, end, intervals, reverse=False):
     return ivs
 
 
-    print('pos is out of range')
-    return -1
-
 def search_orfs(fasta, intervals):
     orfs = []
     if not isinstance(fasta, FastaReader):
@@ -65,21 +62,26 @@ def search_orfs(fasta, intervals):
     intervals = merge_intervals(intervals)
     sequences = fasta.query(intervals)
     merged_seq = ''.join(sequences)
+    reverse = False
     if strand == '-':
         merged_seq = merged_seq[::-1]
+        reverse = True
     start_codons = ['ATG', 'CTG', 'GTG']
     stop_codons = ['TAG', 'TAA', 'TGA']
     for sc in start_codons:
         cur = 0
         while cur < len(merged_seq):
-            loc = merged_seq.find(sc, cur)
-            if loc == -1:
+            start = merged_seq.find(sc, cur)
+            if start == -1:
                 break
-            for i in range(cur, len(merged_seq), 3):
+            for i in range(start, len(merged_seq), 3):
                 if merged_seq[i:i+3] in stop_codons:
-
-
-
+                    ### found orf
+                    ivs = transcript_to_genome_iv(start, i+2, intervals, reverse)
+                    orfs.append(ivs)
+                    cur = i+3
+                    break
+    return orfs
 
 
 def prepare_orfs(gtf, fasta):
