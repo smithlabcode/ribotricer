@@ -46,6 +46,7 @@ def transcript_to_genome_iv(start, end, intervals, reverse=False):
             end_genome = i.start + end - cur
             break
         cur += i_len
+
     ### find overlap with (start_genome, end_genome)
     for i in intervals:
         s = max(i.start, start_genome)
@@ -85,6 +86,7 @@ def search_orfs(fasta, intervals):
 
 
 def prepare_orfs(gtf, fasta):
+
     gtf = pd.read_table(gtf, header=None, skiprows=5)
     gtf.rename(columns={0: 'seqname', 1: 'source', 2: 'feature', 3: 'start',
                         4: 'end', 5: 'score', 6: 'strand', 7: 'frame',
@@ -171,6 +173,37 @@ def prepare_orfs(gtf, fasta):
             else:
                 utr5_intervals[transcript_id].append(interval)
 
+    ### sort the intervals
+    for gene in cds_intervals:
+        for transcript in cds_intervals[gene]:
+            cds_intervals[gene][transcript].sort(key=lambda x: x.start)
+    for transcript in utr5_intervals:
+        utr5_intervals[transcript].sort(key=lambda x: x.start)
+    for transcript in utr3_intervals:
+        utr3_intervals[transcript].sort(key=lambda x: x.start)
+
+    if not isinstance(fasta, FastaReader):
+        fasta = FastaReader(fasta)
+
+    uorfs = {}
+    for tid, invs in utr5_intervals.items():
+        orfs = search_orfs(fasta, invs)
+        for orf in orfs:
+            start = orf[0].start
+            end = orf[-1].end
+            total_len = sum(i.end - i.start + 1 for i in orf)
+            orf_id = '{}_{}_{}_{}'.format(tid, start, end, total_len)
+            uorfs[orf_id] = orf
+
+    dorfs = {}
+    for tid, invs in utr3_intervals.items():
+        orfs = search_orfs(fasta, invs)
+        for orf in orfs:
+            start = orf[0].start
+            end = orf[-1].end
+            total_len = sum(i.end - i.start + 1 for i in orf)
+            orf_id = '{}_{}_{}_{}'.format(tid, start, end, total_len)
+            dorfs[orf_id] = orf
 
 
 def split_bam(bam, protocol, prefix):
