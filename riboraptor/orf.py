@@ -64,8 +64,6 @@ def search_orfs(fasta, intervals):
     if not isinstance(fasta, FastaReader):
         fasta = FastaReader(fasta)
     intervals, _, _ = merge_intervals(intervals)
-    for i in intervals:
-        print(type(i))
     sequences = fasta.query(intervals)
     merged_seq = ''.join(sequences)
     reverse = False
@@ -190,9 +188,8 @@ def prepare_orfs(gtf, fasta, prefix):
         fasta = FastaReader(fasta)
 
     uorfs = {}
+    print('searching uORFs...')
     for tid, invs in utr5_intervals.items():
-        print(tid, invs)
-        print('searching uORFs')
         orfs = search_orfs(fasta, invs)
         for orf in orfs:
             start = orf[0].start
@@ -202,10 +199,8 @@ def prepare_orfs(gtf, fasta, prefix):
             uorfs[orf_id] = orf
 
     dorfs = {}
+    print('searching dORFs...')
     for tid, invs in utr3_intervals.items():
-        print(tid, invs)
-        print(len(invs))
-        print('searching dORFs')
         orfs = search_orfs(fasta, invs)
         for orf in orfs:
             start = orf[0].start
