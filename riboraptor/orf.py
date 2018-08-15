@@ -117,11 +117,11 @@ def prepare_orfs(gtf, fasta, prefix):
         if 'transcript_id' not in attribute:
             print('missing transcript_id {}: {}-{}'.format(chrom, start, end))
             continue
-        transcript_id = attribute['transcript_id']
+        transcript_id = attribute['transcript_id'].strip('"')
         if 'gene_id' not in attribute:
             print('missing gene_id {}: {}-{}'.format(chrom, start, end))
             continue
-        gene_id = attribute['gene_id']
+        gene_id = attribute['gene_id'].strip('"')
         cds_intervals[gene_id][transcript_id].append(Interval(chrom, start, end,
             strand))
     
@@ -222,7 +222,7 @@ def prepare_orfs(gtf, fasta, prefix):
     utr5_bed = ''
     for oid in uorfs:
         for iv in uorfs[oid]:
-            utr5_bed += '{}\t{}\t{}\t{}\t{}\t{}\t{}\n'.format(iv.chrom,
+            utr5_bed += '{}\t{}\t{}\t{}\t{}\t{}\n'.format(iv.chrom,
                     iv.start, iv.end, oid, '.', iv.strand)
     with open('{}_utr5.bed'.format(prefix), 'w') as output:
         output.write(utr5_bed)
@@ -230,7 +230,7 @@ def prepare_orfs(gtf, fasta, prefix):
     utr3_bed = ''
     for oid in dorfs:
         for iv in dorfs[oid]:
-            utr3_bed += '{}\t{}\t{}\t{}\t{}\t{}\t{}\n'.format(iv.chrom,
+            utr3_bed += '{}\t{}\t{}\t{}\t{}\t{}\n'.format(iv.chrom,
                     iv.start, iv.end, oid, '.', iv.strand)
     with open('{}_utr3.bed'.format(prefix), 'w') as output:
         output.write(utr3_bed)
