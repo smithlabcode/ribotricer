@@ -539,13 +539,16 @@ def download_srp_cmd(out, ascp, srpfile, srp_id_list):
     '--refseq',
     help='Path to reseq file to be used for defining the gene strands')
 @click.option(
+    '--prefix',
+    help='Prefix to output protocol file')
+@click.option(
     '--n_reads',
     type=int,
     default=20000,
     help='Number of mapped reads to use for estimation')
-def infer_protocol_cmd(bam, refseq, n_reads):
+def infer_protocol_cmd(bam, refseq, prefix, n_reads):
     protocol, forward_mapped, reverse_mapped = infer_protocol(
-        bam, refseq, n_reads)
+        bam, refseq, prefix, n_reads)
     print(
         dedent('''\
                  Forward mapped proportion: {:.4f}

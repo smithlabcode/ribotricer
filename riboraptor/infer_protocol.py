@@ -10,15 +10,17 @@ from collections import Counter
 import numpy as np
 
 
-def infer_protocol(bam, refseq, n_reads=20000):
+def infer_protocol(bam, refseq, prefix, n_reads=20000):
     """Infer strandedness protocol given a bam file
 
     Parameters
     ----------
-    bam: string
+    bam: str
          Path to bam file
-    refseq: string
-                Path to refseq bed file
+    refseq: str
+            Path to refseq bed file
+    prefix: str
+            Prefix for protocol file
     n_reads: int
              Number of reads to use (downsampled)
 
@@ -63,12 +65,17 @@ def infer_protocol(bam, refseq, n_reads=20000):
     strandedness['-+'] += 1
 
     total = sum(strandedness.values())
-    forward_mapped_reads = (strandedness['++'] + strandedness['--']) / total
-    reverse_mapped_reads = (strandedness['-+'] + strandedness['+-']) / total
-    ratio = forward_mapped_reads / reverse_mapped_reads
-    if np.isclose([ratio], [1]):
-        return 'unstranded', forward_mapped_reads, reverse_mapped_reads
-    elif forward_mapped_reads >= 0.5:
-        return 'forward', forward_mapped_reads, reverse_mapped_reads
-    else:
-        return 'reverse', forward_mapped_reads, reverse_mapped_reads
+    forward_mapped_reads = (strandedness['++'] + strandedness['--'])
+    reverse_mapped_reads = (strandedness['-+'] + strandedness['+-'])
+    to_write = 'In total {} reads checked:\n' \
+            '\tNumber of reads explained by "++, --": {} ({:.4f})\n' \
+            '\tNumber of reads explained by "+-, -+": {} ({:.4f})\n'.format(
+                       n_reads,
+                       forward_mapped_reads, forward_mapped_reads / total,
+                       reverse_mapped_reads, reverse_mapped_reads / total)
+    with open('{}_protocol.txt'.format(prefix), 'w') as output:
+        output.write(to_write)
+    protocol = 'forward'
+    if reverse_mapped_reads > forward_mapped_reads:
+        protocol = 'reverse'
+    return (protocol, forward_mapped_reads, reverse_mapped_reads)
