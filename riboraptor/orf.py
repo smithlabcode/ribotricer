@@ -57,15 +57,19 @@ def transcript_to_genome_iv(start, end, intervals, reverse=False):
 
 
 def search_orfs(fasta, intervals):
+    if not intervals:
+        return []
+
     orfs = []
     if not isinstance(fasta, FastaReader):
         fasta = FastaReader(fasta)
-    intervals = merge_intervals(intervals)
+    intervals, _, _ = merge_intervals(intervals)
     for i in intervals:
         print(type(i))
     sequences = fasta.query(intervals)
     merged_seq = ''.join(sequences)
     reverse = False
+    strand = intervals[0].strand
     if strand == '-':
         merged_seq = merged_seq[::-1]
         reverse = True
@@ -187,6 +191,8 @@ def prepare_orfs(gtf, fasta, prefix):
 
     uorfs = {}
     for tid, invs in utr5_intervals.items():
+        print(tid, invs)
+        print('searching uORFs')
         orfs = search_orfs(fasta, invs)
         for orf in orfs:
             start = orf[0].start
@@ -197,6 +203,9 @@ def prepare_orfs(gtf, fasta, prefix):
 
     dorfs = {}
     for tid, invs in utr3_intervals.items():
+        print(tid, invs)
+        print(len(invs))
+        print('searching dORFs')
         orfs = search_orfs(fasta, invs)
         for orf in orfs:
             start = orf[0].start
