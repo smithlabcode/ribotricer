@@ -18,7 +18,7 @@ setuptools.setup(
     packages=setuptools.find_packages(),
     entry_points={'console_scripts': ['RiboCop=RiboCop.cli:cli']},
     classifiers=[
-        'License :: OSI Approved :: BSD License',
+        'License :: OSI Approved :: GNU GPL 3',
         'Natural Language :: English',
         'Programming Language :: Python :: 3',
     ],
