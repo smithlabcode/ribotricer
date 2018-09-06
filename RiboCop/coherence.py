@@ -13,7 +13,7 @@ def cal_periodicity(values):
     repeats = len(values) // 3
     total = repeats * 3
     values = values[:total]
-    corr=pval=0
+    corr = pval = 0
     frame0 = np.array([1, 0, 0] * repeats)
     r, p = stats.pearsonr(values, frame0)
     if abs(r) > corr:
@@ -29,6 +29,7 @@ def cal_periodicity(values):
     if abs(r) > corr:
         corr, pval = abs(r), p
     return (corr, pval)
+
 
 def _shift_bit_length(x):
     """Shift bit"""

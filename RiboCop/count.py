@@ -144,7 +144,12 @@ def gene_coverage(gene_group, bw, offset_5p=0, offset_3p=0):
     return (coverages_combined, gene_offset_5p, gene_offset_3p)
 
 
-def export_gene_coverages(bed, pos_bw, neg_bw, saveto, offset_5p=0, offset_3p=0):
+def export_gene_coverages(bed,
+                          pos_bw,
+                          neg_bw,
+                          saveto,
+                          offset_5p=0,
+                          offset_3p=0):
     """Export all gene coverages.
 
     Parameters
@@ -331,8 +336,9 @@ def export_read_counts(gene_coverages, saveto, keep_offsets=False):
         count = coverage.sum()
         length = len(coverage.tolist())
         periodicity, pval = cal_periodicity(coverage)
-        to_write += "{}\t{}\t{}\t{}\t{}\n".format(gene_name, 
-                int(count), int(length), periodicity, pval)
+        to_write += "{}\t{}\t{}\t{}\t{}\n".format(gene_name, int(count),
+                                                  int(length), periodicity,
+                                                  pval)
 
     mkdir_p(os.path.dirname(saveto))
     with open(saveto, 'w') as output:
@@ -454,10 +460,8 @@ def export_read_length(bam, saveto=None):
 
     """
     bam = pysam.AlignmentFile(bam)
-    read_counts = Counter([
-        read.query_length for read in bam
-        if _is_read_uniq_mapping(read)
-    ])
+    read_counts = Counter(
+        [read.query_length for read in bam if _is_read_uniq_mapping(read)])
     if saveto:
         mkdir_p(os.path.dirname(saveto))
         to_write = 'read_length\tcount\n'

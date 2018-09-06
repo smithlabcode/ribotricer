@@ -20,6 +20,7 @@ from .interval import Interval
 from .count import _is_read_uniq_mapping
 from .helpers import merge_intervals
 
+
 def transcript_to_genome_iv(start, end, intervals, reverse=False):
     total_len = sum(i.end - i.start + 1 for i in intervals)
     if reverse:
@@ -80,9 +81,10 @@ def search_orfs(fasta, intervals):
                 break
             cur = start + 1
             for i in range(start, len(merged_seq), 3):
-                if merged_seq[i:i+3] in stop_codons:
+                if merged_seq[i:i + 3] in stop_codons:
                     ### found orf
-                    ivs = transcript_to_genome_iv(start, i+2, intervals, reverse)
+                    ivs = transcript_to_genome_iv(start, i + 2, intervals,
+                                                  reverse)
                     if ivs:
                         orfs.append(ivs)
                     break
@@ -92,9 +94,19 @@ def search_orfs(fasta, intervals):
 def prepare_orfs(gtf, fasta, prefix):
 
     gtf = pd.read_table(gtf, header=None, skiprows=5)
-    gtf.rename(columns={0: 'seqname', 1: 'source', 2: 'feature', 3: 'start',
-                        4: 'end', 5: 'score', 6: 'strand', 7: 'frame',
-                        8: 'attribute'}, inplace=True)
+    gtf.rename(
+        columns={
+            0: 'seqname',
+            1: 'source',
+            2: 'feature',
+            3: 'start',
+            4: 'end',
+            5: 'score',
+            6: 'strand',
+            7: 'frame',
+            8: 'attribute'
+        },
+        inplace=True)
     gtf = gtf[gtf['feature'].isin(['CDS', 'UTR'])]
     cds = gtf[gtf['feature'] == 'CDS']
     utr = gtf[gtf['feature'] == 'UTR']
@@ -112,8 +124,10 @@ def prepare_orfs(gtf, fasta, prefix):
         end = r['end']
         strand = r['strand']
         attribute = r['attribute']
-        attribute = {x.strip().split()[0]: x.strip().split()[1]
-                        for x in attribute.split(';') if len(x.split()) > 1}
+        attribute = {
+            x.strip().split()[0]: x.strip().split()[1]
+            for x in attribute.split(';') if len(x.split()) > 1
+        }
         if 'transcript_id' not in attribute:
             print('missing transcript_id {}: {}-{}'.format(chrom, start, end))
             continue
@@ -122,9 +136,9 @@ def prepare_orfs(gtf, fasta, prefix):
             print('missing gene_id {}: {}-{}'.format(chrom, start, end))
             continue
         gene_id = attribute['gene_id'].strip('"')
-        cds_intervals[gene_id][transcript_id].append(Interval(chrom, start, end,
-            strand))
-    
+        cds_intervals[gene_id][transcript_id].append(
+            Interval(chrom, start, end, strand))
+
     ### process UTR gtf
     utr5_intervals = defaultdict(list)
     utr3_intervals = defaultdict(list)
@@ -137,8 +151,10 @@ def prepare_orfs(gtf, fasta, prefix):
         end = r['end']
         strand = r['strand']
         attribute = r['attribute']
-        attribute = {x.strip().split()[0]: x.strip().split()[1]
-                        for x in attribute.split(';') if len(x.split()) > 1}
+        attribute = {
+            x.strip().split()[0]: x.strip().split()[1]
+            for x in attribute.split(';') if len(x.split()) > 1
+        }
         if 'transcript_id' not in attribute:
             print('missing transcript_id {}: {}-{}'.format(chrom, start, end))
             continue
@@ -147,8 +163,8 @@ def prepare_orfs(gtf, fasta, prefix):
             print('missing gene_id {}: {}-{}'.format(chrom, start, end))
             continue
         gene_id = attribute['gene_id'].strip('"')
-        if (gene_id not in cds_intervals or transcript_id not in
-                cds_intervals[gene_id]):
+        if (gene_id not in cds_intervals
+                or transcript_id not in cds_intervals[gene_id]):
             print('missing CDS for UTR {}: {}-{}'.format(chrom, start, end))
             continue
         gene_cds = []
@@ -214,24 +230,24 @@ def prepare_orfs(gtf, fasta, prefix):
     for gid in cds_intervals:
         for tid in cds_intervals[gid]:
             for iv in cds_intervals[gid][tid]:
-                cds_bed += '{}\t{}\t{}\t{}\t{}\t{}\n'.format(iv.chrom, iv.start,
-                        iv.end, tid, '.', iv.strand)
+                cds_bed += '{}\t{}\t{}\t{}\t{}\t{}\n'.format(
+                    iv.chrom, iv.start, iv.end, tid, '.', iv.strand)
     with open('{}_cds.bed'.format(prefix), 'w') as output:
         output.write(cds_bed)
 
     utr5_bed = ''
     for oid in uorfs:
         for iv in uorfs[oid]:
-            utr5_bed += '{}\t{}\t{}\t{}\t{}\t{}\n'.format(iv.chrom,
-                    iv.start, iv.end, oid, '.', iv.strand)
+            utr5_bed += '{}\t{}\t{}\t{}\t{}\t{}\n'.format(
+                iv.chrom, iv.start, iv.end, oid, '.', iv.strand)
     with open('{}_utr5.bed'.format(prefix), 'w') as output:
         output.write(utr5_bed)
 
     utr3_bed = ''
     for oid in dorfs:
         for iv in dorfs[oid]:
-            utr3_bed += '{}\t{}\t{}\t{}\t{}\t{}\n'.format(iv.chrom,
-                    iv.start, iv.end, oid, '.', iv.strand)
+            utr3_bed += '{}\t{}\t{}\t{}\t{}\t{}\n'.format(
+                iv.chrom, iv.start, iv.end, oid, '.', iv.strand)
     with open('{}_utr3.bed'.format(prefix), 'w') as output:
         output.write(utr3_bed)
 
@@ -250,7 +266,7 @@ def split_bam(bam, protocol, prefix):
             {prefix}__xxnt_neg.wig
     """
     coverages = defaultdict(lambda: defaultdict(Counter))
-    iteration=qcfail=duplicate=secondary=unmapped=multi=valid=0
+    iteration = qcfail = duplicate = secondary = unmapped = multi = valid = 0
     bam = pysam.AlignmentFile(bam, 'rb')
     for r in bam.fetch(until_eof=True):
 
@@ -290,14 +306,14 @@ def split_bam(bam, protocol, prefix):
         elif protocol == 'reverse':
             if map_strand == '+':
                 strand = '-'
-                pos =  ref_positions[-1]
+                pos = ref_positions[-1]
             else:
                 strand = '+'
                 pos = ref_positions[0]
         coverages[length][strand][(chrom, pos)] += 1
 
         valid += 1
-        
+
     summary = 'summary:\n\ttotal_reads: {}\n\tunique_mapped: {}\n' \
               '\tqcfail: {}\n\tduplicate: {}\n\tsecondary: {}\n' \
               '\tunmapped:{}\n\tmulti:{}\n\nlength dist:\n'.format(iteration,
@@ -312,10 +328,10 @@ def split_bam(bam, protocol, prefix):
                 if chrom != cur_chrom:
                     cur_chrom = chrom
                     to_write += 'variableStep chrom={}\n'.format(chrom)
-                to_write += '{}\t{}\n'.format(pos,
-                        coverages[length][strand][(chrom, pos)])
-            fname = '{}_{}nt_{}.wig'.format(prefix, length,
-                    'pos' if strand == '+' else 'neg')
+                to_write += '{}\t{}\n'.format(
+                    pos, coverages[length][strand][(chrom, pos)])
+            fname = '{}_{}nt_{}.wig'.format(prefix, length, 'pos'
+                                            if strand == '+' else 'neg')
             with open(fname, 'w') as output:
                 output.write(to_write)
             reads_of_length += 1
@@ -343,8 +359,10 @@ def align_coverages(coverages, base, saveto):
     base = int(base)
     with open(coverages) as f:
         cov_lens = f.readlines()
-    cov_lens = {int(x.strip().split()[0]): x.strip().split()[1]
-                    for x in cov_lens}
+    cov_lens = {
+        int(x.strip().split()[0]): x.strip().split()[1]
+        for x in cov_lens
+    }
     if base not in cov_lens:
         print('Failed to find base {} in coverages.'.format(base))
         return
@@ -355,11 +373,12 @@ def align_coverages(coverages, base, saveto):
         xcorr = np.correlate(reference, cov, 'full')
         origin = len(xcorr) // 2
         bound = min(base, length)
-        xcorr = xcorr[origin-bound: origin+bound]
-        lag = np.argmax(xcorr) - len(xcorr)//2
+        xcorr = xcorr[origin - bound:origin + bound]
+        lag = np.argmax(xcorr) - len(xcorr) // 2
         to_write += '\tlag of {}: {}\n'.format(length, lag)
     with open(saveto, 'w') as output:
         output.write(to_write)
+
 
 def merge_wigs(wigs, offsets, strand, saveto):
     """merge wigs from different lengths into one with shift of offsets
@@ -384,17 +403,21 @@ def merge_wigs(wigs, offsets, strand, saveto):
     """
     coverages = defaultdict(int)
     with open(wigs) as wf:
-        wigs = {int(x.strip().split()[0]): x.strip().split()[1]
-                    for x in wf.readlines()}
+        wigs = {
+            int(x.strip().split()[0]): x.strip().split()[1]
+            for x in wf.readlines()
+        }
     with open(offsets) as of:
-        offsets = {int(x.strip().split()[0]): int(x.strip().split()[1])
-                       for x in of.readlines()}
+        offsets = {
+            int(x.strip().split()[0]): int(x.strip().split()[1])
+            for x in of.readlines()
+        }
     for length, wig in wigs.items():
         with open(wig) as f:
             for line in f:
                 if line.startswith('variableStep'):
                     line = line.strip()
-                    chrom = line[line.index('=')+1:]
+                    chrom = line[line.index('=') + 1:]
                 else:
                     pos, count = line.strip().split()
                     pos, count = int(pos), int(count)

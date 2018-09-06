@@ -81,8 +81,8 @@ def cli():
     type=int,
     default=0,
     show_default=True)
-def export_gene_coverages_cmd(bed, pos_bw, neg_bw, 
-                              saveto, offset_5p, offset_3p):
+def export_gene_coverages_cmd(bed, pos_bw, neg_bw, saveto, offset_5p,
+                              offset_3p):
     export_gene_coverages(bed, pos_bw, neg_bw, saveto, offset_5p, offset_3p)
 
 
@@ -119,9 +119,8 @@ def export_gene_coverages_cmd(bed, pos_bw, neg_bw,
     show_default=True)
 def export_metagene_coverage_cmd(bed, pos_bw, neg_bw, max_positions, saveto,
                                  offset_5p, offset_3p):
-    metagene_profile = export_metagene_coverage(bed, pos_bw, neg_bw,
-                                                max_positions, saveto,
-                                                offset_5p, offset_3p)
+    metagene_profile = export_metagene_coverage(
+        bed, pos_bw, neg_bw, max_positions, saveto, offset_5p, offset_3p)
 
     for i, count in six.iteritems(metagene_profile):
         sys.stdout.write('{}\t{}'.format(i, count))
@@ -257,16 +256,12 @@ def export_gene_sequences_cmd(bed, fasta, saveto, offset_5p, offset_3p):
     'split-bam',
     context_settings=CONTEXT_SETTINGS,
     help='Split bam file by length and strand into wig files')
-@click.option(
-    '--bam',
-    help='Path to bam file',
-    required=True)
+@click.option('--bam', help='Path to bam file', required=True)
 @click.option(
     '--protocol',
     help='Experimenta protocol [forward, reverse]',
     required=True)
-@click.option(
-    '--prefix', help='Prefix for output wig files')
+@click.option('--prefix', help='Prefix for output wig files')
 def split_bam_cmd(bam, protocol, prefix):
     split_bam(bam, protocol, prefix)
 
@@ -285,8 +280,7 @@ def split_bam_cmd(bam, protocol, prefix):
     help='The reference length, usually the most abundant one',
     type=int,
     required=True)
-@click.option(
-    '--saveto', help='path to output tsv file')
+@click.option('--saveto', help='path to output tsv file')
 def align_coverages_cmd(coverages, base, saveto):
     align_coverages(coverages, base, saveto)
 
@@ -296,18 +290,12 @@ def align_coverages_cmd(coverages, base, saveto):
     'prepare-orfs',
     context_settings=CONTEXT_SETTINGS,
     help='Create bed file for all putative ORFs')
-@click.option(
-    '--gtf',
-    help='Path to annotation file',
-    required=True)
-@click.option(
-    '--fasta',
-    help='Path to reference genome',
-    required=True)
-@click.option(
-    '--prefix', help='Prefix to all output files')
+@click.option('--gtf', help='Path to annotation file', required=True)
+@click.option('--fasta', help='Path to reference genome', required=True)
+@click.option('--prefix', help='Prefix to all output files')
 def prepare_orfs_cmd(gtf, fasta, prefix):
     prepare_orfs(gtf, fasta, prefix)
+
 
 #################### merge wigs ####################################
 @cli.command(
@@ -315,19 +303,11 @@ def prepare_orfs_cmd(gtf, fasta, prefix):
     context_settings=CONTEXT_SETTINGS,
     help='merge wigs from all lengths by shifting offsets')
 @click.option(
-    '--wigs',
-    help='Path to file containing path to wigs',
-    required=True)
+    '--wigs', help='Path to file containing path to wigs', required=True)
 @click.option(
-    '--offsets',
-    help='Path to file containing offsets',
-    required=True)
-@click.option(
-    '--strand',
-    help='Strand of the wig files',
-    required=True)
-@click.option(
-    '--saveto', help='path to merged wig file')
+    '--offsets', help='Path to file containing offsets', required=True)
+@click.option('--strand', help='Strand of the wig files', required=True)
+@click.option('--saveto', help='path to merged wig file')
 def merge_wigs_cmd(wigs, offsets, strand, saveto):
     merge_wigs(wigs, offsets, strand, saveto)
 
@@ -538,9 +518,7 @@ def download_srp_cmd(out, ascp, srpfile, srp_id_list):
 @click.option(
     '--refseq',
     help='Path to reseq file to be used for defining the gene strands')
-@click.option(
-    '--prefix',
-    help='Prefix to output protocol file')
+@click.option('--prefix', help='Prefix to output protocol file')
 @click.option(
     '--n_reads',
     type=int,
