@@ -7,11 +7,12 @@ from __future__ import unicode_literals
 
 from collections import defaultdict
 
+
 class GTFTrack:
     """Class for feature in GTF file."""
 
     def __init__(self, seqname, source, feature, start, end, score, strand,
-            frame, attribute):
+                 frame, attribute):
         self.seqname = seqname
         self.source = source
         self.feature = feature
@@ -50,12 +51,13 @@ class GTFTrack:
         strand = fields[6]
         frame = fields[7]
         attribute = fields[8]
-        
+
         if feature not in ['CDS', 'UTR']:
             return None
 
         return cls(seqname, source, feature, start, end, score, strand, frame,
-                attribute)
+                   attribute)
+
 
 class GTFReader:
     """Class for reading and parseing gtf file."""
@@ -87,8 +89,7 @@ class GTFReader:
                     self.cds[track.gene_id][track.transcript_id].append(track)
                 elif track.feature == 'UTR':
                     self.utr[track.gene_id][track.transcript_id].append(track)
-   
-    
+
     # @property
     # def chromosomes(self):
     #     """Return list of chromsome and their sizes
