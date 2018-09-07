@@ -4,21 +4,22 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 import pysam
-from .count import _is_read_uniq_mapping, _create_bam_index
-from .helpers import read_refseq_bed
-from collections import Counter
 import numpy as np
+import sys
+from .gtf import GTFReader
+from .common import is_read_uniq_mapping
+from collections import Counter
 
 
-def infer_protocol(bam, refseq, prefix, n_reads=20000):
+def infer_protocol(bam, gtf, prefix, n_reads=20000):
     """Infer strandedness protocol given a bam file
 
     Parameters
     ----------
     bam: str
          Path to bam file
-    refseq: str
-            Path to refseq bed file
+    gtf: GTFReader instance
+         GTFReader instance
     prefix: str
             Prefix for protocol file
     n_reads: int
@@ -28,15 +29,17 @@ def infer_protocol(bam, refseq, prefix, n_reads=20000):
     Returns
     -------
     protocol: string
-              unstranded/forward/reverse
-    forward_mapped_reads: float
+              forward/reverse
+    forward_mapped_reads: int
           Proportion of reads of type + mapping to + (++) or - mapping to - (--)
-    reverse_mapped_reads: float
+    reverse_mapped_reads: int
           Proportion of reads of type + mapping to - (+-) or - mapping to + (-+)
     """
+    if not isinstance(gtf, GTFReader):
+        gtf = GTFReader(gtf)
+    refseq = gtf.gene
     iteration = 0
     bam = pysam.AlignmentFile(bam, 'rb')
-    refseq = read_refseq_bed(refseq)
     strandedness = Counter()
     for read in bam.fetch(until_eof=True):
         if not _is_read_uniq_mapping(read):
