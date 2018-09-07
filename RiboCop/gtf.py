@@ -7,6 +7,7 @@ from __future__ import unicode_literals
 
 from collections import defaultdict
 from bx.intervals.intersection import IntervalTree
+from tqdm import *
 
 
 class GTFTrack:
@@ -79,7 +80,7 @@ class GTFReader:
         self.cds = defaultdict(lambda: defaultdict(list))
         self.utr = defaultdict(list)
         with open(self.gtf_location, 'r') as gtf:
-            for line in gtf:
+            for line in tqdm(gtf):
                 track = GTFTrack.from_string(line)
                 if track is None:
                     continue
