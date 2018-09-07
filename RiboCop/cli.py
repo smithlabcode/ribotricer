@@ -45,9 +45,11 @@ def cli():
 def infer_protocol_cmd(bam, gtf, prefix, n_reads):
     protocol, forward_mapped, reverse_mapped = infer_protocol(
         bam, gtf, prefix, n_reads)
+    total = forward_mapped + reverse_mapped
     print(
         dedent('''\
-                 Forward mapped proportion: {:.4f}
-                 Reverse mapped proportion: {:.4f}
-                 Likely protocol: {}'''.format(forward_mapped, reverse_mapped,
-                                               protocol)))
+                 Forward mapped proportion: {} ({:.4f})
+                 Reverse mapped proportion: {} ({:.4f})
+                 Likely protocol: {}'''
+               .format(forward_mapped, forward_mapped / total, reverse_mapped,
+                       reverse_mapped / total, protocol)))

@@ -25,7 +25,7 @@ class GTFTrack:
         for att in attribute.split(';'):
             if len(att.split()) == 2:
                 k, v = att.strip().split()
-                setattr(self, k, v)
+                setattr(self, k, v.strip('"'))
 
     @classmethod
     def from_string(cls, line):
@@ -38,8 +38,8 @@ class GTFTrack:
         if line.startswith('#'):
             return None
 
-        fields = line.strip().split()
-        if len(fields) < 9:
+        fields = line.strip().split('\t')
+        if len(fields) != 9:
             print('mal-formatted GTF file')
             return None
 
@@ -58,6 +58,9 @@ class GTFTrack:
 
         return cls(seqname, source, feature, start, end, score, strand, frame,
                    attribute)
+
+    def __repr__(self):
+        return str(self.__dict__)
 
 
 class GTFReader:
@@ -93,6 +96,6 @@ class GTFReader:
                     continue
 
                 if track.feature == 'cds':
-                    self.cds[track.gene_id][track.transcript_id].append(track)
+                    self.cds[gid][tid].append(track)
                 elif track.feature == 'utr':
-                    self.utr[track.transcript_id].append(track)
+                    self.utr[tid].append(track)

@@ -42,7 +42,7 @@ def infer_protocol(bam, gtf, prefix, n_reads=20000):
     bam = pysam.AlignmentFile(bam, 'rb')
     strandedness = Counter()
     for read in bam.fetch(until_eof=True):
-        if not _is_read_uniq_mapping(read):
+        if not is_read_uniq_mapping(read):
             continue
         if read.is_reverse:
             mapped_strand = '-'
@@ -73,7 +73,7 @@ def infer_protocol(bam, gtf, prefix, n_reads=20000):
     to_write = 'In total {} reads checked:\n' \
             '\tNumber of reads explained by "++, --": {} ({:.4f})\n' \
             '\tNumber of reads explained by "+-, -+": {} ({:.4f})\n'.format(
-                       n_reads,
+                       total,
                        forward_mapped_reads, forward_mapped_reads / total,
                        reverse_mapped_reads, reverse_mapped_reads / total)
     with open('{}_protocol.txt'.format(prefix), 'w') as output:
