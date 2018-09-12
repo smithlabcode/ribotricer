@@ -263,7 +263,8 @@ def prepare_orfs(gtf, fasta, prefix):
 
     uorfs = []
     print('searching uORFs...')
-    for tid, tracks in utr5.items():
+    for tid in tqdm(utr5):
+        tracks = utr5[tid]
         ttype = tracks[0].transcript_type
         gid = tracks[0].gene_id
         gname = tracks[0].gene_name
@@ -280,7 +281,8 @@ def prepare_orfs(gtf, fasta, prefix):
 
     dorfs = []
     print('searching dORFs...')
-    for tid, tracks in utr3.items():
+    for tid in tqdm(utr3):
+        tracks = utr3[tid]
         ttype = tracks[0].transcript_type
         gid = tracks[0].gene_id
         gname = tracks[0].gene_name
