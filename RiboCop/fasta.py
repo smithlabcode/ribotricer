@@ -7,8 +7,6 @@ from pyfaidx import Fasta
 class FastaReader(object):
     """Class for reading and querying fasta file."""
 
-    complement_letters = {'A': 'T', 'C': 'G', 'T': 'A', 'G': 'C'}
-
     def __init__(self, fasta_location):
         """
         Parameters
@@ -68,6 +66,7 @@ class FastaReader(object):
         return sequences
 
     def complement(self, seq):
+        complement_letters = {'A': 'T', 'C': 'G', 'T': 'A', 'G': 'C'}
         seq = seq.upper()
         comp = []
         for c in seq:
