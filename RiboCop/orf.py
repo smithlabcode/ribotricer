@@ -14,10 +14,10 @@ import numpy as np
 import pandas as pd
 import pysam
 
-from .wig import WigReader
 from .fasta import FastaReader
+from .gtf import GTFReader
 from .interval import Interval
-from .count import _is_read_uniq_mapping
+from .common import is_read_uniq_mapping
 from .helpers import merge_intervals
 
 
@@ -81,12 +81,12 @@ class PutativeORF:
                 gid.add(track.gene_id)
                 gname.add(track.gene_name)
                 gtype.add(track.gene_type)
-                chrom.add(track.seqname)
+                chrom.add(track.chrom)
                 strand.add(track.strand)
                 intervals.append((track.start, track.end))
             except AttributeError:
                 print('missing attribute {}:{}-{}'.format(
-                    track.seqname, track.start, track.end))
+                    track.chrom, track.start, track.end))
                 return None
         if (len(tid) != 1 or len(ttype) != 1 or len(gid) != 1
                 or len(gname) != 1 or len(gtype) != 1 or len(chrom) != 1
@@ -102,6 +102,21 @@ class PutativeORF:
         strand = list(strand)[0]
         return cls(category, tid, ttype, gid, gname, gtype, chrom, strand,
                    intervals, seq, leader, trailer)
+
+
+def tracks_to_ivs(tracks):
+    chrom = {track.chrom for track in tracks}
+    strand = {track.strand for track in tracks}
+    if len(chrom) != 1 or len(strand) != 1:
+        print('fail to fetch seq: inconsistent chrom or strand')
+        return None
+    chrom = list(chrom)[0]
+    strand = list(strand)[0]
+    intervals = [
+        Interval(chrom, track.start, track.end, strand) for track in tracks
+    ]
+    intervals = merge_intervals(intervals)
+    return intervals
 
 
 def transcript_to_genome_iv(start, end, intervals, reverse=False):
@@ -137,6 +152,17 @@ def transcript_to_genome_iv(start, end, intervals, reverse=False):
         if s <= e:
             ivs.append(Interval(i.chrom, s, e, i.strand))
     return ivs
+
+
+def fetch_seq(fasta, tracks):
+    intervals = tracks_to_ivs(tracks)
+    if not isinstance(fasta, FastaReader):
+        fasta = FastaReader(fasta)
+    sequences = fasta.query(intervals)
+    merged_seq = ''.join(sequences)
+    if strand == '-':
+        return fasta.reverse_complement(merged_seq)
+    return merged_seq
 
 
 def search_orfs(fasta, intervals):
@@ -176,83 +202,34 @@ def search_orfs(fasta, intervals):
 
 def prepare_orfs(gtf, fasta, prefix):
 
-    gtf = pd.read_table(gtf, header=None, skiprows=5)
-    gtf.rename(
-        columns={
-            0: 'seqname',
-            1: 'source',
-            2: 'feature',
-            3: 'start',
-            4: 'end',
-            5: 'score',
-            6: 'strand',
-            7: 'frame',
-            8: 'attribute'
-        },
-        inplace=True)
-    gtf = gtf[gtf['feature'].isin(['CDS', 'UTR'])]
-    cds = gtf[gtf['feature'] == 'CDS']
-    utr = gtf[gtf['feature'] == 'UTR']
+    if not isinstance(gtf, GTFReader):
+        gtf = GTFReader(gtf)
+    if not isinstance(fasta, FastaReader):
+        fasta = FastaReader(fasta)
 
-    iteration = 0
+    print('preparing putative ORFs...')
+
     ### process CDS gtf
-    cds_intervals = defaultdict(lambda: defaultdict(list))
-    for i, r in cds.iterrows():
-        iteration += 1
-        if iteration % 1000 == 0:
-            print('{} gtf records processed.'.format(iteration))
-        chrom = r['seqname']
-        feature = r['feature']
-        start = r['start']
-        end = r['end']
-        strand = r['strand']
-        attribute = r['attribute']
-        attribute = {
-            x.strip().split()[0]: x.strip().split()[1]
-            for x in attribute.split(';') if len(x.split()) > 1
-        }
-        if 'transcript_id' not in attribute:
-            print('missing transcript_id {}: {}-{}'.format(chrom, start, end))
-            continue
-        transcript_id = attribute['transcript_id'].strip('"')
-        if 'gene_id' not in attribute:
-            print('missing gene_id {}: {}-{}'.format(chrom, start, end))
-            continue
-        gene_id = attribute['gene_id'].strip('"')
-        cds_intervals[gene_id][transcript_id].append(
-            Interval(chrom, start, end, strand))
+    cds_orfs = []
+    for gid in gtf.cds:
+        for tid in gtf.cds[gid]:
+            tracks = gtf.cds[gid][tid]
+            seq = fetch_seq(fasta, tracks)
+            orf = PutativeORF.from_tracks(tracks, 'cds', seq)
+            if orf:
+                cds_orfs.append(orf)
 
     ### process UTR gtf
-    utr5_intervals = defaultdict(list)
-    utr3_intervals = defaultdict(list)
-    for i, r in utr.iterrows():
-        iteration += 1
-        if iteration % 1000 == 0:
-            print('{} gtf records processed.'.format(iteration))
-        chrom = r['seqname']
-        start = r['start']
-        end = r['end']
-        strand = r['strand']
-        attribute = r['attribute']
-        attribute = {
-            x.strip().split()[0]: x.strip().split()[1]
-            for x in attribute.split(';') if len(x.split()) > 1
-        }
-        if 'transcript_id' not in attribute:
-            print('missing transcript_id {}: {}-{}'.format(chrom, start, end))
-            continue
-        transcript_id = attribute['transcript_id'].strip('"')
-        if 'gene_id' not in attribute:
-            print('missing gene_id {}: {}-{}'.format(chrom, start, end))
-            continue
-        gene_id = attribute['gene_id'].strip('"')
-        if (gene_id not in cds_intervals
-                or transcript_id not in cds_intervals[gene_id]):
-            print('missing CDS for UTR {}: {}-{}'.format(chrom, start, end))
-            continue
+    utr5 = defaultdict(list)
+    utr3 = defaultdict(list)
+    for gid in gtf.utr:
+        ### find first cds and last cds for gene
         gene_cds = []
-        for transcript in cds_intervals[gene_id]:
-            gene_cds += cds_intervals[gene_id][transcript]
+        for tid in gtf.cds[gid]:
+            gene_cds += gtf.cds[gid][tid]
+        if not gene_cds:
+            print('fail to find CDS for UTR')
+            continue
         first_cds = gene_cds[0]
         for gc in gene_cds:
             if gc.start < first_cds.start:
@@ -261,35 +238,29 @@ def prepare_orfs(gtf, fasta, prefix):
         for gc in gene_cds:
             if gc.end > last_cds.end:
                 last_cds = gc
-        interval = Interval(chrom, start, end, strand)
-        if start < first_cds.start:
-            if end >= first_cds.start:
-                interval.end = first_cds.start - 1
-            if strand == '+':
-                utr5_intervals[transcript_id].append(interval)
-            else:
-                utr3_intervals[transcript_id].append(interval)
-        elif end > last_cds.end:
-            if start <= last_cds.end:
-                interval.start = last_cds.end + 1
-            if strand == '+':
-                utr3_intervals[transcript_id].append(interval)
-            else:
-                utr5_intervals[transcript_id].append(interval)
 
-    ### sort the intervals
-    for transcript in utr5_intervals:
-        utr5_intervals[transcript].sort(key=lambda x: x.start)
-    for transcript in utr3_intervals:
-        utr3_intervals[transcript].sort(key=lambda x: x.start)
-
-    if not isinstance(fasta, FastaReader):
-        fasta = FastaReader(fasta)
+        for tid in gtf.utr[gid]:
+            for track in gtf.utr[gid][tid]:
+                if track.start < first_cds.start:
+                    if track.end >= first_cds.start:
+                        track.end = first_cds.start - 1
+                    if track.strand == '+':
+                        utr5[tid].append(track)
+                    else:
+                        utr3[tid].append(track)
+                elif track.end > last_cds.end:
+                    if track.start <= last_cds.end:
+                        track.start = last_cds.end + 1
+                    if track.strand == '+':
+                        utr3[tid].append(track)
+                    else:
+                        utr5[tid].append(track)
 
     uorfs = {}
     print('searching uORFs...')
-    for tid, invs in utr5_intervals.items():
-        orfs = search_orfs(fasta, invs)
+    for tid, tracks in utr5.items():
+        ivs = tracks_to_ivs(tracks)
+        orfs = search_orfs(fasta, ivs)
         for orf in orfs:
             start = orf[0].start
             end = orf[-1].end
@@ -299,8 +270,9 @@ def prepare_orfs(gtf, fasta, prefix):
 
     dorfs = {}
     print('searching dORFs...')
-    for tid, invs in utr3_intervals.items():
-        orfs = search_orfs(fasta, invs)
+    for tid, tracks in utr3.items():
+        ivs = tracks_to_ivs(tracks)
+        orfs = search_orfs(fasta, ivs)
         for orf in orfs:
             start = orf[0].start
             end = orf[-1].end
