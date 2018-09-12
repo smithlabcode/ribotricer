@@ -21,6 +21,84 @@ from .count import _is_read_uniq_mapping
 from .helpers import merge_intervals
 
 
+class PutativeORF:
+    """Class for putative ORF."""
+
+    def __init__(self, category, transcript_id, transcript_type, gene_id,
+            gene_name, gene_type, chrom, strand, intervals, seq, leader, trailer):
+        self.category = category
+        self.tid = transcript_id
+        self.ttype = transcript_type
+        self.gid = gene_id
+        self.gname = gene_name
+        self.gtype = gene_type
+        self.chrom = chrom
+        self.strand = strand
+        intervals = sorted(intervals, key=lambda x:x[0])
+        start = intervals[0][0]
+        end = intervals[-1][1]
+        self.intervals = [Interval(chrom, s, e, strand) for (s, e) in intervals]
+        self.seq = seq
+        self.oid = '{}_{}_{}_{}'.format(transcript_id, start, end, len(seq))
+        self.leader = leader
+        self.trailer = trailer
+
+    @property
+    def start_codon(self):
+        if len(self.seq) < 3:
+            return None
+        return self.seq[:3]
+    
+    @classmethod
+    def from_tracks(cls, tracks=None, category='cds', seq='', leader='',
+            trailer=''):
+        """
+        Parameters
+        ----------
+        tracks: list of GTFTrack
+        """
+        if not tracks:
+            return None
+        intervals = []
+        tid = set()
+        ttype = set()
+        gid = set()
+        gname = set()
+        gtype = set()
+        chrom = set()
+        strand = set()
+        for track in tracks:
+            try:
+                tid.add(track.transcript_id)
+                ttype.add(track.transcript_type)
+                gid.add(track.gene_id)
+                gname.add(track.gene_name)
+                gtype.add(track.gene_type)
+                chrom.add(track.seqname)
+                strand.add(track.strand)
+                intervals.append((track.start, track.end))
+            except AttributeError:
+                print('missing attribute {}:{}-{}'.format(track.seqname,
+                    track.start, track.end))
+                return None
+        if (len(tid) != 1 or len(ttype) != 1 or len(gid) != 1 or len(gname) != 1
+                or len(gtype) != 1 or len(chrom) != 1 or len(strand) != 1):
+            print('unconsistent tracks for one ORF')
+            return None
+        tid = list(tid)[0]
+        ttype = list(ttype)[0]
+        gid = list(gid)[0]
+        gname = list(gname)[0]
+        gtype = list(gtype)[0]
+        chrom = list(chrom)[0]
+        strand = list(strand)[0]
+        return cls(category, tid, ttype, gid, gname, gtype, chrom, strand,
+                intervals, seq, leader, trailer)
+
+
+
+
+
 def transcript_to_genome_iv(start, end, intervals, reverse=False):
     total_len = sum(i.end - i.start + 1 for i in intervals)
     if reverse:

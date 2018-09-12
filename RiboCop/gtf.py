@@ -8,6 +8,8 @@ from __future__ import unicode_literals
 from collections import defaultdict
 from bx.intervals.intersection import IntervalTree
 from tqdm import *
+from .fasta import FastaReader
+from .interval import Interval
 
 
 class GTFTrack:
@@ -100,3 +102,16 @@ class GTFReader:
                     self.cds[gid][tid].append(track)
                 elif track.feature == 'utr':
                     self.utr[tid].append(track)
+
+
+    def prepare_orfs(self, fasta):
+        """
+        Parameters
+        ----------
+        fasta: FastaReader
+               FastaReader instance
+        """
+               
+        if not isinstance(fasta, FastaReader):
+            fasta = FastaReader(fasta)
+
