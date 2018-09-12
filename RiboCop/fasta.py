@@ -68,7 +68,7 @@ class FastaReader(object):
         return sequences
 
     def complement(self, seq):
-        seq = seq.uppper()
+        seq = seq.upper()
         comp = []
         for c in seq:
             if c in complement_letters:

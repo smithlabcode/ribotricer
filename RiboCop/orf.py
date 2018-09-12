@@ -36,7 +36,7 @@ class PutativeORF:
         self.gtype = gene_type
         self.chrom = chrom
         self.strand = strand
-        intervals = sorted(intervals, key=lambda x: x.start)
+        self.intervals = sorted(intervals, key=lambda x: x.start)
         start = intervals[0].start
         end = intervals[-1].end
         self.seq = seq
@@ -160,6 +160,7 @@ def fetch_seq(fasta, tracks):
         fasta = FastaReader(fasta)
     sequences = fasta.query(intervals)
     merged_seq = ''.join(sequences)
+    strand = tracks[0].strand
     if strand == '-':
         return fasta.reverse_complement(merged_seq)
     return merged_seq

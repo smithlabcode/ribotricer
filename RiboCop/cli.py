@@ -13,6 +13,7 @@ import click
 from click_help_colors import HelpColorsGroup
 from . import __version__
 from .infer_protocol import infer_protocol
+from .orf import prepare_orfs
 
 click.disable_unicode_literals_warning = True
 CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
@@ -26,6 +27,18 @@ CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
 def cli():
     """RiboCop: Tool for detecting translating ORF from Ribo-seq data"""
     pass
+
+###################### prepare-orfs function #########################################
+@cli.command(
+    'prepare-orfs',
+    context_settings=CONTEXT_SETTINGS,
+    help='extract putative orfs based on GTF and FASTA files')
+@click.option('--gtf', help='Path to GTF file')
+@click.option(
+    '--fasta', help='Path to FASTA file')
+@click.option('--prefix', help='Prefix to output file')
+def prepare_orfs_cmd(gtf, fasta, prefix):
+    prepare_orfs(gtf, fasta, prefix)
 
 
 ###################### infer-protocol function #########################################
