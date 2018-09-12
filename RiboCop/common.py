@@ -45,14 +45,15 @@ def merge_intervals(intervals):
                       sorted and merged intervals
     """
 
-    sorted_intervals = sorted(intervals, key=lambda i: i.start)
+    intervals = sorted(intervals, key=lambda x: x.start)
     merged_intervals = []
     i = 0
-    while i < len(sorted_intervals):
-        to_merge = Interval(sorted_intervals[i].start, sorted_intervals[i].end)
-        while (i + 1 < len(sorted_intervals)
-               and sorted_intervals[i + 1].start <= to_merge.end):
-            to_merge.end = max(to_merge.end, sorted_intervals[i + 1].end)
+    while i < len(intervals):
+        to_merge = Interval(intervals[i].chrom, intervals[i].start,
+                            intervals[i].end, intervals[i].strand)
+        while (i + 1 < len(intervals)
+               and intervals[i + 1].start <= to_merge.end):
+            to_merge.end = max(to_merge.end, intervals[i + 1].end)
             i += 1
         merged_intervals.append(to_merge)
         i += 1
