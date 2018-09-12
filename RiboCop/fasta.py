@@ -2,12 +2,12 @@ import os
 import warnings
 
 from pyfaidx import Fasta
-from Bio.Seq import Seq
-from Bio.Alphabet import generic_dna
 
 
 class FastaReader(object):
     """Class for reading and querying fasta file."""
+
+    complement_letters = {'A': 'T', 'C': 'G', 'T': 'A', 'G': 'C'}
 
     def __init__(self, fasta_location):
         """
@@ -68,10 +68,12 @@ class FastaReader(object):
         return sequences
 
     def complement(self, seq):
-        return str(Seq(seq, generic_dna).complement())
+        seq = seq.uppper()
+        return ''.join([complement_letters[c] for c in seq])
 
     def reverse_complement(self, seq):
-        return str(Seq(seq, generic_dna).reverse_complement())
+        seq = seq.upper()
+        return self.complement(seq)[::-1]
 
     @property
     def chromosomes(self):
