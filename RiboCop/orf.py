@@ -13,6 +13,7 @@ from collections import defaultdict
 import numpy as np
 import pandas as pd
 import pysam
+from tqdm import *
 
 from .fasta import FastaReader
 from .gtf import GTFReader
@@ -51,8 +52,8 @@ class PutativeORF:
 
     @classmethod
     def from_tracks(cls,
-                    tracks=None,
-                    category='cds',
+                    tracks,
+                    category,
                     seq='',
                     leader='',
                     trailer=''):
@@ -90,7 +91,7 @@ class PutativeORF:
         if (len(tid) != 1 or len(ttype) != 1 or len(gid) != 1
                 or len(gname) != 1 or len(gtype) != 1 or len(chrom) != 1
                 or len(strand) != 1):
-            print('unconsistent tracks for one ORF')
+            print('inconsistent tracks for one ORF')
             return None
         tid = list(tid)[0]
         ttype = list(ttype)[0]
@@ -212,12 +213,13 @@ def prepare_orfs(gtf, fasta, prefix):
     print('preparing putative ORFs...')
 
     ### process CDS gtf
+    print('searching cds...')
     cds_orfs = []
-    for gid in gtf.cds:
+    for gid in tqdm(gtf.cds):
         for tid in gtf.cds[gid]:
             tracks = gtf.cds[gid][tid]
             seq = fetch_seq(fasta, tracks)
-            orf = PutativeORF.from_tracks(tracks, 'cds', seq)
+            orf = PutativeORF.from_tracks(tracks, 'CDS', seq)
             if orf:
                 cds_orfs.append(orf)
 
