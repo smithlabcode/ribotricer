@@ -69,7 +69,13 @@ class FastaReader(object):
 
     def complement(self, seq):
         seq = seq.uppper()
-        return ''.join([complement_letters[c] for c in seq])
+        comp = []
+        for c in seq:
+            if c in complement_letters:
+                comp.append(complement_letters[c])
+            else:
+                comp.append(c)
+        return ''.join(comp)
 
     def reverse_complement(self, seq):
         seq = seq.upper()
