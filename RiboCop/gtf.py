@@ -8,16 +8,14 @@ from __future__ import unicode_literals
 from collections import defaultdict
 from bx.intervals.intersection import IntervalTree
 from tqdm import *
-from .fasta import FastaReader
-from .interval import Interval
 
 
 class GTFTrack:
     """Class for feature in GTF file."""
 
-    def __init__(self, seqname, source, feature, start, end, score, strand,
+    def __init__(self, chrom, source, feature, start, end, score, strand,
                  frame, attribute):
-        self.seqname = seqname
+        self.chrom = chrom
         self.source = source
         self.feature = feature
         self.start = int(start)
@@ -46,7 +44,7 @@ class GTFTrack:
             print('mal-formatted GTF file')
             return None
 
-        seqname = fields[0]
+        chrom = fields[0]
         source = fields[1]
         feature = fields[2].lower()
         start = int(fields[3])
@@ -59,7 +57,7 @@ class GTFTrack:
         if feature not in ['gene', 'cds', 'utr']:
             return None
 
-        return cls(seqname, source, feature, start, end, score, strand, frame,
+        return cls(chrom, source, feature, start, end, score, strand, frame,
                    attribute)
 
     def __repr__(self):
@@ -80,14 +78,14 @@ class GTFReader:
         self.gtf_location = gtf_location
         self.gene = defaultdict(IntervalTree)
         self.cds = defaultdict(lambda: defaultdict(list))
-        self.utr = defaultdict(list)
+        self.utr = defaultdict(lambda: defaultdict(list))
         with open(self.gtf_location, 'r') as gtf:
             for line in tqdm(gtf):
                 track = GTFTrack.from_string(line)
                 if track is None:
                     continue
                 if track.feature == 'gene':
-                    self.gene[track.seqname].insert(track.start, track.end,
+                    self.gene[track.chrom].insert(track.start, track.end,
                                                     track.strand)
                     continue
                 try:
@@ -95,21 +93,10 @@ class GTFReader:
                     tid = track.transcript_id
                 except AttributeError:
                     print('missing gene or transcript id {}:{}-{}'.format(
-                        track.seqname, track.start, track.end))
+                        track.chrom, track.start, track.end))
                     continue
 
                 if track.feature == 'cds':
                     self.cds[gid][tid].append(track)
                 elif track.feature == 'utr':
-                    self.utr[tid].append(track)
-
-    def prepare_orfs(self, fasta):
-        """
-        Parameters
-        ----------
-        fasta: FastaReader
-               FastaReader instance
-        """
-
-        if not isinstance(fasta, FastaReader):
-            fasta = FastaReader(fasta)
+                    self.utr[gid][tid].append(track)
