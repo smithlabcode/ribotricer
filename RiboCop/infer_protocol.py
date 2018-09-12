@@ -70,12 +70,12 @@ def infer_protocol(bam, gtf, prefix, n_reads=20000):
     total = sum(strandedness.values())
     forward_mapped_reads = (strandedness['++'] + strandedness['--'])
     reverse_mapped_reads = (strandedness['-+'] + strandedness['+-'])
-    to_write = 'In total {} reads checked:\n' \
-            '\tNumber of reads explained by "++, --": {} ({:.4f})\n' \
-            '\tNumber of reads explained by "+-, -+": {} ({:.4f})\n'.format(
-                       total,
-                       forward_mapped_reads, forward_mapped_reads / total,
-                       reverse_mapped_reads, reverse_mapped_reads / total)
+    to_write = (
+        'In total {} reads checked:\n'
+        '\tNumber of reads explained by "++, --": {} ({:.4f})\n'
+        '\tNumber of reads explained by "+-, -+": {} ({:.4f})\n').format(
+            total, forward_mapped_reads, forward_mapped_reads / total,
+            reverse_mapped_reads, reverse_mapped_reads / total)
     with open('{}_protocol.txt'.format(prefix), 'w') as output:
         output.write(to_write)
     protocol = 'forward'
