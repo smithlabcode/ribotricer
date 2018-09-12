@@ -103,7 +103,6 @@ class GTFReader:
                 elif track.feature == 'utr':
                     self.utr[tid].append(track)
 
-
     def prepare_orfs(self, fasta):
         """
         Parameters
@@ -111,7 +110,6 @@ class GTFReader:
         fasta: FastaReader
                FastaReader instance
         """
-               
+
         if not isinstance(fasta, FastaReader):
             fasta = FastaReader(fasta)
-

@@ -25,7 +25,8 @@ class PutativeORF:
     """Class for putative ORF."""
 
     def __init__(self, category, transcript_id, transcript_type, gene_id,
-            gene_name, gene_type, chrom, strand, intervals, seq, leader, trailer):
+                 gene_name, gene_type, chrom, strand, intervals, seq, leader,
+                 trailer):
         self.category = category
         self.tid = transcript_id
         self.ttype = transcript_type
@@ -34,10 +35,12 @@ class PutativeORF:
         self.gtype = gene_type
         self.chrom = chrom
         self.strand = strand
-        intervals = sorted(intervals, key=lambda x:x[0])
+        intervals = sorted(intervals, key=lambda x: x[0])
         start = intervals[0][0]
         end = intervals[-1][1]
-        self.intervals = [Interval(chrom, s, e, strand) for (s, e) in intervals]
+        self.intervals = [
+            Interval(chrom, s, e, strand) for (s, e) in intervals
+        ]
         self.seq = seq
         self.oid = '{}_{}_{}_{}'.format(transcript_id, start, end, len(seq))
         self.leader = leader
@@ -48,10 +51,14 @@ class PutativeORF:
         if len(self.seq) < 3:
             return None
         return self.seq[:3]
-    
+
     @classmethod
-    def from_tracks(cls, tracks=None, category='cds', seq='', leader='',
-            trailer=''):
+    def from_tracks(cls,
+                    tracks=None,
+                    category='cds',
+                    seq='',
+                    leader='',
+                    trailer=''):
         """
         Parameters
         ----------
@@ -78,11 +85,12 @@ class PutativeORF:
                 strand.add(track.strand)
                 intervals.append((track.start, track.end))
             except AttributeError:
-                print('missing attribute {}:{}-{}'.format(track.seqname,
-                    track.start, track.end))
+                print('missing attribute {}:{}-{}'.format(
+                    track.seqname, track.start, track.end))
                 return None
-        if (len(tid) != 1 or len(ttype) != 1 or len(gid) != 1 or len(gname) != 1
-                or len(gtype) != 1 or len(chrom) != 1 or len(strand) != 1):
+        if (len(tid) != 1 or len(ttype) != 1 or len(gid) != 1
+                or len(gname) != 1 or len(gtype) != 1 or len(chrom) != 1
+                or len(strand) != 1):
             print('unconsistent tracks for one ORF')
             return None
         tid = list(tid)[0]
@@ -93,10 +101,7 @@ class PutativeORF:
         chrom = list(chrom)[0]
         strand = list(strand)[0]
         return cls(category, tid, ttype, gid, gname, gtype, chrom, strand,
-                intervals, seq, leader, trailer)
-
-
-
+                   intervals, seq, leader, trailer)
 
 
 def transcript_to_genome_iv(start, end, intervals, reverse=False):
