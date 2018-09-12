@@ -35,12 +35,9 @@ class PutativeORF:
         self.gtype = gene_type
         self.chrom = chrom
         self.strand = strand
-        intervals = sorted(intervals, key=lambda x: x[0])
-        start = intervals[0][0]
-        end = intervals[-1][1]
-        self.intervals = [
-            Interval(chrom, s, e, strand) for (s, e) in intervals
-        ]
+        intervals = sorted(intervals, key=lambda x: x.start)
+        start = intervals[0].start
+        end = intervals[-1].end
         self.seq = seq
         self.oid = '{}_{}_{}_{}'.format(transcript_id, start, end, len(seq))
         self.leader = leader
@@ -83,7 +80,9 @@ class PutativeORF:
                 gtype.add(track.gene_type)
                 chrom.add(track.chrom)
                 strand.add(track.strand)
-                intervals.append((track.start, track.end))
+                intervals.append(
+                    Interval(track.chrom, track.start, track.end,
+                             track.strand))
             except AttributeError:
                 print('missing attribute {}:{}-{}'.format(
                     track.chrom, track.start, track.end))
@@ -172,13 +171,13 @@ def search_orfs(fasta, intervals):
     orfs = []
     if not isinstance(fasta, FastaReader):
         fasta = FastaReader(fasta)
-    intervals, _, _ = merge_intervals(intervals)
+    intervals = merge_intervals(intervals)
     sequences = fasta.query(intervals)
     merged_seq = ''.join(sequences)
     reverse = False
     strand = intervals[0].strand
     if strand == '-':
-        merged_seq = merged_seq[::-1]
+        merged_seq = fasta.reverse_complement(merged_seq)
         reverse = True
     start_codons = ['ATG', 'CTG', 'GTG']
     stop_codons = ['TAG', 'TAA', 'TGA']
@@ -194,8 +193,11 @@ def search_orfs(fasta, intervals):
                     ### found orf
                     ivs = transcript_to_genome_iv(start, i + 2, intervals,
                                                   reverse)
+                    seq = merged_seq[start:i]
+                    leader = merged_seq[:start]
+                    trailer = merged_seq[i:]
                     if ivs:
-                        orfs.append(ivs)
+                        orfs.append((ivs, seq, leader, trailer))
                     break
     return orfs
 
@@ -256,55 +258,56 @@ def prepare_orfs(gtf, fasta, prefix):
                     else:
                         utr5[tid].append(track)
 
-    uorfs = {}
+    uorfs = []
     print('searching uORFs...')
     for tid, tracks in utr5.items():
+        ttype = tracks[0].transcript_type
+        gid = tracks[0].gene_id
+        gname = tracks[0].gene_name
+        gtype = tracks[0].gene_type
+        chrom = tracks[0].chrom
+        strand = tracks[0].strand
+
         ivs = tracks_to_ivs(tracks)
         orfs = search_orfs(fasta, ivs)
-        for orf in orfs:
-            start = orf[0].start
-            end = orf[-1].end
-            total_len = sum(i.end - i.start + 1 for i in orf)
-            orf_id = '{}_{}_{}_{}'.format(tid, start, end, total_len)
-            uorfs[orf_id] = orf
+        for ivs, seq, leader, trailer in orfs:
+            orf = PutativeORF('uORF', tid, ttype, gid, gname, gtype, chrom,
+                              strand, ivs, seq, leader, trailer)
+            uorfs.append(orf)
 
-    dorfs = {}
+    dorfs = []
     print('searching dORFs...')
     for tid, tracks in utr3.items():
+        ttype = tracks[0].transcript_type
+        gid = tracks[0].gene_id
+        gname = tracks[0].gene_name
+        gtype = tracks[0].gene_type
+        chrom = tracks[0].chrom
+        strand = tracks[0].strand
+
         ivs = tracks_to_ivs(tracks)
         orfs = search_orfs(fasta, ivs)
-        for orf in orfs:
-            start = orf[0].start
-            end = orf[-1].end
-            total_len = sum(i.end - i.start + 1 for i in orf)
-            orf_id = '{}_{}_{}_{}'.format(tid, start, end, total_len)
-            dorfs[orf_id] = orf
+        for ivs, seq, leader, trailer in orfs:
+            orf = PutativeORF('dORF', tid, ttype, gid, gname, gtype, chrom,
+                              strand, ivs, seq, leader, trailer)
+            dorfs.append(orf)
 
-    ### save to bed file
-    cds_bed = ''
-    for gid in cds_intervals:
-        for tid in cds_intervals[gid]:
-            for iv in cds_intervals[gid][tid]:
-                cds_bed += '{}\t{}\t{}\t{}\t{}\t{}\n'.format(
-                    iv.chrom, iv.start, iv.end, tid, '.', iv.strand)
-    with open('{}_cds.bed'.format(prefix), 'w') as output:
-        output.write(cds_bed)
+    ### save to file
+    to_write = '''
+    ORF_ID\tORF_type\ttranscript_id\ttranscript_type\tgene_id\tgene_name\tgene_type\tchrom\tstrand\tcoordinate\tseq\tleader\ttrailer\n
+    '''
+    formatter = '{}\t' * 12 + '{}\n'
+    for region in [cds_orfs, uorfs, dorfs]:
+        for orf in region:
+            coordinate = ','.join(
+                ['{}-{}'.format(iv.start, iv.end) for iv in orf.intervals])
+            to_write += formatter.format(
+                orf.oid, orf.category, orf.tid, orf.ttype, orf.gid, orf.gname,
+                orf.gtype, orf.chrom, orf.strand, coordinate, orf.seq,
+                orf.leader, orf.trailer)
 
-    utr5_bed = ''
-    for oid in uorfs:
-        for iv in uorfs[oid]:
-            utr5_bed += '{}\t{}\t{}\t{}\t{}\t{}\n'.format(
-                iv.chrom, iv.start, iv.end, oid, '.', iv.strand)
-    with open('{}_utr5.bed'.format(prefix), 'w') as output:
-        output.write(utr5_bed)
-
-    utr3_bed = ''
-    for oid in dorfs:
-        for iv in dorfs[oid]:
-            utr3_bed += '{}\t{}\t{}\t{}\t{}\t{}\n'.format(
-                iv.chrom, iv.start, iv.end, oid, '.', iv.strand)
-    with open('{}_utr3.bed'.format(prefix), 'w') as output:
-        output.write(utr3_bed)
+    with open('{}_putative_orfs.tsv'.format(prefix), 'w') as output:
+        output.write(to_write)
 
 
 def split_bam(bam, protocol, prefix):
