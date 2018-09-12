@@ -18,7 +18,7 @@ from .fasta import FastaReader
 from .gtf import GTFReader
 from .interval import Interval
 from .common import is_read_uniq_mapping
-from .helpers import merge_intervals
+from .common import merge_intervals
 
 
 class PutativeORF:

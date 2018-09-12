@@ -86,7 +86,7 @@ class GTFReader:
                     continue
                 if track.feature == 'gene':
                     self.gene[track.chrom].insert(track.start, track.end,
-                                                    track.strand)
+                                                  track.strand)
                     continue
                 try:
                     gid = track.gene_id
