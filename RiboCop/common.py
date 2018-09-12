@@ -50,8 +50,8 @@ def merge_intervals(intervals):
     i = 0
     while i < len(sorted_intervals):
         to_merge = Interval(sorted_intervals[i].start, sorted_intervals[i].end)
-        while i + 1 < len(sorted_intervals
-                          ) and sorted_intervals[i + 1].start <= to_merge.end:
+        while (i + 1 < len(sorted_intervals)
+               and sorted_intervals[i + 1].start <= to_merge.end):
             to_merge.end = max(to_merge.end, sorted_intervals[i + 1].end)
             i += 1
         merged_intervals.append(to_merge)
