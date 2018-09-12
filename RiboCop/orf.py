@@ -293,9 +293,9 @@ def prepare_orfs(gtf, fasta, prefix):
             dorfs.append(orf)
 
     ### save to file
-    to_write = '''
-    ORF_ID\tORF_type\ttranscript_id\ttranscript_type\tgene_id\tgene_name\tgene_type\tchrom\tstrand\tcoordinate\tseq\tleader\ttrailer\n
-    '''
+    to_write = 'ORF_ID\tORF_type\ttranscript_id\ttranscript_type' \
+                                     '\tgene_id\tgene_name\tgene_type\tchrom' \
+            '\tstrand\tcoordinate\tseq\tleader\ttrailer\n'
     formatter = '{}\t' * 12 + '{}\n'
     for region in [cds_orfs, uorfs, dorfs]:
         for orf in region:
