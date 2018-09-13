@@ -49,12 +49,7 @@ class PutativeORF:
         return self.seq[:3]
 
     @classmethod
-    def from_tracks(cls,
-                    tracks,
-                    category,
-                    seq='',
-                    leader='',
-                    trailer=''):
+    def from_tracks(cls, tracks, category, seq='', leader='', trailer=''):
         """
         Parameters
         ----------
@@ -307,10 +302,10 @@ def prepare_orfs(gtf, fasta, prefix, min_len=30):
     for orf in tqdm(cds_orfs + uorfs + dorfs):
         coordinate = ','.join(
             ['{}-{}'.format(iv.start, iv.end) for iv in orf.intervals])
-        to_write += formatter.format(
-            orf.oid, orf.category, orf.tid, orf.ttype, orf.gid, orf.gname,
-            orf.gtype, orf.chrom, orf.strand, coordinate, orf.seq,
-            orf.leader, orf.trailer)
+        to_write += formatter.format(orf.oid, orf.category, orf.tid, orf.ttype,
+                                     orf.gid, orf.gname, orf.gtype, orf.chrom,
+                                     orf.strand, coordinate, orf.seq,
+                                     orf.leader, orf.trailer)
 
     with open('{}_putative_orfs.tsv'.format(prefix), 'w') as output:
         output.write(to_write)
