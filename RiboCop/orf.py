@@ -18,6 +18,7 @@ from .gtf import GTFReader
 from .interval import Interval
 from .common import is_read_uniq_mapping
 from .common import merge_intervals
+from .infer_protocol import infer_protocol
 
 
 class PutativeORF:
@@ -310,6 +311,8 @@ def prepare_orfs(gtf, fasta, prefix, min_len=30):
     with open('{}_putative_orfs.tsv'.format(prefix), 'w') as output:
         output.write(to_write)
 
+    return (cds, utr5, utr3)
+
 
 def split_bam(bam, protocol, prefix):
     """Split bam by read length and strand
@@ -325,57 +328,57 @@ def split_bam(bam, protocol, prefix):
             {prefix}__xxnt_neg.wig
     """
     coverages = defaultdict(lambda: defaultdict(Counter))
-    iteration = qcfail = duplicate = secondary = unmapped = multi = valid = 0
+    qcfail = duplicate = secondary = unmapped = multi = valid = 0
     bam = pysam.AlignmentFile(bam, 'rb')
-    for r in bam.fetch(until_eof=True):
+    total_count = bam.count()
+    with tqdm(total=total_count) as pbar:
+        for r in bam.fetch(until_eof=True):
 
-        iteration += 1
-        if iteration % 1000 == 0:
-            print('{} reads processed.'.format(iteration))
+            if r.is_qcfail:
+                qcfail += 1
+                continue
+            if r.is_duplicate:
+                duplicate += 1
+                continue
+            if r.is_secondary:
+                secondary += 1
+                continue
+            if r.is_unmapped:
+                unmapped += 1
+                continue
+            if not _is_read_uniq_mapping(r):
+                multi += 1
+                continue
 
-        if r.is_qcfail:
-            qcfail += 1
-            continue
-        if r.is_duplicate:
-            duplicate += 1
-            continue
-        if r.is_secondary:
-            secondary += 1
-            continue
-        if r.is_unmapped:
-            unmapped += 1
-            continue
-        if not _is_read_uniq_mapping(r):
-            multi += 1
-            continue
+            map_strand = '-' if r.is_reverse else '+'
+            ref_positions = r.get_reference_positions()
+            strand = None
+            pos = None
+            chrom = r.reference_name
+            length = r.query_length
+            if protocol == 'forward':
+                if map_strand == '+':
+                    strand = '+'
+                    pos = ref_positions[0]
+                else:
+                    strand = '-'
+                    pos = ref_positions[-1]
+            elif protocol == 'reverse':
+                if map_strand == '+':
+                    strand = '-'
+                    pos = ref_positions[-1]
+                else:
+                    strand = '+'
+                    pos = ref_positions[0]
+            coverages[length][strand][(chrom, pos)] += 1
 
-        map_strand = '-' if r.is_reverse else '+'
-        ref_positions = r.get_reference_positions()
-        strand = None
-        pos = None
-        chrom = r.reference_name
-        length = r.query_length
-        if protocol == 'forward':
-            if map_strand == '+':
-                strand = '+'
-                pos = ref_positions[0]
-            else:
-                strand = '-'
-                pos = ref_positions[-1]
-        elif protocol == 'reverse':
-            if map_strand == '+':
-                strand = '-'
-                pos = ref_positions[-1]
-            else:
-                strand = '+'
-                pos = ref_positions[0]
-        coverages[length][strand][(chrom, pos)] += 1
+            valid += 1
 
-        valid += 1
+            pbar.update()
 
     summary = 'summary:\n\ttotal_reads: {}\n\tunique_mapped: {}\n' \
               '\tqcfail: {}\n\tduplicate: {}\n\tsecondary: {}\n' \
-              '\tunmapped:{}\n\tmulti:{}\n\nlength dist:\n'.format(iteration,
+              '\tunmapped:{}\n\tmulti:{}\n\nlength dist:\n'.format(total_count,
                        valid, qcfail, duplicate, secondary, unmapped, multi)
 
     for length in coverages:
@@ -397,6 +400,8 @@ def split_bam(bam, protocol, prefix):
         summary += '\t{}: {}\n'.format(length, reads_of_length)
     with open('{}_summary.txt'.format(prefix), 'w') as output:
         output.write(summary)
+
+    return coverages
 
 
 def align_coverages(coverages, base, saveto):
@@ -495,3 +500,31 @@ def merge_wigs(wigs, offsets, strand, saveto):
         to_write += '{}\t{}\n'.format(pos, coverages[(chrom, pos)])
     with open(saveto, 'w') as output:
         output.write(to_write)
+
+
+def parse_annotation(annotation):
+    cds = []
+    utr5 = []
+    utr3 = []
+
+    return (cds, utr5, utr3)
+
+
+def detect_orfs(gtf, fasta, bam, prefix, annotation=None, protocol=None):
+
+    if not isinstance(gtf, GTFReader):
+        gtf = GTFReader(gtf)
+
+    if not isinstance(fasta, FastaReader):
+        fasta = FastaReader(fasta)
+
+    if annotation is None:
+        cds, utr5, utr3 = prepare_orfs(gtf, fasta, prefix)
+    else:
+        cds, utr5, utr3 = parse_annotation(annotation)
+
+    if protocol is None:
+        protocol, _, _ = infer_protocol(bam, gtf, prefix)
+
+    coverages = split_bam(bam, protocol, prefix)
+
