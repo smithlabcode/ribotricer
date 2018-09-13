@@ -79,6 +79,7 @@ class GTFReader:
         self.gene = defaultdict(IntervalTree)
         self.cds = defaultdict(lambda: defaultdict(list))
         self.utr = defaultdict(lambda: defaultdict(list))
+        print('Reading GTF file...')
         with open(self.gtf_location, 'r') as gtf:
             for line in tqdm(gtf):
                 track = GTFTrack.from_string(line)
