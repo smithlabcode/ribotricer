@@ -79,25 +79,30 @@ class GTFReader:
         self.gene = defaultdict(IntervalTree)
         self.cds = defaultdict(lambda: defaultdict(list))
         self.utr = defaultdict(lambda: defaultdict(list))
-        print('Reading GTF file...')
+        print('reading GTF file...')
         with open(self.gtf_location, 'r') as gtf:
-            for line in tqdm(gtf):
-                track = GTFTrack.from_string(line)
-                if track is None:
-                    continue
-                if track.feature == 'gene':
-                    self.gene[track.chrom].insert(track.start, track.end,
-                                                  track.strand)
-                    continue
-                try:
-                    gid = track.gene_id
-                    tid = track.transcript_id
-                except AttributeError:
-                    print('missing gene or transcript id {}:{}-{}'.format(
-                        track.chrom, track.start, track.end))
-                    continue
+            total_lines = len(['' for line in gtf])
+        with open(self.gtf_location, 'r') as gtf:
+            with tqdm(total=total_lines) as pbar:
+                for line in gtf:
+                    track = GTFTrack.from_string(line)
+                    if track is None:
+                        continue
+                    if track.feature == 'gene':
+                        self.gene[track.chrom].insert(track.start, track.end,
+                                                      track.strand)
+                        continue
+                    try:
+                        gid = track.gene_id
+                        tid = track.transcript_id
+                    except AttributeError:
+                        print('missing gene or transcript id {}:{}-{}'.format(
+                            track.chrom, track.start, track.end))
+                        continue
 
-                if track.feature == 'cds':
-                    self.cds[gid][tid].append(track)
-                elif track.feature == 'utr':
-                    self.utr[gid][tid].append(track)
+                    if track.feature == 'cds':
+                        self.cds[gid][tid].append(track)
+                    elif track.feature == 'utr':
+                        self.utr[gid][tid].append(track)
+
+                    pbar.update()
