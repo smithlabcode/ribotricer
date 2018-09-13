@@ -376,10 +376,11 @@ def split_bam(bam, protocol, prefix):
 
             pbar.update()
 
-    summary = 'summary:\n\ttotal_reads: {}\n\tunique_mapped: {}\n' \
-              '\tqcfail: {}\n\tduplicate: {}\n\tsecondary: {}\n' \
-              '\tunmapped:{}\n\tmulti:{}\n\nlength dist:\n'.format(total_count,
-                       valid, qcfail, duplicate, secondary, unmapped, multi)
+    summary = ('summary:\n\ttotal_reads: {}\n\tunique_mapped: {}\n'
+               '\tqcfail: {}\n\tduplicate: {}\n\tsecondary: {}\n'
+               '\tunmapped:{}\n\tmulti:{}\n\nlength dist:\n').format(
+                   total_count, valid, qcfail, duplicate, secondary, unmapped,
+                   multi)
 
     for length in coverages:
         reads_of_length = 0
@@ -527,4 +528,3 @@ def detect_orfs(gtf, fasta, bam, prefix, annotation=None, protocol=None):
         protocol, _, _ = infer_protocol(bam, gtf, prefix)
 
     coverages = split_bam(bam, protocol, prefix)
-
