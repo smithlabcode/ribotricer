@@ -24,8 +24,17 @@ from .infer_protocol import infer_protocol
 class PutativeORF:
     """Class for putative ORF."""
 
-    def __init__(self, category, transcript_id, transcript_type, gene_id,
-                 gene_name, gene_type, chrom, strand, intervals, seq='',
+    def __init__(self,
+                 category,
+                 transcript_id,
+                 transcript_type,
+                 gene_id,
+                 gene_name,
+                 gene_type,
+                 chrom,
+                 strand,
+                 intervals,
+                 seq='',
                  leader='',
                  trailer=''):
         self.category = category
@@ -85,7 +94,7 @@ class PutativeORF:
         leader = fields[11]
         trailer = fields[12]
         return cls(category, tid, ttype, gid, gname, gtype, chrom, strand,
-                intervals)
+                   intervals)
 
     @classmethod
     def from_tracks(cls, tracks, category, seq='', leader='', trailer=''):
@@ -584,7 +593,6 @@ def parse_annotation(annotation):
     return (cds, utr5, utr3)
 
 
-
 def metagene_cov(cds, coverages, prefix):
     metagene_coverage = []
     return metagene_coverage
@@ -592,6 +600,7 @@ def metagene_cov(cds, coverages, prefix):
 
 def plot_read_dist(read_lengths):
     pass
+
 
 def plot_metagene(coverage):
     pass
