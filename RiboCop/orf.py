@@ -661,7 +661,6 @@ def orf_coverage(orf, alignments, length, offset_5p, offset_3p):
 
 def metagene_coverage(cds,
                       alignments,
-                      read_lengths,
                       prefix,
                       max_positions=500,
                       offset_5p=0,
@@ -674,8 +673,6 @@ def metagene_coverage(cds,
          list of cds
     alignments: dict(dict(Counter))
                 alignments summarized from bam
-    read_lengths: dict
-                  key is the length, value is the number of reads
     prefix: str
             prefix for the output file
     max_positions: int
@@ -791,7 +788,7 @@ def detect_orfs(gtf, fasta, bam, prefix, annotation=None, protocol=None):
     plot_read_lengths(read_lengths, prefix)
     metagenes = metagene_coverage(cds, alignments, prefix)
     plot_metagene(metagenes, read_lengths, prefix)
-    psite_offsets = align_metagenes(metagenes, read_lengths)
+    psite_offsets = align_metagenes(metagenes, read_lengths, prefix)
     merged_alignments = merge_lengths(alignments, read_lengths, psite_offsets)
     export_wig(merged_alignments, prefix)
     export_orf_coverages(cds + uorfs + dorfs, merged_alignments, prefix)
