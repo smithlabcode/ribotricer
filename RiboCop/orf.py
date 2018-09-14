@@ -210,7 +210,7 @@ def fetch_seq(fasta, tracks):
     return merged_seq
 
 
-def search_orfs(fasta, intervals, min_len):
+def search_orfs(fasta, intervals):
     if not intervals:
         return []
 
@@ -240,9 +240,6 @@ def search_orfs(fasta, intervals, min_len):
             for i in range(start, len(merged_seq), 3):
                 if merged_seq[i:i + 3] in stop_codons:
                     ### found orf
-                    size = i - start
-                    if size < min_len:
-                        break
                     ivs = transcript_to_genome_iv(start, i + 2, intervals,
                                                   reverse)
                     seq = merged_seq[start:i]
@@ -254,7 +251,7 @@ def search_orfs(fasta, intervals, min_len):
     return orfs
 
 
-def prepare_orfs(gtf, fasta, prefix, min_len=30):
+def prepare_orfs(gtf, fasta, prefix):
 
     if not isinstance(gtf, GTFReader):
         gtf = GTFReader(gtf)
@@ -323,7 +320,7 @@ def prepare_orfs(gtf, fasta, prefix, min_len=30):
         strand = tracks[0].strand
 
         ivs = tracks_to_ivs(tracks)
-        orfs = search_orfs(fasta, ivs, min_len)
+        orfs = search_orfs(fasta, ivs)
         for ivs, seq, leader, trailer in orfs:
             orf = PutativeORF('uORF', tid, ttype, gid, gname, gtype, chrom,
                               strand, ivs, seq, leader, trailer)
@@ -341,7 +338,7 @@ def prepare_orfs(gtf, fasta, prefix, min_len=30):
         strand = tracks[0].strand
 
         ivs = tracks_to_ivs(tracks)
-        orfs = search_orfs(fasta, ivs, min_len)
+        orfs = search_orfs(fasta, ivs)
         for ivs, seq, leader, trailer in orfs:
             orf = PutativeORF('dORF', tid, ttype, gid, gname, gtype, chrom,
                               strand, ivs, seq, leader, trailer)
