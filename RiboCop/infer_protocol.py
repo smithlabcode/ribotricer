@@ -81,4 +81,4 @@ def infer_protocol(bam, gtf, prefix, n_reads=20000):
     protocol = 'forward'
     if reverse_mapped_reads > forward_mapped_reads:
         protocol = 'reverse'
-    return (protocol, forward_mapped_reads, reverse_mapped_reads)
+    return protocol
