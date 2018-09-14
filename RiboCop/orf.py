@@ -12,6 +12,9 @@ from collections import defaultdict
 
 import pysam
 from tqdm import *
+from matplotlib.backends.backend_pdf import PdfPages
+import numpy as np
+import pandas as pd
 
 from .fasta import FastaReader
 from .gtf import GTFReader
@@ -374,7 +377,7 @@ def split_bam(bam, protocol, prefix):
             prefix for output files: {prefix}_xxnt_pos.wig and
             {prefix}__xxnt_neg.wig
     """
-    coverages = defaultdict(lambda: defaultdict(Counter))
+    alignments = defaultdict(lambda: defaultdict(Counter))
     qcfail = duplicate = secondary = unmapped = multi = valid = 0
     bam = pysam.AlignmentFile(bam, 'rb')
     total_count = bam.count()
@@ -417,7 +420,7 @@ def split_bam(bam, protocol, prefix):
                 else:
                     strand = '+'
                     pos = ref_positions[0]
-            coverages[length][strand][(chrom, pos)] += 1
+            alignments[length][strand][(chrom, pos)] += 1
 
             valid += 1
 
@@ -429,17 +432,17 @@ def split_bam(bam, protocol, prefix):
                    total_count, valid, qcfail, duplicate, secondary, unmapped,
                    multi)
 
-    for length in coverages:
+    for length in alignments:
         reads_of_length = 0
-        for strand in coverages[length]:
+        for strand in alignments[length]:
             to_write = ''
             cur_chrom = ''
-            for chrom, pos in sorted(coverages[length][strand]):
+            for chrom, pos in sorted(alignments[length][strand]):
                 if chrom != cur_chrom:
                     cur_chrom = chrom
                     to_write += 'variableStep chrom={}\n'.format(chrom)
                 to_write += '{}\t{}\n'.format(
-                    pos, coverages[length][strand][(chrom, pos)])
+                    pos, alignments[length][strand][(chrom, pos)])
             fname = '{}_{}nt_{}.wig'.format(prefix, length, 'pos'
                                             if strand == '+' else 'neg')
             with open(fname, 'w') as output:
@@ -449,7 +452,7 @@ def split_bam(bam, protocol, prefix):
     with open('{}_summary.txt'.format(prefix), 'w') as output:
         output.write(summary)
 
-    return coverages
+    return alignments
 
 
 def align_coverages(coverages, base, saveto):
@@ -590,12 +593,23 @@ def parse_annotation(annotation):
                 elif orf.category == 'dORF':
                     dorfs.append(orf)
                 pbar.update()
-    return (cds, utr5, utr3)
+    return (cds, uorfs, dorfs)
 
 
-def metagene_cov(cds, coverages, prefix):
-    metagene_coverage = []
-    return metagene_coverage
+def orf_coverage(orf, coverages, length):
+    coverage = []
+    chrom = orf.chrom
+    strand = orf.strand
+    for iv in orf.intervals:
+        for pos in range(iv.start, iv.end+1):
+            coverage.append(coverages[length][strand][(chrom, pos)])
+    return coverage
+
+def metagene_coverage(cds, coverages, prefix, max_positions=500, offset_5p=0,
+        offset_3p=0, orientation='5prime', alignto='start_codon'):
+    coverages = defaultdict(list)
+    for orf in cds:
+        cov = orf_coverage(orf, coverages, )
 
 
 def plot_read_dist(read_lengths):
@@ -615,9 +629,9 @@ def detect_orfs(gtf, fasta, bam, prefix, annotation=None, protocol=None):
         fasta = FastaReader(fasta)
 
     if annotation is None:
-        cds, utr5, utr3 = prepare_orfs(gtf, fasta, prefix)
+        cds, uorfs, dorfs = prepare_orfs(gtf, fasta, prefix)
     else:
-        cds, utr5, utr3 = parse_annotation(annotation)
+        cds, uorfs, dorfs = parse_annotation(annotation)
 
     if protocol is None:
         protocol, _, _ = infer_protocol(bam, gtf, prefix)
