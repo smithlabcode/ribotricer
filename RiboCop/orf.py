@@ -301,8 +301,8 @@ def search_orfs(fasta, intervals):
                     ivs = transcript_to_genome_iv(start, i + 2, intervals,
                                                   reverse)
                     seq = merged_seq[start:i]
-                    leader = merged_seq[:start][-99:]
-                    trailer = merged_seq[i:][:100]
+                    leader = merged_seq[:start]
+                    trailer = merged_seq[i:]
                     if ivs:
                         orfs.append((ivs, seq, leader, trailer))
                     break
