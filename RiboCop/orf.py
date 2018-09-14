@@ -149,6 +149,17 @@ class PutativeORF:
 
 
 def tracks_to_ivs(tracks):
+    """
+    Parameters
+    ----------
+    tracks: List[GTFTrack]
+            list of gtf tracks
+    
+    Returns
+    -------
+    intervals: List[Interval]
+               list of Interval
+    """
     chrom = {track.chrom for track in tracks}
     strand = {track.strand for track in tracks}
     if len(chrom) != 1 or len(strand) != 1:
@@ -164,6 +175,23 @@ def tracks_to_ivs(tracks):
 
 
 def transcript_to_genome_iv(start, end, intervals, reverse=False):
+    """
+    Parameters
+    ----------
+    start: int
+           start position in transcript
+    end: int
+         end position in transcript
+    intervals: List[Interval]
+               coordinate in genome
+    reverse: bool
+             whether if it is on the reverse strand
+
+    Returns
+    -------
+    ivs: List[Interval]
+         the coordinate for start, end in genome
+    """
     total_len = sum(i.end - i.start + 1 for i in intervals)
     if reverse:
         start, end = total_len - end - 1, total_len - start - 1
@@ -199,6 +227,19 @@ def transcript_to_genome_iv(start, end, intervals, reverse=False):
 
 
 def fetch_seq(fasta, tracks):
+    """
+    Parameters
+    ----------
+    fasta: FastaReader
+           instance of FastaReader
+    tracks: List[GTFTrack]
+            list of gtf track
+
+    Returns
+    -------
+    merged_seq: str
+                combined seqeunce for the region
+    """
     intervals = tracks_to_ivs(tracks)
     if not isinstance(fasta, FastaReader):
         fasta = FastaReader(fasta)
@@ -753,4 +794,4 @@ def detect_orfs(gtf, fasta, bam, prefix, annotation=None, protocol=None):
     psite_offsets = align_metagenes(metagenes, read_lengths)
     merged_alignments = merge_lengths(alignments, read_lengths, psite_offsets)
     export_wig(merged_alignments, prefix)
-    export_orf_coverages(cds+uorfs+dorfs, merged_alignments, prefix)
+    export_orf_coverages(cds + uorfs + dorfs, merged_alignments, prefix)
