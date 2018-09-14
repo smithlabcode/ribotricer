@@ -56,13 +56,4 @@ def prepare_orfs_cmd(gtf, fasta, prefix):
     default=20000,
     help='Number of mapped reads to use for estimation')
 def infer_protocol_cmd(bam, gtf, prefix, n_reads):
-    protocol, forward_mapped, reverse_mapped = infer_protocol(
-        bam, gtf, prefix, n_reads)
-    total = forward_mapped + reverse_mapped
-    print(
-        dedent('''\
-                 Forward mapped proportion: {} ({:.4f})
-                 Reverse mapped proportion: {} ({:.4f})
-                 Likely protocol: {}'''
-               .format(forward_mapped, forward_mapped / total, reverse_mapped,
-                       reverse_mapped / total, protocol)))
+    infer_protocol(bam, gtf, prefix, n_reads)

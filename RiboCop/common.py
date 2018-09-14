@@ -1,3 +1,5 @@
+"""Utilities for common usage
+"""
 from .interval import Interval
 
 
