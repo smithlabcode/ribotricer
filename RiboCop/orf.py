@@ -13,6 +13,7 @@ from collections import defaultdict
 import pysam
 from tqdm import *
 from matplotlib.backends.backend_pdf import PdfPages
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
@@ -710,7 +711,7 @@ def plot_read_lengths(read_lengths, prefix):
     pass
 
 
-def plot_metagene(metagenes, read_lengths, prefix):
+def plot_metagene(metagenes, read_lengths, prefix, offset=60):
     """
     Parameters
     ----------
@@ -721,7 +722,17 @@ def plot_metagene(metagenes, read_lengths, prefix):
     prefix: str
             prefix for the output file
     """
-    pass
+    total_reads = sum(read_lengths.values())
+    with pdfPages('{}_metagene_plots.pdf'.format(prefix)) as pdf:
+        x = np.arange(-offset, offset+1, dtype=int)
+        colors = np.tile(['b', 'g', 'r'], 34)
+        for length in metagenes:
+            xticks = list(range(-offset, offset+1, 20))
+            ratio = '{:.2%}'.format(read_lengths[length] / total_reads)
+            fig = plt.figure(figsize=(5, 3))
+            plt.plot()
+            plt.title
+
 
 
 def export_orf_coverages(orfs, merged_alignments, prefix):
