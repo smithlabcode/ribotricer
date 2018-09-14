@@ -225,8 +225,11 @@ def search_orfs(fasta, intervals, min_len):
     if strand == '-':
         merged_seq = fasta.reverse_complement(merged_seq)
         reverse = True
-    start_codons = ['ATG', 'CTG', 'GTG']
-    stop_codons = ['TAG', 'TAA', 'TGA']
+    start_codons = set([
+        'ATG', 'TTG', 'CTG', 'GTG', 'AAG', 'AGG', 'ACG', 'ACG', 'ATA', 'ATT',
+        'ATC'
+    ])
+    stop_codons = set(['TAG', 'TAA', 'TGA'])
     for sc in start_codons:
         cur = 0
         while cur < len(merged_seq):
@@ -596,20 +599,27 @@ def parse_annotation(annotation):
     return (cds, uorfs, dorfs)
 
 
-def orf_coverage(orf, coverages, length):
+def orf_coverage(orf, alignments, length, offset_5p, offset_3p):
     coverage = []
     chrom = orf.chrom
     strand = orf.strand
     for iv in orf.intervals:
-        for pos in range(iv.start, iv.end+1):
-            coverage.append(coverages[length][strand][(chrom, pos)])
+        for pos in range(iv.start, iv.end + 1):
+            coverage.append(alignments[length][strand][(chrom, pos)])
     return coverage
 
-def metagene_coverage(cds, coverages, prefix, max_positions=500, offset_5p=0,
-        offset_3p=0, orientation='5prime', alignto='start_codon'):
+
+def metagene_coverage(cds,
+                      alignments,
+                      prefix,
+                      max_positions=500,
+                      offset_5p=0,
+                      offset_3p=0,
+                      alignby='start_codon'):
     coverages = defaultdict(list)
-    for orf in cds:
-        cov = orf_coverage(orf, coverages, )
+    for length in alignments.keys():
+        for orf in cds:
+            coverage = orf_coverage(orf, alignments, length)
 
 
 def plot_read_dist(read_lengths):
@@ -636,5 +646,5 @@ def detect_orfs(gtf, fasta, bam, prefix, annotation=None, protocol=None):
     if protocol is None:
         protocol, _, _ = infer_protocol(bam, gtf, prefix)
 
-    coverages = split_bam(bam, protocol, prefix)
-    metagenes = metagene_cov(cds, coverages, prefix)
+    alignments = split_bam(bam, protocol, prefix)
+    metagenes = metagene_coverage(cds, alignments, prefix)
