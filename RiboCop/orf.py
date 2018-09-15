@@ -633,7 +633,7 @@ def parse_annotation(annotation):
     return (cds, uorfs, dorfs)
 
 
-def orf_coverage(orf, alignments, length=None, offset_5p=0, offset_3p=0):
+def orf_coverage_length(orf, alignments, length, offset_5p=0, offset_3p=0):
     """
     Parameters
     ----------
@@ -723,10 +723,24 @@ def metagene_coverage(cds,
     metagenes: dict
                key is the length, value is the metagene coverage
     """
-    metagenes = defaultdict(list)
+    metagenes = {}
     for length in alignments.keys():
+
+        metagene_coverage = pd.Series()
+
         for orf in cds:
-            coverage = orf_coverage(orf, alignments, length)
+            coverage = orf_coverage_length(orf, alignments, length, offset_5p,
+                                           offset_3p)
+            if len(coverage.index) > 0:
+                min_index = min(coverage.index.tolist())
+                max_index = max(coverage.index.tolist())
+                coverage = coverage[np.arange(min_index,
+                                              min(max_index, max_positions))]
+            if coverage.mean() > 0:
+                metagene_coverage = metagene_coverage.add(
+                    coverage, fill_value=0)
+        metagenes[length] = metagene_coverage
+
     return metagenes
 
 
