@@ -12,8 +12,10 @@ from collections import defaultdict
 
 import pysam
 from tqdm import *
-from matplotlib.backends.backend_pdf import PdfPages
+import matplotlib
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
+from matplotlib.backends.backend_pdf import PdfPages
 import numpy as np
 import pandas as pd
 
@@ -631,7 +633,7 @@ def parse_annotation(annotation):
     return (cds, uorfs, dorfs)
 
 
-def orf_coverage(orf, alignments, length, offset_5p, offset_3p):
+def orf_coverage(orf, alignments, length=None, offset_5p=0, offset_3p=0):
     """
     Parameters
     ----------
@@ -648,16 +650,45 @@ def orf_coverage(orf, alignments, length, offset_5p, offset_3p):
 
     Returns
     -------
-    coverage: array
+    coverage: Series
               coverage for ORF for specific length
     """
     coverage = []
     chrom = orf.chrom
     strand = orf.strand
+    if strand == '-':
+        offset_5p, offset_3p = offset_3p, offset_5p
+    first, last = orf.intervals[0], orf.intervals[-1]
+    for pos in range(first.start - offset_5p, first.start):
+        try:
+            coverage.append(alignments[length][strand][(chrom, pos)])
+        except KeyError:
+            coverage.append(0)
+
     for iv in orf.intervals:
         for pos in range(iv.start, iv.end + 1):
+            try:
+                coverage.append(alignments[length][strand][(chrom, pos)])
+            except KeyError:
+                coverage.append(0)
+
+    for pos in range(last.end + 1, last.end + offset_3p + 1):
+        try:
             coverage.append(alignments[length][strand][(chrom, pos)])
-    return coverage
+        except KeyError:
+            coverage.append(0)
+
+    if strand == '-':
+        coverage.reverse()
+        return pd.Series(
+            np.array(coverage),
+            index=np.arange(-offset_3p,
+                            len(coverage) - offset_3p))
+    else:
+        return pd.Series(
+            np.array(coverage),
+            index=np.arange(-offset_5p,
+                            len(coverage) - offset_5p))
 
 
 def metagene_coverage(cds,
@@ -724,15 +755,13 @@ def plot_metagene(metagenes, read_lengths, prefix, offset=60):
     """
     total_reads = sum(read_lengths.values())
     with pdfPages('{}_metagene_plots.pdf'.format(prefix)) as pdf:
-        x = np.arange(-offset, offset+1, dtype=int)
+        x = np.arange(-offset, offset + 1, dtype=int)
         colors = np.tile(['b', 'g', 'r'], 34)
         for length in metagenes:
-            xticks = list(range(-offset, offset+1, 20))
+            xticks = list(range(-offset, offset + 1, 20))
             ratio = '{:.2%}'.format(read_lengths[length] / total_reads)
-            fig = plt.figure(figsize=(5, 3))
-            plt.plot()
-            plt.title
-
+            fig, ax = plt.subplots()
+            ax.vlines(x, ymin=np.zeros(), ymax=metagenes[length])
 
 
 def export_orf_coverages(orfs, merged_alignments, prefix):
