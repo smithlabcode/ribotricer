@@ -768,14 +768,29 @@ def plot_metagene(metagenes, read_lengths, prefix, offset=60):
             prefix for the output file
     """
     total_reads = sum(read_lengths.values())
-    with pdfPages('{}_metagene_plots.pdf'.format(prefix)) as pdf:
-        x = np.arange(-offset, offset + 1, dtype=int)
-        colors = np.tile(['b', 'g', 'r'], 34)
+    with PdfPages('{}_metagene_plots.pdf'.format(prefix)) as pdf:
         for length in metagenes:
-            xticks = list(range(-offset, offset + 1, 20))
+            metagene_cov = metagenes[length]
+            min_index = min(metagene_cov.index.tolist())
+            max_index = max(metagene_cov.index.tolist())
+            offset = min(offset, max_index)
+            metagene_cov = metagene_cov[np.arange(min_index, offset)]
+            x = np.arange(min_index, offset)
+            colors = np.tile(['r', 'g', 'b'], len(x)//3 + 1)
+            xticks = np.arange(min_index, offset, 20)
             ratio = '{:.2%}'.format(read_lengths[length] / total_reads)
             fig, ax = plt.subplots()
-            ax.vlines(x, ymin=np.zeros(), ymax=metagenes[length])
+            ax.vlines(x, ymin=np.zeros(len(x)), ymax=metagene_cov)
+            ax.tick_params(axis='x', which='both', top='off', direction='out')
+            ax.set_xticks(xticks)
+            ax.set_xlim((min_index, offset))
+            ax.set_xlabel('Distance from start codon (nt)')
+            ax.set_ylabel('Number of reads')
+            ax.set_title('{} nt reads, proportion: {}'.format(length, ratio))
+
+            fig.tight_layout()
+            pdf.savefig(fig)
+            plt.close()
 
 
 def export_orf_coverages(orfs, merged_alignments, prefix):
