@@ -548,28 +548,26 @@ def align_metagenes(metagenes, read_lengths, prefix):
     psite_offsets: dict
                    key is the length, value is the offset
     """
-    base = int(base)
-    with open(coverages) as f:
-        cov_lens = f.readlines()
-    cov_lens = {
-        int(x.strip().split()[0]): x.strip().split()[1]
-        for x in cov_lens
-    }
-    if base not in cov_lens:
-        print('Failed to find base {} in coverages.'.format(base))
-        return
-    reference = pd.read_table(cov_lens[base])['count']
+    psite_offsets = {}
+    base = n_reads = 0
+    for length, reads in read_lengths.items():
+        if reads > n_reads:
+            base = length
+            n_reads = reads
+    reference = metagenes[base].values
     to_write = 'relative lag to base: {}\n'.format(base)
-    for length, path in cov_lens.items():
-        cov = pd.read_table(path)['count']
+    for length, meta in metagenes.items():
+        cov = meta.values
         xcorr = np.correlate(reference, cov, 'full')
         origin = len(xcorr) // 2
         bound = min(base, length)
         xcorr = xcorr[origin - bound:origin + bound]
         lag = np.argmax(xcorr) - len(xcorr) // 2
+        psite_offsets[length] = lag
         to_write += '\tlag of {}: {}\n'.format(length, lag)
-    with open(saveto, 'w') as output:
+    with open('{}_psite_offsets.txt'.format(prefix), 'w') as output:
         output.write(to_write)
+    return psite_offsets
 
 
 def merge_lengths(alignments, read_lengths, psite_offsets):
