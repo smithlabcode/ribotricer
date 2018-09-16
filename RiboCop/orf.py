@@ -827,7 +827,7 @@ def plot_read_lengths(read_lengths, prefix):
     fig.tight_layout()
     fig.savefig('{}_read_length_dist.pdf'.format(prefix))
     plt.close()
-    
+
 
 def plot_metagene(metagenes, read_lengths, prefix, offset=60):
     """
@@ -849,7 +849,7 @@ def plot_metagene(metagenes, read_lengths, prefix, offset=60):
             offset = min(offset, max_index)
             metagene_cov = metagene_cov[np.arange(min_index, offset)]
             x = np.arange(min_index, offset)
-            colors = np.tile(['r', 'g', 'b'], len(x)//3 + 1)
+            colors = np.tile(['r', 'g', 'b'], len(x) // 3 + 1)
             xticks = np.arange(min_index, offset, 20)
             ratio = '{:.2%}'.format(read_lengths[length] / total_reads)
             fig, ax = plt.subplots()
@@ -866,8 +866,11 @@ def plot_metagene(metagenes, read_lengths, prefix, offset=60):
             plt.close()
 
 
-def export_orf_coverages(orfs, merged_alignments, prefix, min_count=0,
-        min_corr=0.5):
+def export_orf_coverages(orfs,
+                         merged_alignments,
+                         prefix,
+                         min_count=0,
+                         min_corr=0.5):
     """
     Parameters
     ----------
@@ -905,8 +908,8 @@ def export_wig(merged_alignments, prefix):
             if chrom != cur_chrom:
                 cur_chrom = chrom
                 to_write += 'variableStep chrom={}\n'.format(chrom)
-            to_write += '{}\t{}\n'.format(pos,
-                    merged_alignments[strand][(chrom, pos)])
+            to_write += '{}\t{}\n'.format(
+                pos, merged_alignments[strand][(chrom, pos)])
         if strand == '+':
             fname = '{}_pos.wig'.format(prefix)
         else:

@@ -1,6 +1,29 @@
 """Utilities for common usage
 """
 from .interval import Interval
+from scipy import stats
+
+
+def cal_periodicity(values):
+    repeats = len(values) // 3
+    total = repeats * 3
+    values = values[:total]
+    corr = pval = 0
+    frame0 = np.array([1, 0, 0] * repeats)
+    r, p = stats.pearsonr(values, frame0)
+    if abs(r) > corr:
+        corr, pval = abs(r), p
+
+    frame1 = np.array([0, 1, 0] * repeats)
+    r, p = stats.pearsonr(values, frame1)
+    if abs(r) > corr:
+        corr, pval = abs(r), p
+
+    frame2 = np.array([0, 0, 1] * repeats)
+    r, p = stats.pearsonr(values, frame2)
+    if abs(r) > corr:
+        corr, pval = abs(r), p
+    return (corr, pval)
 
 
 def is_read_uniq_mapping(read):
