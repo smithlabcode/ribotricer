@@ -570,14 +570,12 @@ def align_metagenes(metagenes, read_lengths, prefix):
     return psite_offsets
 
 
-def merge_lengths(alignments, read_lengths, psite_offsets):
+def merge_lengths(alignments, psite_offsets):
     """
     Parameters
     ----------
     alignments: dict(dict(Counter))
                 bam split by length, strand
-    read_lengths: dict
-                  key is the length, value is the number of reads
     psite_offsets: dict
                    key is the length, value is the offset
     Returns
@@ -585,7 +583,21 @@ def merge_lengths(alignments, read_lengths, psite_offsets):
     merged_alignments: dict(dict)
                        alignments by merging all lengths
     """
-    pass
+    merged_alignments = defaultdict(Counter)
+
+    for length, offset in psite_offsets.items():
+        for strand in alignments[length]:
+            for chrom, pos in alignments[length][strand]:
+                count = alignments[length][strand][(chrom, pos)]
+                if strand == '+':
+                    pos_shifted = pos + offset
+                else:
+                    pos_shifted = pos - offset
+                merged_alignments[strand][(chrom, pos_shifted)] += count
+    return merged_alignments
+
+
+   
 
 
 def parse_annotation(annotation):
@@ -865,6 +877,6 @@ def detect_orfs(gtf, fasta, bam, prefix, annotation=None, protocol=None):
     metagenes = metagene_coverage(cds, alignments, prefix)
     plot_metagene(metagenes, read_lengths, prefix)
     psite_offsets = align_metagenes(metagenes, read_lengths, prefix)
-    merged_alignments = merge_lengths(alignments, read_lengths, psite_offsets)
+    merged_alignments = merge_lengths(alignments, psite_offsets)
     export_wig(merged_alignments, prefix)
     export_orf_coverages(cds + uorfs + dorfs, merged_alignments, prefix)
