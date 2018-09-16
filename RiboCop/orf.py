@@ -24,6 +24,7 @@ from .gtf import GTFReader
 from .interval import Interval
 from .common import is_read_uniq_mapping
 from .common import merge_intervals
+from .common import cal_periodicity
 from .infer_protocol import infer_protocol
 
 
@@ -597,9 +598,6 @@ def merge_lengths(alignments, psite_offsets):
     return merged_alignments
 
 
-   
-
-
 def parse_annotation(annotation):
     """
     Parameters
@@ -641,6 +639,62 @@ def parse_annotation(annotation):
                     dorfs.append(orf)
                 pbar.update()
     return (cds, uorfs, dorfs)
+
+
+def orf_coverage(orf, alignments, offset_5p=0, offset_3p=0):
+    """
+    Parameters
+    ----------
+    orf: PutativeORF
+         instance of PutativeORF
+    alignments: dict(Counter)
+                alignments summarized from bam by merging lengths
+    offset_5p: int
+               the number of nts to include from 5'prime
+    offset_3p: int
+               the number of nts to include from 3'prime
+
+    Returns
+    -------
+    coverage: Series
+              coverage for ORF for specific length
+    """
+    coverage = []
+    chrom = orf.chrom
+    strand = orf.strand
+    if strand == '-':
+        offset_5p, offset_3p = offset_3p, offset_5p
+    first, last = orf.intervals[0], orf.intervals[-1]
+    for pos in range(first.start - offset_5p, first.start):
+        try:
+            coverage.append(alignments[strand][(chrom, pos)])
+        except KeyError:
+            coverage.append(0)
+
+    for iv in orf.intervals:
+        for pos in range(iv.start, iv.end + 1):
+            try:
+                coverage.append(alignments[strand][(chrom, pos)])
+            except KeyError:
+                coverage.append(0)
+
+    for pos in range(last.end + 1, last.end + offset_3p + 1):
+        try:
+            coverage.append(alignments[strand][(chrom, pos)])
+        except KeyError:
+            coverage.append(0)
+
+    if strand == '-':
+        coverage.reverse()
+        return pd.Series(
+            np.array(coverage),
+            index=np.arange(-offset_3p,
+                            len(coverage) - offset_3p))
+    else:
+        return pd.Series(
+            np.array(coverage),
+            index=np.arange(-offset_5p,
+                            len(coverage) - offset_5p))
 
 
 def orf_coverage_length(orf, alignments, length, offset_5p=0, offset_3p=0):
@@ -812,7 +866,8 @@ def plot_metagene(metagenes, read_lengths, prefix, offset=60):
             plt.close()
 
 
-def export_orf_coverages(orfs, merged_alignments, prefix):
+def export_orf_coverages(orfs, merged_alignments, prefix, min_count=0,
+        min_corr=0.5):
     """
     Parameters
     ----------
@@ -823,7 +878,15 @@ def export_orf_coverages(orfs, merged_alignments, prefix):
     prefix: str
             prefix for output file
     """
-    pass
+    to_write = 'ORF_ID\tcoverage\tcount\tperiodicity\tpval\n'
+    for orf in orfs:
+        oid = orf.oid
+        cov = orf_coverage(orf, merged_alignments).values
+        count = sum(cov)
+        corr, pval = cal_periodicity(cov)
+        to_write += '{}\t{}\t{}\t{}\t{}\n'.format(oid, cov, count, corr, pval)
+    with open('{}_translating_ORFs.tsv'.format(prefix)) as output:
+        output.write(to_write)
 
 
 def export_wig(merged_alignments, prefix):
