@@ -753,8 +753,17 @@ def plot_read_lengths(read_lengths, prefix):
     prefix: str
             prefix for the output file
     """
-    pass
-
+    fig, ax = plt.subplots()
+    x = sorted(read_lengths.keys())
+    y = [read_lengths[i] for i in x]
+    ax.bar(x, y)
+    ax.set_xlabel('Read length')
+    ax.set_ylabel('Number of reads')
+    ax.set_title('Read length distribution')
+    fig.tight_layout()
+    fig.savefig('{}_read_length_dist.pdf'.format(prefix))
+    plt.close()
+    
 
 def plot_metagene(metagenes, read_lengths, prefix, offset=60):
     """
