@@ -885,7 +885,7 @@ def export_orf_coverages(orfs, merged_alignments, prefix, min_count=0,
         count = sum(cov)
         corr, pval = cal_periodicity(cov)
         to_write += '{}\t{}\t{}\t{}\t{}\n'.format(oid, cov, count, corr, pval)
-    with open('{}_translating_ORFs.tsv'.format(prefix)) as output:
+    with open('{}_translating_ORFs.tsv'.format(prefix), 'w') as output:
         output.write(to_write)
 
 
@@ -898,7 +898,21 @@ def export_wig(merged_alignments, prefix):
     prefix: str
             prefix of output wig files
     """
-    pass
+    for strand in merged_alignments:
+        to_write = ''
+        cur_chrom = ''
+        for chrom, pos in sorted(merged_alignments[strand]):
+            if chrom != cur_chrom:
+                cur_chrom = chrom
+                to_write += 'variableStep chrom={}\n'.format(chrom)
+            to_write += '{}\t{}\n'.format(pos,
+                    merged_alignments[strand][(chrom, pos)])
+        if strand == '+':
+            fname = '{}_pos.wig'.format(prefix)
+        else:
+            fname = '{}_neg.wig'.format(prefix)
+        with open(fname, 'w') as output:
+            output.write(to_write)
 
 
 def detect_orfs(gtf, fasta, bam, prefix, annotation=None, protocol=None):
