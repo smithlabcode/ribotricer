@@ -1,5 +1,5 @@
 class Interval:
-    """Class for bed interval"""
+    """Class for interval"""
 
     def __init__(self, chrom=None, start=0, end=0, strand=None):
         self.chrom = chrom
