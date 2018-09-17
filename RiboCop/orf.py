@@ -77,7 +77,7 @@ class PutativeORF:
         if not line:
             print('annotation line cannot be empty')
             return None
-        fields = line.strip().split('\t')
+        fields = line.split('\t')
         if len(fields) != 13:
             print('unexpected number of columns found for annotation file')
             return None
@@ -92,8 +92,8 @@ class PutativeORF:
         strand = fields[8]
         coordinate = fields[9]
         intervals = []
-        for group in coordinate.strip().split(','):
-            start, end = group.strip().split('-')
+        for group in coordinate.split(','):
+            start, end = group.split('-')
             start = int(start)
             end = int(end)
             intervals.append(Interval(chrom, start, end, strand))
@@ -625,6 +625,7 @@ def parse_annotation(annotation):
         with tqdm(total=total_lines) as pbar:
             header = True
             for line in anno:
+                pbar.update()
                 if header:
                     header = False
                     continue
@@ -637,7 +638,6 @@ def parse_annotation(annotation):
                     uorfs.append(orf)
                 elif orf.category == 'dORF':
                     dorfs.append(orf)
-                pbar.update()
     return (cds, uorfs, dorfs)
 
 

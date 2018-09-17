@@ -13,7 +13,7 @@ import click
 from click_help_colors import HelpColorsGroup
 from . import __version__
 from .infer_protocol import infer_protocol
-from .orf import prepare_orfs
+from .orf import *
 
 click.disable_unicode_literals_warning = True
 CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
@@ -57,3 +57,14 @@ def prepare_orfs_cmd(gtf, fasta, prefix):
     help='Number of mapped reads to use for estimation')
 def infer_protocol_cmd(bam, gtf, prefix, n_reads):
     infer_protocol(bam, gtf, prefix, n_reads)
+
+
+###################### parse-annotation function #########################################
+@cli.command(
+    'parse-annotation',
+    context_settings=CONTEXT_SETTINGS,
+    help='Parse annotation file to extract putative ORFs')
+@click.option('--annotation', help='Path to annotation file')
+def parse_annotation_cmd(annotation):
+    parse_annotation(annotation)
+
