@@ -1,5 +1,6 @@
 """Utilities for common usage
 """
+import numpy as np
 from .interval import Interval
 from scipy import stats
 
