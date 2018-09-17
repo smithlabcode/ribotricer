@@ -842,7 +842,7 @@ def plot_metagene(metagenes, read_lengths, prefix, offset=60):
     """
     total_reads = sum(read_lengths.values())
     with PdfPages('{}_metagene_plots.pdf'.format(prefix)) as pdf:
-        for length in metagenes:
+        for length in sorted(metagenes):
             metagene_cov = metagenes[length]
             corr, pval = cal_periodicity(metagene_cov.values)
             min_index = min(metagene_cov.index.tolist())
@@ -855,7 +855,7 @@ def plot_metagene(metagenes, read_lengths, prefix, offset=60):
             ratio = read_lengths[length] / total_reads
             # fig, ax = plt.subplots()
             fig = plt.figure()
-            ax = fig.add_subplot(1, 1, 1, aspect=0.75)
+            ax = fig.add_subplot(1, 1, 1, aspect=0.95)
             ax.vlines(
                 x, ymin=np.zeros(len(x)), ymax=metagene_cov, colors=colors)
             ax.tick_params(axis='x', which='both', top='off', direction='out')
