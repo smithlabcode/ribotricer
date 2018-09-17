@@ -85,6 +85,7 @@ class GTFReader:
         with open(self.gtf_location, 'r') as gtf:
             with tqdm(total=total_lines) as pbar:
                 for line in gtf:
+                    pbar.update()
                     track = GTFTrack.from_string(line)
                     if track is None:
                         continue
@@ -105,4 +106,3 @@ class GTFReader:
                     elif track.feature == 'utr':
                         self.utr[gid][tid].append(track)
 
-                    pbar.update()
