@@ -469,55 +469,55 @@ def split_bam(bam, protocol, prefix, countby='5prime'):
     alignments = defaultdict(lambda: defaultdict(Counter))
     read_lengths = defaultdict(int)
     qcfail = duplicate = secondary = unmapped = multi = valid = 0
+    bam = pysam.AlignmentFile(bam, 'rb')
     total_count = 0
-    bam = pysam.AlignmentFile(bam, 'rb')
-    for r in bam.fetch(until_eof=True):
-        total_count += 1
-    bam = pysam.AlignmentFile(bam, 'rb')
-    with tqdm(total=total_count) as pbar:
-        for r in bam.fetch(until_eof=True):
-            pbar.update()
+    # total_count = bam.count(until_eof=True)
+    print('reading bam file...')
+    # with tqdm(total=total_count) as pbar:
+    for r in tqdm(bam.fetch(until_eof=True)):
+        # pbar.update()
+        total_count = 0
 
-            if r.is_qcfail:
-                qcfail += 1
-                continue
-            if r.is_duplicate:
-                duplicate += 1
-                continue
-            if r.is_secondary:
-                secondary += 1
-                continue
-            if r.is_unmapped:
-                unmapped += 1
-                continue
-            if not is_read_uniq_mapping(r):
-                multi += 1
-                continue
+        if r.is_qcfail:
+            qcfail += 1
+            continue
+        if r.is_duplicate:
+            duplicate += 1
+            continue
+        if r.is_secondary:
+            secondary += 1
+            continue
+        if r.is_unmapped:
+            unmapped += 1
+            continue
+        if not is_read_uniq_mapping(r):
+            multi += 1
+            continue
 
-            map_strand = '-' if r.is_reverse else '+'
-            ref_positions = r.get_reference_positions()
-            strand = None
-            pos = None
-            chrom = r.reference_name
-            length = r.query_length
-            if protocol == 'forward':
-                if map_strand == '+':
-                    strand = '+'
-                    pos = ref_positions[0]
-                else:
-                    strand = '-'
-                    pos = ref_positions[-1]
-            elif protocol == 'reverse':
-                if map_strand == '+':
-                    strand = '-'
-                    pos = ref_positions[-1]
-                else:
-                    strand = '+'
-                    pos = ref_positions[0]
-            alignments[length][strand][(chrom, pos)] += 1
-            read_lengths[length] += 1
+        map_strand = '-' if r.is_reverse else '+'
+        ref_positions = r.get_reference_positions()
+        strand = None
+        pos = None
+        chrom = r.reference_name
+        length = r.query_length
+        if protocol == 'forward':
+            if map_strand == '+':
+                strand = '+'
+                pos = ref_positions[0]
+            else:
+                strand = '-'
+                pos = ref_positions[-1]
+        elif protocol == 'reverse':
+            if map_strand == '+':
+                strand = '-'
+                pos = ref_positions[-1]
+            else:
+                strand = '+'
+                pos = ref_positions[0]
+        alignments[length][strand][(chrom, pos)] += 1
+        read_lengths[length] += 1
 
-            valid += 1
+        valid += 1
 
 
     summary = ('summary:\n\ttotal_reads: {}\n\tunique_mapped: {}\n'
@@ -552,6 +552,7 @@ def align_metagenes(metagenes, read_lengths, prefix):
     psite_offsets: dict
                    key is the length, value is the offset
     """
+    print('aligning metagene profiles from different lengths...')
     psite_offsets = {}
     base = n_reads = 0
     for length, reads in read_lengths.items():
@@ -587,6 +588,7 @@ def merge_lengths(alignments, psite_offsets):
     merged_alignments: dict(dict)
                        alignments by merging all lengths
     """
+    print('merging different lengths...')
     merged_alignments = defaultdict(Counter)
 
     for length, offset in psite_offsets.items():
@@ -634,9 +636,6 @@ def parse_annotation(annotation):
                     continue
                 orf = PutativeORF.from_string(line)
                 if orf is None:
-                    continue
-                ###
-                if orf.category != 'CDS':
                     continue
                 if orf.category == 'CDS':
                     cds.append(orf)
@@ -763,10 +762,12 @@ def orf_coverage_length(orf, alignments, length, offset_5p=0, offset_3p=0):
 
 def metagene_coverage(cds,
                       alignments,
+                      read_lengths,
                       prefix,
                       max_positions=500,
                       offset_5p=0,
                       offset_3p=0,
+                      min_reads=20000,
                       alignby='start_codon'):
     """
     Parameters
@@ -775,6 +776,8 @@ def metagene_coverage(cds,
          list of cds
     alignments: dict(dict(Counter))
                 alignments summarized from bam
+    read_lengths: dict
+                  key is the length, value is the number reads
     prefix: str
             prefix for the output file
     max_positions: int
@@ -793,12 +796,14 @@ def metagene_coverage(cds,
     metagenes: dict
                key is the length, value is the metagene coverage
     """
+    print('calculating metagene profiles...')
     metagenes = {}
-    for length in alignments.keys():
+    lengths = [x for x in read_lengths if read_lengths[x] >= min_reads]
+    for length in tqdm(lengths):
 
         metagene_coverage = pd.Series()
 
-        for orf in cds:
+        for orf in tqdm(cds):
             coverage = orf_coverage_length(orf, alignments, length, offset_5p,
                                            offset_3p)
             if len(coverage.index) > 0:
@@ -823,6 +828,7 @@ def plot_read_lengths(read_lengths, prefix):
     prefix: str
             prefix for the output file
     """
+    print('plotting read length distribution...')
     fig, ax = plt.subplots()
     x = sorted(read_lengths.keys())
     y = [read_lengths[i] for i in x]
@@ -846,10 +852,13 @@ def plot_metagene(metagenes, read_lengths, prefix, offset=60):
     prefix: str
             prefix for the output file
     """
+    print('plotting metagene profiles...')
     total_reads = sum(read_lengths.values())
     with PdfPages('{}_metagene_plots.pdf'.format(prefix)) as pdf:
         for length in sorted(metagenes):
             metagene_cov = metagenes[length]
+            if len(metagene_cov) == 0:
+                continue
             corr, pval = cal_periodicity(metagene_cov.values)
             min_index = min(metagene_cov.index.tolist())
             max_index = max(metagene_cov.index.tolist())
@@ -893,8 +902,9 @@ def export_orf_coverages(orfs,
     prefix: str
             prefix for output file
     """
+    print('exporting coverages for all ORFs...')
     to_write = 'ORF_ID\tcoverage\tcount\tperiodicity\tpval\n'
-    for orf in orfs:
+    for orf in tqdm(orfs):
         oid = orf.oid
         cov = orf_coverage(orf, merged_alignments).values
         count = sum(cov)
@@ -913,6 +923,7 @@ def export_wig(merged_alignments, prefix):
     prefix: str
             prefix of output wig files
     """
+    print('exporting merged alignments to wig file...')
     for strand in merged_alignments:
         to_write = ''
         cur_chrom = ''
@@ -967,7 +978,7 @@ def detect_orfs(bam, prefix, gtf=None, fasta=None, annotation=None, protocol=Non
 
     alignments, read_lengths = split_bam(bam, protocol, prefix)
     plot_read_lengths(read_lengths, prefix)
-    metagenes = metagene_coverage(cds, alignments, prefix)
+    metagenes = metagene_coverage(cds, alignments, read_lengths, prefix)
     plot_metagene(metagenes, read_lengths, prefix)
     psite_offsets = align_metagenes(metagenes, read_lengths, prefix)
     merged_alignments = merge_lengths(alignments, psite_offsets)
