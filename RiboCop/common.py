@@ -9,7 +9,7 @@ def cal_periodicity(values):
     repeats = len(values) // 3
     total = repeats * 3
     values = values[:total]
-    corr = pval = 0
+    corr, pval = 0, 1.0
     frame0 = np.array([1, 0, 0] * repeats)
     r, p = stats.pearsonr(values, frame0)
     if abs(r) > corr:
