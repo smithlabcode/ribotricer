@@ -8,6 +8,8 @@ from __future__ import unicode_literals
 import os
 import sys
 from textwrap import dedent
+import numpy as np
+import pandas as pd
 
 import click
 from click_help_colors import HelpColorsGroup
@@ -33,12 +35,24 @@ def cli():
 @cli.command(
     'prepare-orfs',
     context_settings=CONTEXT_SETTINGS,
-    help='extract putative orfs based on GTF and FASTA files')
+    help='Extract putative orfs based on GTF and FASTA files')
 @click.option('--gtf', help='Path to GTF file')
 @click.option('--fasta', help='Path to FASTA file')
 @click.option('--prefix', help='Prefix to output file')
 def prepare_orfs_cmd(gtf, fasta, prefix):
     prepare_orfs(gtf, fasta, prefix)
+
+
+###################### detect-orfs function #########################################
+@cli.command(
+    'detect-orfs',
+    context_settings=CONTEXT_SETTINGS,
+    help='Detect translating ORFs from BAM file')
+@click.option('--bam', help='Path to BAM file')
+@click.option('--prefix', help='Prefix to output file')
+@click.option('--annotation', help='Path to annotation file')
+def detect_orfs_cmd(bam, prefix, annotation):
+    detect_orfs(bam, prefix, annotation=annotation, protocol='forward')
 
 
 ###################### infer-protocol function #########################################
@@ -67,4 +81,20 @@ def infer_protocol_cmd(bam, gtf, prefix, n_reads):
 @click.option('--annotation', help='Path to annotation file')
 def parse_annotation_cmd(annotation):
     parse_annotation(annotation)
+
+
+###################### plot-read-lengths function #########################################
+@cli.command(
+    'plot-metagene',
+    context_settings=CONTEXT_SETTINGS,
+    help='Plot read length distribution')
+@click.option('--prefix', help='Prefix to output file')
+def plot_metagene_cmd(prefix):
+    metagenes = {}
+    s = pd.Series(np.random.randint(30, size=500), index=np.arange(-50, 450))
+    read_lengths = {28: 100023434, 27: 2690000, 30: 1234908, 31: 790000, 32: 8000, 26: 123490}
+    for length in read_lengths:
+        metagenes[length] = s
+    plot_metagene(metagenes, read_lengths, prefix, 100)
+
 

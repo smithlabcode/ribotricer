@@ -469,10 +469,14 @@ def split_bam(bam, protocol, prefix, countby='5prime'):
     alignments = defaultdict(lambda: defaultdict(Counter))
     read_lengths = defaultdict(int)
     qcfail = duplicate = secondary = unmapped = multi = valid = 0
+    total_count = 0
     bam = pysam.AlignmentFile(bam, 'rb')
-    total_count = bam.count()
+    for r in bam.fetch(until_eof=True):
+        total_count += 1
+    bam = pysam.AlignmentFile(bam, 'rb')
     with tqdm(total=total_count) as pbar:
         for r in bam.fetch(until_eof=True):
+            pbar.update()
 
             if r.is_qcfail:
                 qcfail += 1
@@ -486,7 +490,7 @@ def split_bam(bam, protocol, prefix, countby='5prime'):
             if r.is_unmapped:
                 unmapped += 1
                 continue
-            if not _is_read_uniq_mapping(r):
+            if not is_read_uniq_mapping(r):
                 multi += 1
                 continue
 
@@ -515,7 +519,6 @@ def split_bam(bam, protocol, prefix, countby='5prime'):
 
             valid += 1
 
-            pbar.update()
 
     summary = ('summary:\n\ttotal_reads: {}\n\tunique_mapped: {}\n'
                '\tqcfail: {}\n\tduplicate: {}\n\tsecondary: {}\n'
@@ -631,6 +634,9 @@ def parse_annotation(annotation):
                     continue
                 orf = PutativeORF.from_string(line)
                 if orf is None:
+                    continue
+                ###
+                if orf.category != 'CDS':
                     continue
                 if orf.category == 'CDS':
                     cds.append(orf)
@@ -924,7 +930,7 @@ def export_wig(merged_alignments, prefix):
             output.write(to_write)
 
 
-def detect_orfs(gtf, fasta, bam, prefix, annotation=None, protocol=None):
+def detect_orfs(bam, prefix, gtf=None, fasta=None, annotation=None, protocol=None):
     """
     Parameters
     ----------
@@ -944,10 +950,11 @@ def detect_orfs(gtf, fasta, bam, prefix, annotation=None, protocol=None):
               It will be automatically inferred if None
     """
 
-    if not isinstance(gtf, GTFReader):
+    cds = uorfs = dorfs = None
+    if gtf and not isinstance(gtf, GTFReader):
         gtf = GTFReader(gtf)
 
-    if not isinstance(fasta, FastaReader):
+    if fasta and not isinstance(fasta, FastaReader):
         fasta = FastaReader(fasta)
 
     if annotation is None:
