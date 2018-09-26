@@ -470,56 +470,51 @@ def split_bam(bam, protocol, prefix):
     read_lengths = defaultdict(int)
     qcfail = duplicate = secondary = unmapped = multi = valid = 0
     print('reading bam file...')
-    bam_file = bam
-    bam = pysam.AlignmentFile(bam_file, 'rb')
-    total_count = bam.count(until_eof=True)
-    bam = pysam.AlignmentFile(bam_file, 'rb')
-    with tqdm(total=total_count) as pbar:
-        for r in tqdm(bam.fetch(until_eof=True)):
-            pbar.update()
+    bam = pysam.AlignmentFile(bam, 'rb')
+    for r in tqdm(bam.fetch(until_eof=True)):
 
-            if r.is_qcfail:
-                qcfail += 1
-                continue
-            if r.is_duplicate:
-                duplicate += 1
-                continue
-            if r.is_secondary:
-                secondary += 1
-                continue
-            if r.is_unmapped:
-                unmapped += 1
-                continue
-            if not is_read_uniq_mapping(r):
-                multi += 1
-                continue
+        if r.is_qcfail:
+            qcfail += 1
+            continue
+        if r.is_duplicate:
+            duplicate += 1
+            continue
+        if r.is_secondary:
+            secondary += 1
+            continue
+        if r.is_unmapped:
+            unmapped += 1
+            continue
+        if not is_read_uniq_mapping(r):
+            multi += 1
+            continue
 
-            map_strand = '-' if r.is_reverse else '+'
-            ref_positions = r.get_reference_positions()
-            strand = None
-            pos = None
-            chrom = r.reference_name
-            # length = r.query_length
-            length = len(ref_positions)
-            if protocol == 'forward':
-                if map_strand == '+':
-                    strand = '+'
-                    pos = ref_positions[0]
-                else:
-                    strand = '-'
-                    pos = ref_positions[-1]
-            elif protocol == 'reverse':
-                if map_strand == '+':
-                    strand = '-'
-                    pos = ref_positions[-1]
-                else:
-                    strand = '+'
-                    pos = ref_positions[0]
-            # convert bam coordinate to one-based
-            alignments[length][strand][(chrom, pos + 1)] += 1
-            read_lengths[length] += 1
+        map_strand = '-' if r.is_reverse else '+'
+        ref_positions = r.get_reference_positions()
+        strand = None
+        pos = None
+        chrom = r.reference_name
+        # length = r.query_length
+        length = len(ref_positions)
+        if protocol == 'forward':
+            if map_strand == '+':
+                strand = '+'
+                pos = ref_positions[0]
+            else:
+                strand = '-'
+                pos = ref_positions[-1]
+        elif protocol == 'reverse':
+            if map_strand == '+':
+                strand = '-'
+                pos = ref_positions[-1]
+            else:
+                strand = '+'
+                pos = ref_positions[0]
+        # convert bam coordinate to one-based
+        alignments[length][strand][(chrom, pos + 1)] += 1
+        read_lengths[length] += 1
 
-            valid += 1
+        valid += 1
 
     summary = ('summary:\n\ttotal_reads: {}\n\tunique_mapped: {}\n'
                '\tqcfail: {}\n\tduplicate: {}\n\tsecondary: {}\n'
