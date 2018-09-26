@@ -18,6 +18,8 @@ import matplotlib.pyplot as plt
 from matplotlib.backends.backend_pdf import PdfPages
 import numpy as np
 import pandas as pd
+from joblib import delayed
+from .parallel import ParallelExecutor
 
 from .fasta import FastaReader
 from .gtf import GTFReader
@@ -701,7 +703,12 @@ def orf_coverage(orf, alignments, offset_5p=0, offset_3p=0):
                             len(coverage) - offset_5p))
 
 
-def orf_coverage_length(orf, alignments, length, offset_5p=0, offset_3p=0):
+def orf_coverage_length(orf,
+                        alignments,
+                        length,
+                        max_positions=500,
+                        offset_5p=0,
+                        offset_3p=0):
     """
     Parameters
     ----------
@@ -711,6 +718,8 @@ def orf_coverage_length(orf, alignments, length, offset_5p=0, offset_3p=0):
                 alignments summarized from bam
     length: int
             the target length
+    max_positions: int
+                   the number of nts to include
     offset_5p: int
                the number of nts to include from 5'prime
     offset_3p: int
@@ -748,11 +757,13 @@ def orf_coverage_length(orf, alignments, length, offset_5p=0, offset_3p=0):
 
     if strand == '-':
         coverage.reverse()
+        coverage = coverage[:max_positions]
         return pd.Series(
             np.array(coverage),
             index=np.arange(-offset_3p,
                             len(coverage) - offset_3p))
     else:
+        coverage = coverage[:max_positions]
         return pd.Series(
             np.array(coverage),
             index=np.arange(-offset_5p,
@@ -796,15 +807,13 @@ def metagene_coverage(cds,
     for length in tqdm(lengths):
 
         metagene_coverage = pd.Series()
-
-        for orf in tqdm(cds):
-            coverage = orf_coverage_length(orf, alignments, length, offset_5p,
-                                           offset_3p)
-            if len(coverage.index) > 0:
-                min_index = min(coverage.index.tolist())
-                max_index = max(coverage.index.tolist())
-                coverage = coverage[np.arange(min_index,
-                                              min(max_index, max_positions))]
+        aprun = ParallelExecutor(n_jobs=16)
+        data = [(orf, alignments, length, max_positions, offset_5p, offset_3p)
+                for orf in cds]
+        total = len(cds)
+        all_coverages = aprun(total=total)(
+            delayed(orf_coverage_length)(d) for d in data)
+        for coverage in all_coverages:
             if coverage.mean() > 0:
                 metagene_coverage = metagene_coverage.add(
                     coverage, fill_value=0)
