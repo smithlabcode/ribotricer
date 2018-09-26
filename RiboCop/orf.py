@@ -497,7 +497,8 @@ def split_bam(bam, protocol, prefix):
             strand = None
             pos = None
             chrom = r.reference_name
-            length = r.query_length
+            # length = r.query_length
+            length = len(ref_positions)
             if protocol == 'forward':
                 if map_strand == '+':
                     strand = '+'
@@ -765,7 +766,7 @@ def metagene_coverage(cds,
                       max_positions=500,
                       offset_5p=0,
                       offset_3p=0,
-                      meta_min_reads=50000):
+                      meta_min_reads=500000):
     """
     Parameters
     ----------
