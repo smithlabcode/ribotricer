@@ -763,7 +763,7 @@ def metagene_coverage(cds,
                       max_positions=500,
                       offset_5p=0,
                       offset_3p=0,
-                      meta_min_reads=500000):
+                      meta_min_reads=50000):
     """
     Parameters
     ----------
