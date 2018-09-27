@@ -642,7 +642,7 @@ def parse_annotation(annotation):
     return (cds, uorfs, dorfs)
 
 
-def orf_coverage(orf, alignments, offset_5p=0, offset_3p=0):
+def orf_coverage(orf, alignments, offset_5p=20, offset_3p=0):
     """
     Parameters
     ----------
@@ -698,7 +698,7 @@ def orf_coverage(orf, alignments, offset_5p=0, offset_3p=0):
                             len(coverage) - offset_5p))
 
 
-def orf_coverage_length(orf, alignments, length, offset_5p=0, offset_3p=0):
+def orf_coverage_length(orf, alignments, length, offset_5p=20, offset_3p=0):
     """
     Parameters
     ----------
@@ -761,7 +761,7 @@ def metagene_coverage(cds,
                       read_lengths,
                       prefix,
                       max_positions=500,
-                      offset_5p=0,
+                      offset_5p=20,
                       offset_3p=0,
                       meta_min_reads=50000):
     """
