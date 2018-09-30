@@ -16,6 +16,7 @@ from click_help_colors import HelpColorsGroup
 from . import __version__
 from .infer_protocol import infer_protocol
 from .orf import *
+from .utils import parse_ccds
 
 click.disable_unicode_literals_warning = True
 CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
@@ -72,6 +73,17 @@ def detect_orfs_cmd(bam, prefix, annotation):
 def infer_protocol_cmd(bam, gtf, prefix, n_reads):
     infer_protocol(bam, gtf, prefix, n_reads)
 
+
+###################### parse-ccds function #########################################
+@cli.command(
+    'parse-ccds',
+    context_settings=CONTEXT_SETTINGS,
+    help='Generate periodicity for ccds')
+@click.option('--annotation', help='Path to annotation file')
+@click.option('--orfs', help='Path to ORF file')
+@click.option('--saveto', help='Path of output file')
+def parse_ccds_cmd(annotation, orfs, saveto):
+    parse_ccds(annotation, orfs, saveto)
 
 ###################### parse-annotation function #########################################
 @cli.command(
