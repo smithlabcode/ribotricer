@@ -105,4 +105,3 @@ class GTFReader:
                         self.cds[gid][tid].append(track)
                     elif track.feature == 'utr':
                         self.utr[gid][tid].append(track)
-

@@ -86,6 +86,7 @@ def infer_protocol_cmd(bam, gtf, prefix, n_reads):
 def parse_ccds_cmd(annotation, orfs, saveto):
     parse_ccds(annotation, orfs, saveto)
 
+
 ###################### parse-annotation function #########################################
 @cli.command(
     'parse-annotation',
@@ -105,9 +106,14 @@ def parse_annotation_cmd(annotation):
 def plot_metagene_cmd(prefix):
     metagenes = {}
     s = pd.Series(np.random.randint(30, size=500), index=np.arange(-50, 450))
-    read_lengths = {28: 100023434, 27: 2690000, 30: 1234908, 31: 790000, 32: 8000, 26: 123490}
+    read_lengths = {
+        28: 100023434,
+        27: 2690000,
+        30: 1234908,
+        31: 790000,
+        32: 8000,
+        26: 123490
+    }
     for length in read_lengths:
         metagenes[length] = s
     plot_metagene(metagenes, read_lengths, prefix, 100)
-
-

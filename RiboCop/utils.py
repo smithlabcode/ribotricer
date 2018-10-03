@@ -11,6 +11,7 @@ from collections import Counter
 from collections import defaultdict
 from tqdm import *
 
+
 def parse_ccds(annotation, orfs, saveto):
     """
     annotation: str
@@ -38,7 +39,9 @@ def parse_ccds(annotation, orfs, saveto):
                     return None
                 fields = line.split('\t')
                 if len(fields) != 13:
-                    print('unexpected number of columns found for annotation file')
+                    print(
+                        'unexpected number of columns found for annotation file'
+                    )
                     return None
                 oid = fields[0]
                 gid = fields[4]
@@ -86,5 +89,3 @@ def parse_ccds(annotation, orfs, saveto):
 
     with open(saveto, 'w') as output:
         output.write(to_write)
-
-
