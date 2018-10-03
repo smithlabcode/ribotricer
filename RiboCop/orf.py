@@ -795,8 +795,6 @@ def metagene_coverage(cds,
         metagene_coverage = pd.Series()
 
         for orf in tqdm(cds):
-            if orf.strand == '+':
-                continue
             coverage = orf_coverage_length(orf, alignments, length, offset_5p,
                                            offset_3p)
             if len(coverage.index) > 0:
