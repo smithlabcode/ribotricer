@@ -502,14 +502,14 @@ def split_bam(bam, protocol, prefix):
                 pos = ref_positions[0]
             else:
                 strand = '-'
-                pos = ref_positions[0]
+                pos = ref_positions[-1]
         elif protocol == 'reverse':
             if map_strand == '+':
                 strand = '-'
-                pos = ref_positions[0]
+                pos = ref_positions[-1]
             else:
                 strand = '+'
-                pos = ref_positions[-1]
+                pos = ref_positions[0]
         # convert bam coordinate to one-based
         alignments[length][strand][(chrom, pos + 1)] += 1
         read_lengths[length] += 1
@@ -795,7 +795,7 @@ def metagene_coverage(cds,
         metagene_coverage = pd.Series()
 
         for orf in tqdm(cds):
-            if orf.strand == '-':
+            if orf.strand == '+':
                 continue
             coverage = orf_coverage_length(orf, alignments, length, offset_5p,
                                            offset_3p)

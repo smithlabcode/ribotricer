@@ -51,9 +51,10 @@ def prepare_orfs_cmd(gtf, fasta, prefix):
     help='Detect translating ORFs from BAM file')
 @click.option('--bam', help='Path to BAM file')
 @click.option('--prefix', help='Prefix to output file')
+@click.option('--gtf', help='Path to GTF file')
 @click.option('--annotation', help='Path to annotation file')
-def detect_orfs_cmd(bam, prefix, annotation):
-    detect_orfs(bam, prefix, annotation=annotation, protocol='forward')
+def detect_orfs_cmd(bam, prefix, gtf, annotation):
+    detect_orfs(bam, prefix, gtf=gtf, annotation=annotation)
 
 
 ###################### infer-protocol function #########################################
