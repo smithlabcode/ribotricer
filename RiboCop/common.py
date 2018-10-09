@@ -9,8 +9,8 @@ from scipy import signal
 
 def cal_periodicity(values):
     coh = coherence(values)
-    pval = wilcoxon(values)
-    return (coh, pval)
+    pval, nonzero = wilcoxon(values)
+    return (coh, pval, nonzero)
 
 
 def wilcoxon(values):
@@ -19,7 +19,8 @@ def wilcoxon(values):
     f0 = values[0:length:3]
     f1 = values[1:length:3]
     f2 = values[2:length:3]
-    final_pv1=final_pv2=final_pv=1.0
+    final_pv1 = final_pv2 = final_pv = 1.0
+    nonzero = 0
 
     pv1 = wilcoxon_greater(f0, f1)
     pv2 = wilcoxon_greater(f0, f2)
@@ -28,6 +29,7 @@ def wilcoxon(values):
         final_pv = pv
         final_pv1 = pv1
         final_pv2 = pv2
+        nonzero = np.flatnonzero(f0).size
 
     pv1 = wilcoxon_greater(f1, f0)
     pv2 = wilcoxon_greater(f1, f2)
@@ -36,6 +38,7 @@ def wilcoxon(values):
         final_pv = pv
         final_pv1 = pv1
         final_pv2 = pv2
+        nonzero = np.flatnonzero(f1).size
 
     pv1 = wilcoxon_greater(f2, f0)
     pv2 = wilcoxon_greater(f2, f1)
@@ -44,7 +47,9 @@ def wilcoxon(values):
         final_pv = pv
         final_pv1 = pv1
         final_pv2 = pv2
-    return final_pv
+        nonzero = np.flatnonzero(f2).size
+    return final_pv, nonzero / length
+
 
 def coherence(values):
     """Calculate coherence and an idea ribo-seq signal
@@ -81,7 +86,7 @@ def coherence(values):
         normalized_values, uniform_signal, nperseg=30, noverlap=27)
     periodicity_score = Cxy[np.argwhere(np.isclose(f, 1 / 3.0))[0]][0]
     # return periodicity_score, f, Cxy
-    return periodicity
+    return periodicity_score
 
 
 def is_read_uniq_mapping(read):
