@@ -17,6 +17,7 @@ from . import __version__
 from .infer_protocol import infer_protocol
 from .orf import *
 from .utils import parse_ccds
+from .utils import test_periodicity
 
 click.disable_unicode_literals_warning = True
 CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
@@ -85,6 +86,18 @@ def infer_protocol_cmd(bam, gtf, prefix, n_reads):
 @click.option('--saveto', help='Path of output file')
 def parse_ccds_cmd(annotation, orfs, saveto):
     parse_ccds(annotation, orfs, saveto)
+
+
+###################### test-periodicity function #########################################
+@cli.command(
+    'test-periodicity',
+    context_settings=CONTEXT_SETTINGS,
+    help='Test different method for periodicity score')
+@click.option('--orf', help='Path to ORF file')
+@click.option('--prefix', help='Prefix of output')
+@click.option('--method', help='Method for periodicity score')
+def test_periodicity_cmd(orf, prefix, method):
+    test_periodicity(orf, prefix, method)
 
 
 ###################### parse-annotation function #########################################

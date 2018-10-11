@@ -16,9 +16,9 @@ def cal_periodicity(values):
 def wilcoxon(values):
     length = len(values) // 3 * 3
     values = values[:length]
-    f0 = values[0:length:3]
-    f1 = values[1:length:3]
-    f2 = values[2:length:3]
+    f0 = np.array(values[0:length:3])
+    f1 = np.array(values[1:length:3])
+    f2 = np.array(values[2:length:3])
     final_pv1 = final_pv2 = final_pv = 1.0
     nonzero = 0
 
@@ -48,7 +48,7 @@ def wilcoxon(values):
         final_pv1 = pv1
         final_pv2 = pv2
         nonzero = np.flatnonzero(f2).size
-    return final_pv, nonzero / length
+    return final_pv, nonzero
 
 
 def coherence(values):
@@ -74,7 +74,7 @@ def coherence(values):
     """
     length = len(values) // 3 * 3
     values = values[:length]
-    uniform_signal = [0.7, 0.2, 0.1] * (length // 3)
+    uniform_signal = [1, 0, 0] * (length // 3)
     mean_centered_values = values - np.nanmean(values)
     normalized_values = mean_centered_values / \
         np.max(np.abs(mean_centered_values))
@@ -83,7 +83,8 @@ def coherence(values):
     uniform_signal = mean_centered_values / \
         np.max(np.abs(uniform_signal))
     f, Cxy = signal.coherence(
-        normalized_values, uniform_signal, nperseg=30, noverlap=27)
+        normalized_values, uniform_signal, nperseg=30, noverlap=27,
+        window='flattop')
     periodicity_score = Cxy[np.argwhere(np.isclose(f, 1 / 3.0))[0]][0]
     # return periodicity_score, f, Cxy
     return periodicity_score

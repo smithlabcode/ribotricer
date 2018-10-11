@@ -10,6 +10,7 @@ import warnings
 from collections import Counter
 from collections import defaultdict
 from tqdm import *
+from .common import cal_periodicity
 
 
 def parse_ccds(annotation, orfs, saveto):
@@ -88,4 +89,36 @@ def parse_ccds(annotation, orfs, saveto):
     print(n_genes)
 
     with open(saveto, 'w') as output:
+        output.write(to_write)
+
+def test_periodicity(orf_file, prefix, method):
+
+    print('testing method: {}'.format(method))
+    print('exporting coverages for all ORFs...')
+    to_write = 'ORF_ID\tcoverage\tcount\tlength\tnonzero\tperiodicity\tpval\n'
+    with open(orf_file, 'r') as orf:
+        total_lines = len(['' for line in orf])
+    with open(orf_file, 'r') as  orf:
+        header = True
+        with tqdm(total=total_lines) as pbar:
+            for line in orf:
+                pbar.update()
+                if header:
+                    header = False
+                    continue
+                fields = line.split('\t')
+                oid = fields[0]
+                cov = fields[1]
+                cov = cov[1:-1]
+                cov = [int(x) for x in cov.split(', ')]
+                count = sum(cov)
+                length = len(cov)
+                if len(cov) < 60:
+                    corr, pval, nonzero = (0, 1, 0)
+                else:
+                    corr, pval, nonzero = cal_periodicity(cov)
+
+                to_write += '{}\t{}\t{}\t{}\t{}\t{}\t{}\n'.format(
+                    oid, cov, count, length, nonzero, corr, pval)
+    with open('{}_translating_ORFs_{}.tsv'.format(prefix, method), 'w') as output:
         output.write(to_write)
