@@ -82,28 +82,23 @@ def coherence(original_values):
     p, valid = 0.0, -1
     for frame in [0, 1, 2]:
         values = original_values[frame:]
-        # normalized_values = []
-        # i = 0
-        # while i + 2 < len(values):
-        #     if values[i] == values[i+1] == values[i+2] == 0:
-        #         i += 3
-        #         continue
-        #     if values[i] == 0:
-        #         normalized_values += [values[i], values[i+1], values[i+2]]
-        #     else:
-        #         normalized_values += [1.0, values[i+1] / values[i], values[i+2] / values[i]]
-        #     i += 3
+        normalized_values = []
+        i = 0
+        while i + 2 < len(values):
+            if values[i] == values[i+1] == values[i+2] == 0:
+                i += 3
+                continue
+            if values[i] == 0:
+                normalized_values += [values[i], values[i+1], values[i+2]]
+            else:
+                normalized_values += [1.0, values[i+1] / values[i], values[i+2] / values[i]]
+            i += 3
 
         normalized_values = values
         length = len(normalized_values) // 3 * 3
         if length == 0:
             return (0.0, 0)
         normalized_values = normalized_values[:length]
-        # standard_length = 600
-        # nrepeats = max((standard_length-len(normalized_values)) // len(normalized_values), 0)
-        # if nrepeats > 0:
-            # normalized_values = repeat_codon(normalized_values, nrepeats + 1)
-        # normalized_values = repeat_codon(normalized_values, 10)
         uniform_signal = [1, 0, 0] * (len(normalized_values) // 3)
         f, Cxy = signal.coherence(
             normalized_values, uniform_signal, window='flattop', nperseg=3, noverlap=0)
