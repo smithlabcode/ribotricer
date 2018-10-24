@@ -8,9 +8,9 @@ from scipy import signal
 
 
 def cal_periodicity(values):
-    coh = coherence(values)
-    pval, nonzero = wilcoxon(values)
-    return (coh, pval, nonzero)
+    coh, nonzero = coherence(values)
+    # pval, nonzero = wilcoxon(values)
+    return (coh, 1.0, nonzero)
 
 
 def wilcoxon(values):
@@ -51,7 +51,14 @@ def wilcoxon(values):
     return final_pv, nonzero
 
 
-def coherence(values):
+def repeat_codon(x, times):
+    ans = []
+    for i in range(0, len(x), 3):
+        ans += (x[i:i+3] * times)
+    return ans
+
+
+def coherence(original_values):
     """Calculate coherence and an idea ribo-seq signal
 
     Parameters
@@ -72,22 +79,44 @@ def coherence(values):
          List of coherence at the above frequencies
 
     """
-    length = len(values) // 3 * 3
-    values = values[:length]
-    uniform_signal = [1, 0, 0] * (length // 3)
-    mean_centered_values = values - np.nanmean(values)
-    normalized_values = mean_centered_values / \
-        np.max(np.abs(mean_centered_values))
+    p, valid = 0.0, -1
+    for frame in [0, 1, 2]:
+        values = original_values[frame:]
+        # normalized_values = []
+        # i = 0
+        # while i + 2 < len(values):
+        #     if values[i] == values[i+1] == values[i+2] == 0:
+        #         i += 3
+        #         continue
+        #     if values[i] == 0:
+        #         normalized_values += [values[i], values[i+1], values[i+2]]
+        #     else:
+        #         normalized_values += [1.0, values[i+1] / values[i], values[i+2] / values[i]]
+        #     i += 3
 
-    mean_centered_values = uniform_signal - np.nanmean(uniform_signal)
-    uniform_signal = mean_centered_values / \
-        np.max(np.abs(uniform_signal))
-    f, Cxy = signal.coherence(
-        normalized_values, uniform_signal, nperseg=30, noverlap=27,
-        window='flattop')
-    periodicity_score = Cxy[np.argwhere(np.isclose(f, 1 / 3.0))[0]][0]
-    # return periodicity_score, f, Cxy
-    return periodicity_score
+        normalized_values = values
+        length = len(normalized_values) // 3 * 3
+        if length == 0:
+            return (0.0, 0)
+        normalized_values = normalized_values[:length]
+        # standard_length = 600
+        # nrepeats = max((standard_length-len(normalized_values)) // len(normalized_values), 0)
+        # if nrepeats > 0:
+            # normalized_values = repeat_codon(normalized_values, nrepeats + 1)
+        # normalized_values = repeat_codon(normalized_values, 10)
+        uniform_signal = [1, 0, 0] * (len(normalized_values) // 3)
+        f, Cxy = signal.coherence(
+            normalized_values, uniform_signal, window='flattop', nperseg=3, noverlap=0)
+        try:
+            periodicity_score = Cxy[np.argwhere(np.isclose(f, 1 / 3.0))[0]][0]
+        except:
+            periodicity_score = 0.0
+        if periodicity_score > p:
+            p = periodicity_score
+            valid = length
+        if valid == -1:
+            valid = length
+    return p, valid
 
 
 def is_read_uniq_mapping(read):

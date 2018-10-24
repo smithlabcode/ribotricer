@@ -11,6 +11,7 @@ from collections import Counter
 from collections import defaultdict
 from tqdm import *
 from .common import cal_periodicity
+from .common import coherence
 
 
 def parse_ccds(annotation, orfs, saveto):
@@ -121,4 +122,52 @@ def test_periodicity(orf_file, prefix, method):
                 to_write += '{}\t{}\t{}\t{}\t{}\t{}\t{}\n'.format(
                     oid, cov, count, length, nonzero, corr, pval)
     with open('{}_translating_ORFs_{}.tsv'.format(prefix, method), 'w') as output:
+        output.write(to_write)
+
+def benchmark(rna_file, ribo_file, prefix, cutoff=5):
+
+    rna = {}
+    ribo = {}
+    
+    with open(rna_file, 'r') as orf:
+        total_lines = len(['' for line in orf])
+    with open(rna_file, 'r') as  orf:
+        with tqdm(total=total_lines) as pbar:
+            for line in orf:
+                pbar.update()
+                chrom, start, end, cat, gid, strand, cov = line.strip().split('\t')
+                cov = [int(x) for x in cov.strip().split()]
+                if strand == '-':
+                    cov.reverse()
+                ID = '_'.join([chrom, start, end, cat, gid])
+                rna[ID] = cov
+
+    with open(ribo_file, 'r') as orf:
+        total_lines = len(['' for line in orf])
+    with open(ribo_file, 'r') as  orf:
+        with tqdm(total=total_lines) as pbar:
+            for line in orf:
+                pbar.update()
+                chrom, start, end, cat, gid, strand, cov = line.strip().split('\t')
+                cov = [int(x) for x in cov.strip().split()]
+                if strand == '-':
+                    cov.reverse()
+                ID = '_'.join([chrom, start, end, cat, gid])
+                ribo[ID] = cov
+
+    to_write = 'ID\tannotated_frame\tpredict_frame\tmy_ribo\tmy_rna\tribo_cov\tmRNA_cov\n'
+    common_ids = set(ribo.keys()) & set(rna.keys())
+    for ID in tqdm(common_ids):
+        if sum(rna[ID]) < cutoff or sum(ribo[ID]) < cutoff:
+            continue
+        if len(ribo[ID]) < 10:
+            continue
+        rna_score, valid = coherence(rna[ID])
+        rna_cov = valid / len(rna[ID])
+        ribo_score, valid = coherence(ribo[ID])
+        ribo_cov = valid / len(ribo[ID])
+
+        to_write += '{}\t{}\t{}\t{}\t{}\t{}\t{}\n'.format(
+                    ID, 2, 2, ribo_score, rna_score, ribo_cov, rna_cov)
+    with open('{}_results.txt'.format(prefix), 'w') as output:
         output.write(to_write)

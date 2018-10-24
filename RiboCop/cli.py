@@ -18,6 +18,7 @@ from .infer_protocol import infer_protocol
 from .orf import *
 from .utils import parse_ccds
 from .utils import test_periodicity
+from .utils import benchmark
 
 click.disable_unicode_literals_warning = True
 CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
@@ -98,6 +99,19 @@ def parse_ccds_cmd(annotation, orfs, saveto):
 @click.option('--method', help='Method for periodicity score')
 def test_periodicity_cmd(orf, prefix, method):
     test_periodicity(orf, prefix, method)
+
+
+###################### benchmark function #########################################
+@cli.command(
+    'benchmark',
+    context_settings=CONTEXT_SETTINGS,
+    help='Test different method for periodicity score')
+@click.option('--rna', help='Path to rna ORF file')
+@click.option('--ribo', help='Path to ribo ORF file')
+@click.option('--prefix', help='Prefix to output file')
+@click.option('--cutoff', type=int, default=5, help='Cutoff of number of reads')
+def benchmark_cmd(rna, ribo, prefix, cutoff):
+    benchmark(rna, ribo, prefix, cutoff)
 
 
 ###################### parse-annotation function #########################################
