@@ -94,7 +94,6 @@ def coherence(original_values):
                 normalized_values += [1.0, values[i+1] / values[i], values[i+2] / values[i]]
             i += 3
 
-        normalized_values = values
         length = len(normalized_values) // 3 * 3
         if length == 0:
             return (0.0, 0)
