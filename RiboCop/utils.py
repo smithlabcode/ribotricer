@@ -124,11 +124,23 @@ def test_periodicity(orf_file, prefix, method):
     with open('{}_translating_ORFs_{}.tsv'.format(prefix, method), 'w') as output:
         output.write(to_write)
 
-def benchmark(rna_file, ribo_file, prefix, cutoff=5):
+def benchmark(rna_file, ribo_file, frame_file, prefix, cutoff=5):
 
     rna = {}
     ribo = {}
-    
+    frames = {}
+
+    print('reading frames ccds')
+    with open(frame_file, 'r') as frame_ccds:
+        total_lines = len(['' for line in frame_ccds])
+    with open(frame_file, 'r') as frame_ccds:
+        with tqdm(total=total_lines) as pbar:
+            for line in frame_ccds:
+                pbar.update()
+                name, frame, strand, length = line.strip().split('\t')
+                frames[name] = int(frame)
+
+    print('reading RNA profiles')
     with open(rna_file, 'r') as orf:
         total_lines = len(['' for line in orf])
     with open(rna_file, 'r') as  orf:
@@ -142,6 +154,7 @@ def benchmark(rna_file, ribo_file, prefix, cutoff=5):
                 ID = '_'.join([chrom, start, end, cat, gid])
                 rna[ID] = cov
 
+    print('reading Ribo profiles')
     with open(ribo_file, 'r') as orf:
         total_lines = len(['' for line in orf])
     with open(ribo_file, 'r') as  orf:
@@ -162,12 +175,12 @@ def benchmark(rna_file, ribo_file, prefix, cutoff=5):
             continue
         if len(ribo[ID]) < 10:
             continue
-        rna_score, valid = coherence(rna[ID])
+        rna_score, valid, rna_frame = coherence(rna[ID])
         rna_cov = valid / len(rna[ID])
-        ribo_score, valid = coherence(ribo[ID])
+        ribo_score, valid, ribo_frame = coherence(ribo[ID])
         ribo_cov = valid / len(ribo[ID])
 
         to_write += '{}\t{}\t{}\t{}\t{}\t{}\t{}\n'.format(
-                    ID, 2, 2, ribo_score, rna_score, ribo_cov, rna_cov)
+                    ID, frames[Id], ribo_frame, ribo_score, rna_score, ribo_cov, rna_cov)
     with open('{}_results.txt'.format(prefix), 'w') as output:
         output.write(to_write)

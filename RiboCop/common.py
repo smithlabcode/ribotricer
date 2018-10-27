@@ -79,7 +79,7 @@ def coherence(original_values):
          List of coherence at the above frequencies
 
     """
-    p, valid = 0.0, -1
+    p, valid, predict_frame = 0.0, -1, 0
     for frame in [0, 1, 2]:
         values = original_values[frame:]
         normalized_values = []
@@ -108,9 +108,10 @@ def coherence(original_values):
         if periodicity_score > p:
             p = periodicity_score
             valid = length
+            predict_frame = frame
         if valid == -1:
             valid = length
-    return p, valid
+    return p, valid, predict_frame
 
 
 def is_read_uniq_mapping(read):
