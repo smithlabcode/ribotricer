@@ -5,6 +5,7 @@ from .interval import Interval
 from .test_func import wilcoxon_greater, combine_pvals
 from scipy import stats
 from scipy import signal
+from math import sin, cos, pi, sqrt
 
 
 def cal_periodicity(values):
@@ -88,19 +89,25 @@ def coherence(original_values):
             if values[i] == values[i+1] == values[i+2] == 0:
                 i += 3
                 continue
-            if values[i] == 0:
-                normalized_values += [values[i], values[i+1], values[i+2]]
-            else:
-                normalized_values += [1.0, values[i+1] / values[i], values[i+2] / values[i]]
+            real = values[i] + values[i+1] * cos(2*pi/3) + values[i+2] * cos(4*pi/3)
+            image = values[i+1] * sin(2*pi/3) + values[i+2] * sin(4*pi/3)
+            norm = sqrt(real ** 2 + image ** 2)
+            if norm == 0:
+                norm = 1
+            normalized_values += [values[i] / norm, values[i+1] / norm, values[i+2] / norm]
+            # if values[i] == 0:
+            #     normalized_values += [values[i], values[i+1], values[i+2]]
+            # else:
+            #     normalized_values += [1.0, values[i+1] / values[i], values[i+2] / values[i]]
             i += 3
 
         length = len(normalized_values) // 3 * 3
         if length == 0:
-            return (0.0, 0)
+            return (-1, -1, -1)
         normalized_values = normalized_values[:length]
         uniform_signal = [1, 0, 0] * (len(normalized_values) // 3)
         f, Cxy = signal.coherence(
-            normalized_values, uniform_signal, window='flattop', nperseg=3, noverlap=0)
+            normalized_values, uniform_signal, window=[1.0,1.0,1.0], nperseg=3, noverlap=0)
         try:
             periodicity_score = Cxy[np.argwhere(np.isclose(f, 1 / 3.0))[0]][0]
         except:

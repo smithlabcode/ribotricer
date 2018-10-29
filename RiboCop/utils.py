@@ -176,11 +176,15 @@ def benchmark(rna_file, ribo_file, frame_file, prefix, cutoff=5):
         if len(ribo[ID]) < 10:
             continue
         rna_score, valid, rna_frame = coherence(rna[ID])
+        if (rna_score, valid, rna_frame) == (-1, -1, -1):
+            continue
         rna_cov = valid / len(rna[ID])
         ribo_score, valid, ribo_frame = coherence(ribo[ID])
+        if (ribo_score, valid, ribo_frame) == (-1, -1, -1):
+            continue
         ribo_cov = valid / len(ribo[ID])
 
         to_write += '{}\t{}\t{}\t{}\t{}\t{}\t{}\n'.format(
-                    ID, frames[Id], ribo_frame, ribo_score, rna_score, ribo_cov, rna_cov)
+                    ID, frames[ID], ribo_frame, ribo_score, rna_score, ribo_cov, rna_cov)
     with open('{}_results.txt'.format(prefix), 'w') as output:
         output.write(to_write)
