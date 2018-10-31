@@ -1,12 +1,44 @@
 """Utilities for common usage
 """
 import numpy as np
+import scipy as sp
 from .interval import Interval
 from .test_func import wilcoxon_greater, combine_pvals
 from scipy import stats
 from scipy import signal
 from math import sin, cos, pi, sqrt
 
+def phase_vector_pdf(x, k):
+    """Get PDF for distribution of uniform random walk
+
+    Parameters
+    ----------
+    x: array_like
+       An array with values of $x$ at which P(X) is to
+       be calculated. Example: np.linspace(1, 100, 10000)
+    k: int
+       Number of vectors projected (total number of segments/windows)
+       It is equal to $N$ in our coherence derivation
+
+    Returns
+    -------
+    p: array_like
+       Array with PDF calcualted at point of $x$
+
+    Reference: https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=1096409&tag=1
+    """
+    if k == 1:
+        return [0]*len(x)
+    if k == 2:
+        p = (1/np.pi) * (1/np.sqrt(np.multiply(x, 4-x)))
+        # Set p to zero if it is outside the range of [0, 4]
+        p = np.multiply(( p <= 4) & (p >= 0), p)
+    elif k >= 3:
+        # Warning this is currently not stable and will require
+        # recursion
+        p = 1/(k-1) * np.multiply(np.exp(-(x+1)/(k-1)) , sp.special.jv(0, 2*np.sqrt(x)/(k-1)))
+        p = np.multiply((p >= 0), p)
+    return p
 
 def cal_periodicity(values):
     coh, nonzero = coherence(values)
