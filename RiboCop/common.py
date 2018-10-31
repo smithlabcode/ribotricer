@@ -138,7 +138,7 @@ def coherence(original_values):
          List of coherence at the above frequencies
 
     """
-    p, valid, predict_frame = 0.0, -1, 0
+    coh, pval, valid = 0.0, 1.0, -1
     for frame in [0, 1, 2]:
         values = original_values[frame:]
         normalized_values = []
@@ -153,30 +153,28 @@ def coherence(original_values):
             if norm == 0:
                 norm = 1
             normalized_values += [values[i] / norm, values[i+1] / norm, values[i+2] / norm]
-            # if values[i] == 0:
-            #     normalized_values += [values[i], values[i+1], values[i+2]]
-            # else:
-            #     normalized_values += [1.0, values[i+1] / values[i], values[i+2] / values[i]]
             i += 3
 
         length = len(normalized_values) // 3 * 3
         if length == 0:
-            return (-1, -1, -1)
+            return (0.0, 1.0, 0)
         normalized_values = normalized_values[:length]
         uniform_signal = [1, 0, 0] * (len(normalized_values) // 3)
         f, Cxy = signal.coherence(
             normalized_values, uniform_signal, window=[1.0,1.0,1.0], nperseg=3, noverlap=0)
         try:
             periodicity_score = Cxy[np.argwhere(np.isclose(f, 1 / 3.0))[0]][0]
+            periodicity_pval = pvalue(periodicity_score, length // 3)
         except:
             periodicity_score = 0.0
-        if periodicity_score > p:
-            p = periodicity_score
+            periodicity_pval = 1.0
+        if periodicity_pval < pval:
+            coh = periodicity_score
+            pval = periodicity_pval
             valid = length
-            predict_frame = frame
         if valid == -1:
             valid = length
-    return p, valid, predict_frame
+    return coh, pval, valid
 
 
 def is_read_uniq_mapping(read):

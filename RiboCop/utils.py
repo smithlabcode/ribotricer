@@ -124,21 +124,10 @@ def test_periodicity(orf_file, prefix, method):
     with open('{}_translating_ORFs_{}.tsv'.format(prefix, method), 'w') as output:
         output.write(to_write)
 
-def benchmark(rna_file, ribo_file, frame_file, prefix, cutoff=5):
+def benchmark(rna_file, ribo_file, prefix, cutoff=5):
 
     rna = {}
     ribo = {}
-    frames = {}
-
-    print('reading frames ccds')
-    with open(frame_file, 'r') as frame_ccds:
-        total_lines = len(['' for line in frame_ccds])
-    with open(frame_file, 'r') as frame_ccds:
-        with tqdm(total=total_lines) as pbar:
-            for line in frame_ccds:
-                pbar.update()
-                name, frame, strand, length = line.strip().split('\t')
-                frames[name] = int(frame)
 
     print('reading RNA profiles')
     with open(rna_file, 'r') as orf:
@@ -168,23 +157,23 @@ def benchmark(rna_file, ribo_file, frame_file, prefix, cutoff=5):
                 ID = '_'.join([chrom, start, end, cat, gid])
                 ribo[ID] = cov
 
-    to_write = 'ID\tannotated_frame\tpredict_frame\tmy_ribo\tmy_rna\tribo_cov\tmRNA_cov\n'
+    to_write = 'ID\tmy_ribo\tmy_rna\tribo_coh\trna_coh\tribo_cov\trna_cov\n'
     common_ids = set(ribo.keys()) & set(rna.keys())
     for ID in tqdm(common_ids):
         if sum(rna[ID]) < cutoff or sum(ribo[ID]) < cutoff:
             continue
         if len(ribo[ID]) < 10:
             continue
-        rna_score, valid, rna_frame = coherence(rna[ID])
-        if (rna_score, valid, rna_frame) == (-1, -1, -1):
+        rna_coh, rna_pval, rna_valid = coherence(rna[ID])
+        rna_cov = rna_valid / len(rna[ID])
+        if rna_valid // 3 < 4:
             continue
-        rna_cov = valid / len(rna[ID])
-        ribo_score, valid, ribo_frame = coherence(ribo[ID])
-        if (ribo_score, valid, ribo_frame) == (-1, -1, -1):
+        ribo_coh, ribo_pval, ribo_valid = coherence(ribo[ID])
+        ribo_cov = ribo_valid / len(ribo[ID])
+        if ribo_valid // 3 < 4:
             continue
-        ribo_cov = valid / len(ribo[ID])
 
         to_write += '{}\t{}\t{}\t{}\t{}\t{}\t{}\n'.format(
-                    ID, frames[ID], ribo_frame, ribo_score, rna_score, ribo_cov, rna_cov)
+                    ID, ribo_pval, rna_pval, ribo_coh, rna_coh, ribo_cov, rna_cov)
     with open('{}_results.txt'.format(prefix), 'w') as output:
         output.write(to_write)
