@@ -1,7 +1,6 @@
 """Utilities for common usage
 """
 import numpy as np
-import scipy as sp
 from .interval import Interval
 from .test_func import wilcoxon_greater, combine_pvals
 from scipy import stats
@@ -89,6 +88,26 @@ def repeat_codon(x, times):
     for i in range(0, len(x), 3):
         ans += (x[i:i+3] * times)
     return ans
+
+
+def pvalue(x, N):
+    """Calculate p-value for coherence score
+
+    Parameters
+    ----------
+    x: double
+       coherence score
+    N: int
+       number of valid codons
+
+    Returns
+    -------
+    pval: double
+          p-value for the coherence score
+    """
+    df, nc = 2, 2.0 / (N - 1)
+    x = 2 * N**2 * x / (N - 1)
+    return 1.0 - stats.ncx2.cdf(x, df, nc)
 
 
 def coherence(original_values):
