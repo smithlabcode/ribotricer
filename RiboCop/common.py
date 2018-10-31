@@ -1,13 +1,14 @@
 """Utilities for common usage
 """
 import numpy as np
+import scipy as sp
 from .interval import Interval
 from .test_func import wilcoxon_greater, combine_pvals
 from scipy import stats
 from scipy import signal
 from math import sin, cos, pi, sqrt
 
-def phase_vector_pdf(x, k):
+def phase_vector_pdf(x, k, form='scipy'):
     """Get PDF for distribution of uniform random walk
 
     Parameters
@@ -35,8 +36,14 @@ def phase_vector_pdf(x, k):
     elif k >= 3:
         # Warning this is currently not stable and will require
         # recursion
-        p = 1/(k-1) * np.multiply(np.exp(-(x+1)/(k-1)) , sp.special.jv(0, 2*np.sqrt(x)/(k-1)))
-        p = np.multiply((p >= 0), p)
+        if form != 'scipy':
+            p = 1/(k-1) * np.multiply(np.exp(-(x+1)/(k-1)) , sp.special.jv(0, 2*np.sqrt(x)/(k-1)))
+            p = np.multiply((p >= 0), p)
+        else:
+            x = 2 * x /(k - 1)
+            df = 2
+            nc = 2 / (k -1)
+            p = 2 * stats.ncx2.pdf(x, df, nc)/(k-1)
     return p
 
 def cal_periodicity(values):
