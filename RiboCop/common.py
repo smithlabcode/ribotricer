@@ -114,7 +114,7 @@ def pvalue(x, N):
     """
     df, nc = 2, 2.0 / (N - 1)
     x = 2 * N**2 * x / (N - 1)
-    return 1.0 - stats.ncx2.cdf(x, df, nc)
+    return stats.ncx2.sf(x, df, nc)
 
 
 def coherence(original_values):
