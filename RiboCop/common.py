@@ -3,7 +3,6 @@
 import numpy as np
 import scipy as sp
 from .interval import Interval
-from .test_func import wilcoxon_greater, combine_pvals
 from scipy import stats
 from scipy import signal
 import scipy.integrate as integrate
@@ -85,57 +84,6 @@ def phase_vector_pdf(x, k, form='scipy'):
             nc = 2 / (k - 1)
             p = 2 * stats.ncx2.pdf(x, df, nc) / (k - 1)
     return p
-
-
-def cal_periodicity(values):
-    coh, nonzero = coherence(values)
-    # pval, nonzero = wilcoxon(values)
-    return (coh, 1.0, nonzero)
-
-
-def wilcoxon(values):
-    length = len(values) // 3 * 3
-    values = values[:length]
-    f0 = np.array(values[0:length:3])
-    f1 = np.array(values[1:length:3])
-    f2 = np.array(values[2:length:3])
-    final_pv1 = final_pv2 = final_pv = 1.0
-    nonzero = 0
-
-    pv1 = wilcoxon_greater(f0, f1)
-    pv2 = wilcoxon_greater(f0, f2)
-    pv = combine_pvals(np.array([pv1.pvalue, pv2.pvalue]))
-    if pv < final_pv:
-        final_pv = pv
-        final_pv1 = pv1
-        final_pv2 = pv2
-        nonzero = np.flatnonzero(f0).size
-
-    pv1 = wilcoxon_greater(f1, f0)
-    pv2 = wilcoxon_greater(f1, f2)
-    pv = combine_pvals(np.array([pv1.pvalue, pv2.pvalue]))
-    if pv < final_pv:
-        final_pv = pv
-        final_pv1 = pv1
-        final_pv2 = pv2
-        nonzero = np.flatnonzero(f1).size
-
-    pv1 = wilcoxon_greater(f2, f0)
-    pv2 = wilcoxon_greater(f2, f1)
-    pv = combine_pvals(np.array([pv1.pvalue, pv2.pvalue]))
-    if pv < final_pv:
-        final_pv = pv
-        final_pv1 = pv1
-        final_pv2 = pv2
-        nonzero = np.flatnonzero(f2).size
-    return final_pv, nonzero
-
-
-def repeat_codon(x, times):
-    ans = []
-    for i in range(0, len(x), 3):
-        ans += (x[i:i + 3] * times)
-    return ans
 
 
 def pvalue(x, N):
