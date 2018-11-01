@@ -107,24 +107,24 @@ def pvalue(x, N):
 
 
 def coherence(original_values):
-    """Calculate coherence and an idea ribo-seq signal
+    """Calculate coherence with an idea ribo-seq signal
 
     Parameters
     ----------
     values : array like
-             List of values
+             List of value
 
     Returns
     -------
-    periodicity : float
-                  Periodicity score calculated as
-                  coherence between input and idea 1-0-0 signal
+    coh : float
+          Periodicity score calculated as
+          coherence between input and idea 1-0-0 signal
 
-    f: array like
-       List of frequencies
+    pval: float
+          p value for the coherence
 
-    Cxy: array like
-         List of coherence at the above frequencies
+    valid: int
+           number of valid codons used for calculation
 
     """
     coh, pval, valid = 0.0, 1.0, -1
@@ -165,7 +165,7 @@ def coherence(original_values):
         except:
             periodicity_score = 0.0
             periodicity_pval = 1.0
-        if periodicity_pval < pval:
+        if periodicity_score > coh:
             coh = periodicity_score
             pval = periodicity_pval
             valid = length
