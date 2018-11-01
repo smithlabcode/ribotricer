@@ -17,9 +17,9 @@ def _integrate_v2_v3(v2, v3):
     ----------
     v3: float
     """
-    term1 = 4*v2 - v2**2
-    term2 = 4*v2 - (v2-v3+1)**2
-    term = 1/np.sqrt(term1*term2)
+    term1 = 4 * v2 - v2**2
+    term2 = 4 * v2 - (v2 - v3 + 1)**2
+    term = 1 / np.sqrt(term1 * term2)
     return term
 
 
@@ -35,12 +35,13 @@ def integral_p3(v3):
     I: float
        Integral p3(v3)
     """
-    if v3<0 or v3>9:
+    if v3 < 0 or v3 > 9:
         return 0
-    epsilon2 = min(4, (1+np.sqrt(v3))**2 )
-    delta2 = (1-np.sqrt(v3))**2
+    epsilon2 = min(4, (1 + np.sqrt(v3))**2)
+    delta2 = (1 - np.sqrt(v3))**2
     I = integrate.quad(_integrate_v2_v3, delta2, epsilon2, args=(v3))
     return I[0]
+
 
 def phase_vector_pdf(x, k, form='scipy'):
     """Get PDF for distribution of uniform random walk
@@ -62,26 +63,29 @@ def phase_vector_pdf(x, k, form='scipy'):
     Reference: https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=1096409&tag=1
     """
     if k == 1:
-        return [0]*len(x)
+        return [0] * len(x)
     if k == 2:
-        p = (1/np.pi) * (1/np.sqrt(np.multiply(x, 4-x)))
+        p = (1 / np.pi) * (1 / np.sqrt(np.multiply(x, 4 - x)))
         # Set p to zero if it is outside the range of [0, 4]
-        p = np.multiply(( x <= 4) & (x >= 0), p)
-    elif k  == 3:
-        p = 1/(np.pi)**2 * np.array([integral_p3(v3) for v3 in x])
-        p = np.multiply(( x <= 9) & (x >= 0), p)
+        p = np.multiply((x <= 4) & (x >= 0), p)
+    elif k == 3:
+        p = 1 / (np.pi)**2 * np.array([integral_p3(v3) for v3 in x])
+        p = np.multiply((x <= 9) & (x >= 0), p)
     elif k >= 4:
         # Warning this is currently not stable and will require
         # recursion
         if form != 'scipy':
-            p = 1/(k-1) * np.multiply(np.exp(-(x+1)/(k-1)) , sp.special.jv(0, 2*np.sqrt(x)/(k-1)))
+            p = 1 / (k - 1) * np.multiply(
+                np.exp(-(x + 1) / (k - 1)),
+                sp.special.jv(0, 2 * np.sqrt(x) / (k - 1)))
             p = np.multiply((x >= 0), p)
         else:
-            x = 2 * x /(k - 1)
+            x = 2 * x / (k - 1)
             df = 2
-            nc = 2 / (k -1)
-            p = 2 * stats.ncx2.pdf(x, df, nc)/(k-1)
+            nc = 2 / (k - 1)
+            p = 2 * stats.ncx2.pdf(x, df, nc) / (k - 1)
     return p
+
 
 def cal_periodicity(values):
     coh, nonzero = coherence(values)
@@ -130,7 +134,7 @@ def wilcoxon(values):
 def repeat_codon(x, times):
     ans = []
     for i in range(0, len(x), 3):
-        ans += (x[i:i+3] * times)
+        ans += (x[i:i + 3] * times)
     return ans
 
 
@@ -181,15 +185,19 @@ def coherence(original_values):
         normalized_values = []
         i = 0
         while i + 2 < len(values):
-            if values[i] == values[i+1] == values[i+2] == 0:
+            if values[i] == values[i + 1] == values[i + 2] == 0:
                 i += 3
                 continue
-            real = values[i] + values[i+1] * cos(2*pi/3) + values[i+2] * cos(4*pi/3)
-            image = values[i+1] * sin(2*pi/3) + values[i+2] * sin(4*pi/3)
-            norm = sqrt(real ** 2 + image ** 2)
+            real = values[i] + values[i + 1] * cos(
+                2 * pi / 3) + values[i + 2] * cos(4 * pi / 3)
+            image = values[i + 1] * sin(2 * pi / 3) + values[i + 2] * sin(
+                4 * pi / 3)
+            norm = sqrt(real**2 + image**2)
             if norm == 0:
                 norm = 1
-            normalized_values += [values[i] / norm, values[i+1] / norm, values[i+2] / norm]
+            normalized_values += [
+                values[i] / norm, values[i + 1] / norm, values[i + 2] / norm
+            ]
             i += 3
 
         length = len(normalized_values) // 3 * 3
@@ -198,7 +206,11 @@ def coherence(original_values):
         normalized_values = normalized_values[:length]
         uniform_signal = [1, 0, 0] * (len(normalized_values) // 3)
         f, Cxy = signal.coherence(
-            normalized_values, uniform_signal, window=[1.0,1.0,1.0], nperseg=3, noverlap=0)
+            normalized_values,
+            uniform_signal,
+            window=[1.0, 1.0, 1.0],
+            nperseg=3,
+            noverlap=0)
         try:
             periodicity_score = Cxy[np.argwhere(np.isclose(f, 1 / 3.0))[0]][0]
             periodicity_pval = pvalue(periodicity_score, length // 3)

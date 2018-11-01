@@ -62,6 +62,7 @@ class PutativeORF:
 
     def __hash__(self):
         return hash(self.oid)
+
     @property
     def start_codon(self):
         if len(self.seq) < 3:
@@ -317,12 +318,9 @@ def orf_coverage_length(orf, alignments, length, offset_5p=20, offset_3p=0):
             pass
 
     return nreads
-    
 
-def metagene_coverage(cds,
-                      alignments,
-                      read_lengths,
-                      offset_5p=12,
+
+def metagene_coverage(cds, alignments, read_lengths, offset_5p=12,
                       offset_3p=0):
     """
     Parameters
@@ -379,7 +377,6 @@ def plot_read_lengths(read_lengths, prefix):
     plt.close()
 
 
-
 def genewise_length(bam, gtf, prefix):
     """
     Parameters
@@ -408,9 +405,9 @@ def genewise_length(bam, gtf, prefix):
     metagenes = metagene_coverage(cds, alignments, read_lengths)
     col_lens = '\t'.join(['len_{}'.format(i) for i in sorted(read_lengths)])
     to_write = 'ORF_id\tgene_id\tgene_name\tcount\t' + col_lens + '\n'
-    formatter =  '{}\t{}\t{}\t{}\t' + '{}\t' * (len(read_lengths) - 1) + '{}\n'
+    formatter = '{}\t{}\t{}\t{}\t' + '{}\t' * (len(read_lengths) - 1) + '{}\n'
     for orf in metagenes:
-        d  = {}
+        d = {}
         for length in read_lengths:
             d[length] = 0
         for length in metagenes[orf]:

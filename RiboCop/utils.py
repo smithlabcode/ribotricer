@@ -92,6 +92,7 @@ def parse_ccds(annotation, orfs, saveto):
     with open(saveto, 'w') as output:
         output.write(to_write)
 
+
 def test_periodicity(orf_file, prefix, method):
 
     print('testing method: {}'.format(method))
@@ -99,7 +100,7 @@ def test_periodicity(orf_file, prefix, method):
     to_write = 'ORF_ID\tcoverage\tcount\tlength\tnonzero\tperiodicity\tpval\n'
     with open(orf_file, 'r') as orf:
         total_lines = len(['' for line in orf])
-    with open(orf_file, 'r') as  orf:
+    with open(orf_file, 'r') as orf:
         header = True
         with tqdm(total=total_lines) as pbar:
             for line in orf:
@@ -121,8 +122,10 @@ def test_periodicity(orf_file, prefix, method):
 
                 to_write += '{}\t{}\t{}\t{}\t{}\t{}\t{}\n'.format(
                     oid, cov, count, length, nonzero, corr, pval)
-    with open('{}_translating_ORFs_{}.tsv'.format(prefix, method), 'w') as output:
+    with open('{}_translating_ORFs_{}.tsv'.format(prefix, method),
+              'w') as output:
         output.write(to_write)
+
 
 def benchmark(rna_file, ribo_file, prefix, cutoff=5):
 
@@ -132,11 +135,12 @@ def benchmark(rna_file, ribo_file, prefix, cutoff=5):
     print('reading RNA profiles')
     with open(rna_file, 'r') as orf:
         total_lines = len(['' for line in orf])
-    with open(rna_file, 'r') as  orf:
+    with open(rna_file, 'r') as orf:
         with tqdm(total=total_lines) as pbar:
             for line in orf:
                 pbar.update()
-                chrom, start, end, cat, gid, strand, cov = line.strip().split('\t')
+                chrom, start, end, cat, gid, strand, cov = line.strip().split(
+                    '\t')
                 cov = [int(x) for x in cov.strip().split()]
                 if strand == '-':
                     cov.reverse()
@@ -146,11 +150,12 @@ def benchmark(rna_file, ribo_file, prefix, cutoff=5):
     print('reading Ribo profiles')
     with open(ribo_file, 'r') as orf:
         total_lines = len(['' for line in orf])
-    with open(ribo_file, 'r') as  orf:
+    with open(ribo_file, 'r') as orf:
         with tqdm(total=total_lines) as pbar:
             for line in orf:
                 pbar.update()
-                chrom, start, end, cat, gid, strand, cov = line.strip().split('\t')
+                chrom, start, end, cat, gid, strand, cov = line.strip().split(
+                    '\t')
                 cov = [int(x) for x in cov.strip().split()]
                 if strand == '-':
                     cov.reverse()
@@ -174,6 +179,6 @@ def benchmark(rna_file, ribo_file, prefix, cutoff=5):
             continue
 
         to_write += '{}\t{}\t{}\t{}\t{}\t{}\t{}\n'.format(
-                    ID, ribo_pval, rna_pval, ribo_coh, rna_coh, ribo_cov, rna_cov)
+            ID, ribo_pval, rna_pval, ribo_coh, rna_coh, ribo_cov, rna_cov)
     with open('{}_results.txt'.format(prefix), 'w') as output:
         output.write(to_write)

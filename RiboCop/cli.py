@@ -109,7 +109,8 @@ def test_periodicity_cmd(orf, prefix, method):
 @click.option('--rna', help='Path to rna ORF file')
 @click.option('--ribo', help='Path to ribo ORF file')
 @click.option('--prefix', help='Prefix to output file')
-@click.option('--cutoff', type=int, default=5, help='Cutoff of number of reads')
+@click.option(
+    '--cutoff', type=int, default=5, help='Cutoff of number of reads')
 def benchmark_cmd(rna, ribo, prefix, cutoff):
     benchmark(rna, ribo, prefix, cutoff)
 
