@@ -698,7 +698,39 @@ def orf_coverage(orf, alignments, offset_5p=20, offset_3p=0):
                             len(coverage) - offset_5p))
 
 
-def orf_coverage_length(orf, alignments, length, offset_5p=20, offset_3p=0):
+def next_genome_pos(ivs, max_positions, leader, trailer, reverse=False):
+    if len(ivs) == 0:
+        return iter([])
+    cnt = 0
+    leader_iv = Interval(ivs[0].chrom, ivs[0].start - leader, ivs[0].start - 1,
+                         ivs[0].strand)
+    trailer_iv = Interval(ivs[-1].chrom, ivs[-1].end + 1,
+                          ivs[-1].end + trailer, ivs[-1].strand)
+    combined_ivs = [leader_iv] + ivs + [trailer_iv]
+
+    cnt = 0
+    if not reverse:
+        for iv in combined_ivs:
+            for pos in range(iv.start, iv.end + 1):
+                cnt += 1
+                if cnt > max_positions:
+                    break
+                yield pos
+    else:
+        for iv in reversed(combined_ivs):
+            for pos in range(iv.end, iv.start - 1, -1):
+                cnt += 1
+                if cnt > max_positions:
+                    break
+                yield pos
+
+
+def orf_coverage_length(orf,
+                        alignments,
+                        length,
+                        max_positions,
+                        offset_5p=20,
+                        offset_3p=0):
     """
     Parameters
     ----------
@@ -708,6 +740,8 @@ def orf_coverage_length(orf, alignments, length, offset_5p=20, offset_3p=0):
                 alignments summarized from bam
     length: int
             the target length
+    max_positions: int
+                   the number of nts to include
     offset_5p: int
                the number of nts to include from 5'prime
     offset_3p: int
@@ -723,28 +757,15 @@ def orf_coverage_length(orf, alignments, length, offset_5p=20, offset_3p=0):
     strand = orf.strand
     if strand == '-':
         offset_5p, offset_3p = offset_3p, offset_5p
-    first, last = orf.intervals[0], orf.intervals[-1]
-    for pos in range(first.start - offset_5p, first.start):
-        try:
-            coverage.append(alignments[length][strand][(chrom, pos)])
-        except KeyError:
-            coverage.append(0)
 
-    for iv in orf.intervals:
-        for pos in range(iv.start, iv.end + 1):
-            try:
-                coverage.append(alignments[length][strand][(chrom, pos)])
-            except KeyError:
-                coverage.append(0)
-
-    for pos in range(last.end + 1, last.end + offset_3p + 1):
+    for pos in next_genome_pos(orf.intervals, max_positions, offset_5p,
+                               offset_3p, strand == '-'):
         try:
             coverage.append(alignments[length][strand][(chrom, pos)])
         except KeyError:
             coverage.append(0)
 
     if strand == '-':
-        coverage.reverse()
         return pd.Series(
             np.array(coverage),
             index=np.arange(-offset_3p,
@@ -795,13 +816,8 @@ def metagene_coverage(cds,
         metagene_coverage = pd.Series()
 
         for orf in tqdm(cds):
-            coverage = orf_coverage_length(orf, alignments, length, offset_5p,
-                                           offset_3p)
-            if len(coverage.index) > 0:
-                min_index = min(coverage.index.tolist())
-                max_index = max(coverage.index.tolist())
-                coverage = coverage[np.arange(min_index,
-                                              min(max_index, max_positions))]
+            coverage = orf_coverage_length(orf, alignments, length,
+                                           max_positions, offset_5p, offset_3p)
             if coverage.mean() > 0:
                 metagene_coverage = metagene_coverage.add(
                     coverage, fill_value=0)
