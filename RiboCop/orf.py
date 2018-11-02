@@ -24,7 +24,7 @@ from .gtf import GTFReader
 from .interval import Interval
 from .common import is_read_uniq_mapping
 from .common import merge_intervals
-from .common import cal_periodicity
+from .common import coherence
 from .infer_protocol import infer_protocol
 
 
@@ -866,7 +866,7 @@ def plot_metagene(metagenes, read_lengths, prefix, offset=60):
             metagene_cov = metagenes[length]
             if len(metagene_cov) == 0:
                 continue
-            corr, pval, nonzero = cal_periodicity(metagene_cov.values)
+            corr, pval, nonzero = coherence(metagene_cov.values)
             min_index = min(metagene_cov.index.tolist())
             max_index = max(metagene_cov.index.tolist())
             offset = min(offset, max_index)
@@ -919,7 +919,7 @@ def export_orf_coverages(orfs,
         if len(cov) < 60:
             corr, pval, nonzero = (0, 1, 0)
         else:
-            corr, pval, nonzero = cal_periodicity(cov)
+            corr, pval, nonzero = coherence(cov)
         to_write += '{}\t{}\t{}\t{}\t{}\t{}\t{}\n'.format(
             oid, cov, count, length, nonzero, corr, pval)
     with open('{}_translating_ORFs.tsv'.format(prefix), 'w') as output:
