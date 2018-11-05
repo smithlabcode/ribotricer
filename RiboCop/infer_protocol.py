@@ -25,7 +25,6 @@ def infer_protocol(bam, gtf, prefix, n_reads=20000):
     n_reads: int
              Number of reads to use (downsampled)
 
-
     Returns
     -------
     protocol: string

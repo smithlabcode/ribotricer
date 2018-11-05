@@ -1,4 +1,4 @@
-"""Funtions for spliting bam file"""
+"""Utilities for spliting bam file"""
 
 from __future__ import absolute_import
 from __future__ import division
@@ -12,18 +12,8 @@ from collections import defaultdict
 
 import pysam
 from tqdm import *
-import numpy as np
-import pandas as pd
 
-from .fasta import FastaReader
-from .gtf import GTFReader
-from .interval import Interval
 from .common import is_read_uniq_mapping
-from .common import merge_intervals
-from .statistics import coherence
-from .infer_protocol import infer_protocol
-from .plotting import plot_read_lengths
-from .plotting import plot_metagene
 
 
 def split_bam(bam, protocol, prefix):

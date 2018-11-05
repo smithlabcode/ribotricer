@@ -9,20 +9,12 @@ import warnings
 from collections import Counter
 from collections import defaultdict
 
-import pysam
 from tqdm import *
 import numpy as np
 import pandas as pd
 
-from .fasta import FastaReader
-from .gtf import GTFReader
 from .interval import Interval
-from .common import is_read_uniq_mapping
-from .common import merge_intervals
 from .statistics import coherence
-from .infer_protocol import infer_protocol
-from .plotting import plot_read_lengths
-from .plotting import plot_metagene
 
 
 def next_genome_pos(ivs, max_positions, leader, trailer, reverse=False):
@@ -76,8 +68,10 @@ def orf_coverage_length(orf,
 
     Returns
     -------
-    coverage: Series
-              coverage for ORF for specific length
+    from_start: Series
+                coverage for ORF for specific length aligned at start codon
+    from_stop: Series
+               coverage for ORF for specific length aligned at stop codon
     """
     coverage = []
     chrom = orf.chrom
@@ -137,11 +131,14 @@ def metagene_coverage(cds,
                the number of nts to include from the 5'prime
     offset_3p: int
                the number of nts to include from the 3'prime
+    meta_min_reads: int
+                    minimum number of reads for a read length to be considered
 
     Returns
     -------
     metagenes: dict
-               key is the length, value is the metagene coverage
+               key is the length, value is (from_start, from_stop, coherence,
+               pval)
     """
     print('calculating metagene profiles...')
     metagenes = {}
@@ -180,7 +177,9 @@ def metagene_coverage(cds,
         metagene_coverage_stop = metagene_coverage_stop.div(
             position_counter_stop)
 
-        metagenes[length] = (metagene_coverage_start, metagene_coverage_stop)
+        coh, pval, valid = coherence(metagene_coverage_start.tolist())
+        metagenes[length] = (metagene_coverage_start, metagene_coverage_stop,
+                             coh, pval, valid)
 
     to_write = ''
     for length in sorted(metagenes):
@@ -194,7 +193,8 @@ def metagene_coverage(cds,
 
 
 def align_metagenes(metagenes, read_lengths, prefix):
-    """align metagene coverages to determine the lag of the psites
+    """align metagene coverages to determine the lag of the psites, the
+    non-periodic read length will be discarded in this step
 
     Parameters
     ----------

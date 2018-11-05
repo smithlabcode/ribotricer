@@ -5,7 +5,6 @@ import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_pdf import PdfPages
-from .statistics import coherence
 
 
 def plot_read_lengths(read_lengths, prefix):
@@ -45,10 +44,10 @@ def plot_metagene(metagenes, read_lengths, prefix, offset=200):
     total_reads = sum(read_lengths.values())
     with PdfPages('{}_metagene_plots.pdf'.format(prefix)) as pdf:
         for length in sorted(metagenes):
-            metagene_cov_start, metagene_cov_stop = metagenes[length]
+            metagene_cov_start, metagene_cov_stop, coh, pval, valid = metagenes[
+                length]
             if len(metagene_cov_start) == 0:
                 continue
-            corr, pval, nonzero = coherence(metagene_cov_start.values)
             min_index = min(metagene_cov_start.index.tolist())
             max_index = max(metagene_cov_start.index.tolist())
             offset = min(offset, max_index)
@@ -71,7 +70,7 @@ def plot_metagene(metagenes, read_lengths, prefix, offset=200):
             ax.set_ylabel('Normalized mean reads')
             ax.set_title((
                 '{} nt reads, proportion: {:.2%}\nPeriodicity: {:.2}, pval: {:.6}'
-            ).format(length, ratio, corr, pval))
+            ).format(length, ratio, coh, pval))
 
             ### plot distance from stop codon
             min_index = min(metagene_cov_stop.index.tolist())
