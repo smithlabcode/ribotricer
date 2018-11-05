@@ -10,7 +10,7 @@ import warnings
 from collections import Counter
 from collections import defaultdict
 from tqdm import *
-from .common import coherence
+from .statistics import coherence
 
 
 def parse_ccds(annotation, orfs, saveto):

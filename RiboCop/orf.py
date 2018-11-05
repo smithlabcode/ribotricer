@@ -12,10 +12,6 @@ from collections import defaultdict
 
 import pysam
 from tqdm import *
-import matplotlib
-matplotlib.use('Agg')
-import matplotlib.pyplot as plt
-from matplotlib.backends.backend_pdf import PdfPages
 import numpy as np
 import pandas as pd
 
@@ -24,7 +20,7 @@ from .gtf import GTFReader
 from .interval import Interval
 from .common import is_read_uniq_mapping
 from .common import merge_intervals
-from .common import coherence
+from .statistics import coherence
 from .infer_protocol import infer_protocol
 from .plotting import plot_read_lengths
 from .plotting import plot_metagene

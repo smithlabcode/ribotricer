@@ -1,4 +1,10 @@
 """Plotting functions."""
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+from matplotlib.backends.backend_pdf import PdfPages
+from .statistics import coherence
+
 
 def plot_read_lengths(read_lengths, prefix):
     """
