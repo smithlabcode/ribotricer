@@ -25,6 +25,8 @@ from .plotting import plot_read_lengths
 from .plotting import plot_metagene
 
 
+cutoff = 4/np.pi/np.pi
+
 def merge_lengths(alignments, psite_offsets):
     """
     Parameters
@@ -168,6 +170,7 @@ def export_orf_coverages(orfs,
             prefix for output file
     """
     print('exporting coverages for all ORFs...')
+    global cutoff
     to_write = 'ORF_ID\tcoverage\tcount\tlength\tnonzero\tperiodicity\tpval\n'
     for orf in tqdm(orfs):
         oid = orf.oid
@@ -176,10 +179,9 @@ def export_orf_coverages(orfs,
         cov = cov.tolist()
         count = sum(cov)
         length = len(cov)
-        if len(cov) < 60:
-            corr, pval, nonzero = (0, 1, 0)
-        else:
-            corr, pval, nonzero = coherence(cov)
+        coh, pval, nonzero = coherence(cov)
+        if coh < cutoff: # skip those fail the cutoff
+            continue
         to_write += '{}\t{}\t{}\t{}\t{}\t{}\t{}\n'.format(
             oid, cov, count, length, nonzero, corr, pval)
     with open('{}_translating_ORFs.tsv'.format(prefix), 'w') as output:
