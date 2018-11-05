@@ -897,7 +897,7 @@ def plot_metagene(metagenes, read_lengths, prefix, offset=200):
             ax.set_xticks(xticks)
             ax.set_xlim((min_index, offset))
             ax.set_xlabel('Distance from start codon (nt)')
-            ax.set_ylabel('Number of reads')
+            ax.set_ylabel('Normalized mean reads')
             ax.set_title((
                 '{} nt reads, proportion: {:.2%}\nPeriodicity: {:.2}, pval: {:.6}'
             ).format(length, ratio, corr, pval))
