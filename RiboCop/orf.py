@@ -766,15 +766,23 @@ def orf_coverage_length(orf,
             coverage.append(0)
 
     if strand == '-':
-        return pd.Series(
+        from_start = pd.Series(
             np.array(coverage),
             index=np.arange(-offset_3p,
                             len(coverage) - offset_3p))
+        from_stop = pd.Series(
+            np.array(coverage),
+            index=np.arange(offset_5p - len(coverage) + 1, offset_5p + 1))
     else:
-        return pd.Series(
+        from_start = pd.Series(
             np.array(coverage),
             index=np.arange(-offset_5p,
                             len(coverage) - offset_5p))
+        from_stop = pd.Series(
+            np.array(coverage),
+            index=np.arange(offset_3p - len(coverage) + 1, offset_3p + 1))
+
+    return (from_start, from_stop)
 
 
 def metagene_coverage(cds,
@@ -813,27 +821,44 @@ def metagene_coverage(cds,
     lengths = [x for x in read_lengths if read_lengths[x] >= meta_min_reads]
     for length in tqdm(lengths):
 
-        metagene_coverage = pd.Series()
-        position_counter = Counter()
+        metagene_coverage_start = pd.Series()
+        position_counter_start = Counter()
+        metagene_coverage_stop = pd.Series()
+        position_counter_stop = Counter()
 
         for orf in tqdm(cds):
-            coverage = orf_coverage_length(orf, alignments, length,
-                                           max_positions, offset_5p, offset_3p)
-            if coverage.mean() > 0:
-                coverage = coverage / coverage.mean()
-                coverage = coverage.fillna(0)
-                metagene_coverage = metagene_coverage.add(
-                    coverage, fill_value=0)
-                position_counter += Counter(metagene_coverage.index.tolist())
-        if len(position_counter) != len(metagene_coverage):
+            from_start, from_stop = orf_coverage_length(
+                orf, alignments, length, max_positions, offset_5p, offset_3p)
+            cov_mean = from_start.mean()
+            if cov_mean > 0:
+                from_start = from_start / cov_mean
+                from_start = from_start.fillna(0)
+                metagene_coverage_start = metagene_coverage_start.add(
+                    from_start, fill_value=0)
+                position_counter_start += Counter(from_start.index.tolist())
+
+                from_stop = from_stop / cov_mean
+                from_stop = from_stop.fillna(0)
+                metagene_coverage_stop = metagene_coverage_stop.add(
+                    from_stop, fill_value=0)
+                position_counter_stop += Counter(from_stop.index.tolist())
+
+        if (len(position_counter_start) != len(metagene_coverage_start)
+                or len(position_counter_stop) != len(metagene_coverage_stop)):
             raise RuntimeError('Metagene coverage and counter mismatch')
-        position_counter = pd.Series(position_counter)
-        metagene_coverage = metagene_coverage.div(position_counter)
-        metagenes[length] = metagene_coverage
+        position_counter_start = pd.Series(position_counter_start)
+        metagene_coverage_start = metagene_coverage_start.div(
+            position_counter_start)
+        position_counter_stop = pd.Series(position_counter_stop)
+        metagene_coverage_stop = metagene_coverage_stop.div(
+            position_counter_stop)
+
+        metagenes[length] = (metagene_coverage_start, metagene_coverage_stop)
 
     to_write = ''
     for length in sorted(metagenes):
-        to_write += '{}\t{}\n'.format(length, metagenes[length].astype(int).tolist())
+        to_write += '{}\t{}\n'.format(
+            length, metagenes[length][0].astype(int).tolist())
 
     with open('{}_metagene_profiles.tsv'.format(prefix), 'w') as output:
         output.write(to_write)
@@ -878,21 +903,25 @@ def plot_metagene(metagenes, read_lengths, prefix, offset=200):
     total_reads = sum(read_lengths.values())
     with PdfPages('{}_metagene_plots.pdf'.format(prefix)) as pdf:
         for length in sorted(metagenes):
-            metagene_cov = metagenes[length]
-            if len(metagene_cov) == 0:
+            metagene_cov_start, metagene_cov_stop = metagenes[length]
+            if len(metagene_cov_start) == 0:
                 continue
-            corr, pval, nonzero = coherence(metagene_cov.values)
-            min_index = min(metagene_cov.index.tolist())
-            max_index = max(metagene_cov.index.tolist())
+            corr, pval, nonzero = coherence(metagene_cov_start.values)
+            min_index = min(metagene_cov_start.index.tolist())
+            max_index = max(metagene_cov_start.index.tolist())
             offset = min(offset, max_index)
-            metagene_cov = metagene_cov[np.arange(min_index, offset)]
+            metagene_cov_start = metagene_cov_start[np.arange(
+                min_index, offset)]
             x = np.arange(min_index, offset)
             colors = np.tile(['r', 'g', 'b'], len(x) // 3 + 1)
             xticks = np.arange(min_index, offset, 20)
             ratio = read_lengths[length] / total_reads
             fig, (ax, ax2) = plt.subplots(nrows=2, ncols=1)
             ax.vlines(
-                x, ymin=np.zeros(len(x)), ymax=metagene_cov, colors=colors)
+                x,
+                ymin=np.zeros(len(x)),
+                ymax=metagene_cov_start,
+                colors=colors)
             ax.tick_params(axis='x', which='both', top='off', direction='out')
             ax.set_xticks(xticks)
             ax.set_xlim((min_index, offset))
@@ -901,6 +930,25 @@ def plot_metagene(metagenes, read_lengths, prefix, offset=200):
             ax.set_title((
                 '{} nt reads, proportion: {:.2%}\nPeriodicity: {:.2}, pval: {:.6}'
             ).format(length, ratio, corr, pval))
+
+            ### plot distance from stop codon
+            min_index = min(metagene_cov_stop.index.tolist())
+            max_index = max(metagene_cov_stop.index.tolist())
+            offset = max(-offset, min_index)
+            metagene_cov_stop = metagene_cov_stop[np.arange(offset, max_index)]
+            x = np.arange(offset, max_index)
+            colors = np.tile(['r', 'g', 'b'], len(x) // 3 + 1)
+            xticks = np.arange(offset, max_index, 20)
+            ax2.vlines(
+                x,
+                ymin=np.zeros(len(x)),
+                ymax=metagene_cov_stop,
+                colors=colors)
+            ax2.tick_params(axis='x', which='both', top='off', direction='out')
+            ax2.set_xticks(xticks)
+            ax2.set_xlim((offset, max_index))
+            ax2.set_xlabel('Distance from stop codon (nt)')
+            ax2.set_ylabel('Normalized mean reads')
 
             fig.tight_layout()
             pdf.savefig(fig)
