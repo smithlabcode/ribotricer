@@ -25,6 +25,33 @@ from .plotting import plot_read_lengths
 from .plotting import plot_metagene
 
 
+def next_genome_pos(ivs, max_positions, leader, trailer, reverse=False):
+    if len(ivs) == 0:
+        return iter([])
+    cnt = 0
+    leader_iv = Interval(ivs[0].chrom, ivs[0].start - leader, ivs[0].start - 1,
+                         ivs[0].strand)
+    trailer_iv = Interval(ivs[-1].chrom, ivs[-1].end + 1,
+                          ivs[-1].end + trailer, ivs[-1].strand)
+    combined_ivs = [leader_iv] + ivs + [trailer_iv]
+
+    cnt = 0
+    if not reverse:
+        for iv in combined_ivs:
+            for pos in range(iv.start, iv.end + 1):
+                cnt += 1
+                if cnt > max_positions:
+                    break
+                yield pos
+    else:
+        for iv in reversed(combined_ivs):
+            for pos in range(iv.end, iv.start - 1, -1):
+                cnt += 1
+                if cnt > max_positions:
+                    break
+                yield pos
+
+
 def orf_coverage_length(orf,
                         alignments,
                         length,

@@ -6,9 +6,9 @@ from __future__ import unicode_literals
 import pysam
 import numpy as np
 import sys
+from collections import Counter
 from .gtf import GTFReader
 from .common import is_read_uniq_mapping
-from collections import Counter
 
 
 def infer_protocol(bam, gtf, prefix, n_reads=20000):
@@ -30,10 +30,6 @@ def infer_protocol(bam, gtf, prefix, n_reads=20000):
     -------
     protocol: string
               forward/reverse
-    forward_mapped_reads: int
-          Proportion of reads of type + mapping to + (++) or - mapping to - (--)
-    reverse_mapped_reads: int
-          Proportion of reads of type + mapping to - (+-) or - mapping to + (-+)
     """
     if not isinstance(gtf, GTFReader):
         gtf = GTFReader(gtf)
