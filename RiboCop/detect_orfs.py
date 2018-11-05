@@ -23,7 +23,7 @@ from .statistics import coherence
 from .infer_protocol import infer_protocol
 from .plotting import plot_read_lengths
 from .plotting import plot_metagene
-from .constant import CUTOFF
+from .constants import CUTOFF
 
 
 def merge_lengths(alignments, psite_offsets):

@@ -9,12 +9,14 @@ import warnings
 from collections import Counter
 from collections import defaultdict
 
+import sys
 from tqdm import *
 import numpy as np
 import pandas as pd
 
 from .interval import Interval
 from .statistics import coherence
+from .constants import CUTOFF
 
 
 def next_genome_pos(ivs, max_positions, leader, trailer, reverse=False):
@@ -142,8 +144,13 @@ def metagene_coverage(cds,
     """
     print('calculating metagene profiles...')
     metagenes = {}
-    lengths = [x for x in read_lengths if read_lengths[x] >= meta_min_reads]
-    for length in tqdm(lengths):
+
+    ### remove read length whose read number is small
+    for length, reads in list(read_lengths.items()):
+        if reads < meta_min_reads:
+            del read_lengths[length]
+
+    for length in tqdm(read_lengths):
 
         metagene_coverage_start = pd.Series()
         position_counter_start = Counter()
@@ -211,6 +218,17 @@ def align_metagenes(metagenes, read_lengths, prefix):
                    key is the length, value is the offset
     """
     print('aligning metagene profiles from different lengths...')
+
+    ### discard non-periodic read lengths
+    for length, (_, _, coh, _, _) in list(metagenes.items()):
+        if coh < CUTOFF:
+            del read_lengths[length]
+            del metagenes[length]
+
+    if len(read_lengths) == 0:
+        print('no periodic read length found...')
+        sys.exit(0)
+
     psite_offsets = {}
     base = n_reads = 0
     for length, reads in read_lengths.items():
