@@ -10,7 +10,6 @@ import warnings
 from collections import Counter
 from collections import defaultdict
 from tqdm import *
-from .common import cal_periodicity
 from .common import coherence
 
 
@@ -118,7 +117,7 @@ def test_periodicity(orf_file, prefix, method):
                 if len(cov) < 60:
                     corr, pval, nonzero = (0, 1, 0)
                 else:
-                    corr, pval, nonzero = cal_periodicity(cov)
+                    corr, pval, nonzero = coherence(cov)
 
                 to_write += '{}\t{}\t{}\t{}\t{}\t{}\t{}\n'.format(
                     oid, cov, count, length, nonzero, corr, pval)

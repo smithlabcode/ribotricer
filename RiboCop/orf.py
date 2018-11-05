@@ -781,7 +781,7 @@ def metagene_coverage(cds,
                       alignments,
                       read_lengths,
                       prefix,
-                      max_positions=500,
+                      max_positions=600,
                       offset_5p=20,
                       offset_3p=0,
                       meta_min_reads=100000):
@@ -814,14 +814,29 @@ def metagene_coverage(cds,
     for length in tqdm(lengths):
 
         metagene_coverage = pd.Series()
+        position_counter = Counter()
 
         for orf in tqdm(cds):
             coverage = orf_coverage_length(orf, alignments, length,
                                            max_positions, offset_5p, offset_3p)
             if coverage.mean() > 0:
+                coverage = coverage / coverage.mean()
+                coverage = coverage.fillna(0)
                 metagene_coverage = metagene_coverage.add(
                     coverage, fill_value=0)
+                position_counter += Counter(metagene_coverage.index.tolist())
+        if len(position_counter) != len(metagene_coverage):
+            raise RuntimeError('Metagene coverage and counter mismatch')
+        position_counter = pd.Series(position_counter)
+        metagene_coverage = metagene_coverage.div(position_counter)
         metagenes[length] = metagene_coverage
+
+    to_write = ''
+    for length in sorted(metagenes):
+        to_write += '{}\t{}\n'.format(length, metagenes[length].astype(int).tolist())
+
+    with open('{}_metagene_profiles.tsv'.format(prefix), 'w') as output:
+        output.write(to_write)
 
     return metagenes
 
@@ -848,7 +863,7 @@ def plot_read_lengths(read_lengths, prefix):
     plt.close()
 
 
-def plot_metagene(metagenes, read_lengths, prefix, offset=60):
+def plot_metagene(metagenes, read_lengths, prefix, offset=200):
     """
     Parameters
     ----------
@@ -997,7 +1012,7 @@ def detect_orfs(bam,
     plot_read_lengths(read_lengths, prefix)
     metagenes = metagene_coverage(cds, alignments, read_lengths, prefix)
     plot_metagene(metagenes, read_lengths, prefix)
-    psite_offsets = align_metagenes(metagenes, read_lengths, prefix)
-    merged_alignments = merge_lengths(alignments, psite_offsets)
-    export_wig(merged_alignments, prefix)
-    export_orf_coverages(cds + uorfs + dorfs, merged_alignments, prefix)
+    # psite_offsets = align_metagenes(metagenes, read_lengths, prefix)
+    # merged_alignments = merge_lengths(alignments, psite_offsets)
+    # export_wig(merged_alignments, prefix)
+    # export_orf_coverages(cds + uorfs + dorfs, merged_alignments, prefix)
