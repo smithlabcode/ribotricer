@@ -1,11 +1,8 @@
 """Statistics related functions
 """
 import numpy as np
-import scipy as sp
-from .interval import Interval
 from scipy import stats
 from scipy import signal
-import scipy.integrate as integrate
 from math import sin, cos, pi, sqrt
 
 

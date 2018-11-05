@@ -1,4 +1,6 @@
 """Plotting functions."""
+import numpy as np
+import pandas as pd
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
@@ -93,6 +95,3 @@ def plot_metagene(metagenes, read_lengths, prefix, offset=200):
             fig.tight_layout()
             pdf.savefig(fig)
             plt.close()
-
-
-
