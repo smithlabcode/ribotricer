@@ -272,8 +272,8 @@ def prepare_orfs(gtf, fasta, prefix):
         ivs = tracks_to_ivs(tracks)
         orfs = search_orfs(fasta, ivs)
         for ivs, seq, leader, trailer in orfs:
-            orf = ORF('uORF', tid, ttype, gid, gname, gtype, chrom,
-                              strand, ivs, seq, leader, trailer)
+            orf = ORF('uORF', tid, ttype, gid, gname, gtype, chrom, strand,
+                      ivs, seq, leader, trailer)
             uorfs.append(orf)
 
     dorfs = []
@@ -290,8 +290,8 @@ def prepare_orfs(gtf, fasta, prefix):
         ivs = tracks_to_ivs(tracks)
         orfs = search_orfs(fasta, ivs)
         for ivs, seq, leader, trailer in orfs:
-            orf = ORF('dORF', tid, ttype, gid, gname, gtype, chrom,
-                              strand, ivs, seq, leader, trailer)
+            orf = ORF('dORF', tid, ttype, gid, gname, gtype, chrom, strand,
+                      ivs, seq, leader, trailer)
             dorfs.append(orf)
 
     ### save to file

@@ -235,9 +235,9 @@ def align_metagenes(metagenes, read_lengths, prefix):
         if reads > n_reads:
             base = length
             n_reads = reads
-    reference = metagenes[base].values
+    reference = metagenes[base][0].values
     to_write = 'relative lag to base: {}\n'.format(base)
-    for length, meta in metagenes.items():
+    for length, (meta, _, _, _, _) in metagenes.items():
         cov = meta.values
         xcorr = np.correlate(reference, cov, 'full')
         origin = len(xcorr) // 2
