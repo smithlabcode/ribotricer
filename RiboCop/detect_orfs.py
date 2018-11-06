@@ -67,15 +67,15 @@ def parse_annotation(annotation):
     cds: List[ORF]
          list of cds
     uorfs: List[ORF]
-          list of putative ORFs from 5'UTR
+          list of candidate ORFs from 5'UTR
     dorfs: List[ORF]
-          list of putative ORFs from 3'UTR
+          list of candidate ORFs from 3'UTR
     """
 
     cds = []
     uorfs = []
     dorfs = []
-    print('parsing putative ORFs...')
+    print('parsing candidate ORFs...')
     with open(annotation, 'r') as anno:
         total_lines = len(['' for line in anno])
     with open(annotation, 'r') as anno:
@@ -154,16 +154,12 @@ def orf_coverage(orf, alignments, offset_5p=20, offset_3p=0):
                             len(coverage) - offset_5p))
 
 
-def export_orf_coverages(orfs,
-                         merged_alignments,
-                         prefix,
-                         min_count=0,
-                         min_corr=0.5):
+def export_orf_coverages(orfs, merged_alignments, prefix):
     """
     Parameters
     ----------
     orfs: List[ORF]
-          a list of putative orfs
+          a list of candidate orfs
     merged_alignments: dict(dict)
                        alignments by merging all lengths
     prefix: str
@@ -178,11 +174,11 @@ def export_orf_coverages(orfs,
         cov = cov.tolist()
         count = sum(cov)
         length = len(cov)
-        coh, pval, nonzero = coherence(cov)
+        coh, pval, valid = coherence(cov)
         if coh < CUTOFF:  # skip those fail the cutoff
             continue
         to_write += '{}\t{}\t{}\t{}\t{}\t{}\t{}\n'.format(
-            oid, cov, count, length, nonzero, corr, pval)
+            oid, cov, count, length, valid, coh, pval)
     with open('{}_translating_ORFs.tsv'.format(prefix), 'w') as output:
         output.write(to_write)
 
@@ -232,7 +228,7 @@ def detect_orfs(bam,
     prefix: str
             prefix for all output files
     annotation: str
-                Path for annontation files of putative ORFs
+                Path for annontation files of candidate ORFs
                 It will be automatically generated if None
     protocol: str
               'forward' for stranded, 'reverse' for reverse stranded
