@@ -14,7 +14,7 @@ from .interval import Interval
 
 
 class ORF:
-    """Class for putative ORF."""
+    """Class for candidate ORF."""
 
     def __init__(self,
                  category,

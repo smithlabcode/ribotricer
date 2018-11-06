@@ -137,8 +137,8 @@ def search_orfs(fasta, intervals):
     -------
     orfs: list
           list of (List[Interval], seq, leader, trailer)
-            list of intervals for putative ORF
-            seq: sequence for the putative ORF
+            list of intervals for candidate ORF
+            seq: sequence for the candidate ORF
             leader: sequence upstream of the ORF
             trailer: sequence downstream of the ORF
     """
@@ -208,7 +208,7 @@ def prepare_orfs(gtf, fasta, prefix):
     if not isinstance(fasta, FastaReader):
         fasta = FastaReader(fasta)
 
-    print('preparing putative ORFs...')
+    print('preparing candidate ORFs...')
 
     ### process CDS gtf
     print('searching cds...')
@@ -295,7 +295,7 @@ def prepare_orfs(gtf, fasta, prefix):
             dorfs.append(orf)
 
     ### save to file
-    print('saving putative ORFs file...')
+    print('saving candidate ORFs file...')
     to_write = ('ORF_ID\tORF_type\ttranscript_id\ttranscript_type'
                 '\tgene_id\tgene_name\tgene_type\tchrom'
                 '\tstrand\tcoordinate\tseq\tleader\ttrailer\n')
@@ -308,7 +308,7 @@ def prepare_orfs(gtf, fasta, prefix):
                                      orf.strand, coordinate, orf.seq,
                                      orf.leader, orf.trailer)
 
-    with open('{}_putative_orfs.tsv'.format(prefix), 'w') as output:
+    with open('{}_candidate_orfs.tsv'.format(prefix), 'w') as output:
         output.write(to_write)
 
     return (cds_orfs, uorfs, dorfs)

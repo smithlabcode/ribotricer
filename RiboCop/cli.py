@@ -39,7 +39,7 @@ def cli():
 @cli.command(
     'prepare-orfs',
     context_settings=CONTEXT_SETTINGS,
-    help='Extract putative orfs based on GTF and FASTA files')
+    help='Extract candidate orfs based on GTF and FASTA files')
 @click.option('--gtf', help='Path to GTF file')
 @click.option('--fasta', help='Path to FASTA file')
 @click.option('--prefix', help='Prefix to output file')
@@ -120,7 +120,7 @@ def benchmark_cmd(rna, ribo, prefix, cutoff):
 @cli.command(
     'parse-annotation',
     context_settings=CONTEXT_SETTINGS,
-    help='Parse annotation file to extract putative ORFs')
+    help='Parse annotation file to extract candidate ORFs')
 @click.option('--annotation', help='Path to annotation file')
 def parse_annotation_cmd(annotation):
     parse_annotation(annotation)

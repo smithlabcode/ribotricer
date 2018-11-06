@@ -16,7 +16,7 @@ from .statistics import coherence
 def parse_ccds(annotation, orfs, saveto):
     """
     annotation: str
-                Path for annotation files of putative ORFs
+                Path for annotation files of candidate ORFs
     orfs: str
           Path for translating ORFs
     saveto: str
