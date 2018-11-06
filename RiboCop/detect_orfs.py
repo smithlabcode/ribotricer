@@ -16,17 +16,17 @@ import pandas as pd
 
 from .fasta import FastaReader
 from .gtf import GTFReader
-from .interval import Interval
-from .common import is_read_uniq_mapping
-from .common import merge_intervals
 from .statistics import coherence
 from .infer_protocol import infer_protocol
 from .plotting import plot_read_lengths
 from .plotting import plot_metagene
 from .constants import CUTOFF
+from .bam import split_bam
+from .metagene import metagene_coverage
+from .metagene import align_metagenes
 
 
-def merge_lengths(alignments, psite_offsets):
+def merge_read_lengths(alignments, psite_offsets):
     """
     Parameters
     ----------
@@ -257,7 +257,7 @@ def detect_orfs(bam,
     plot_read_lengths(read_lengths, prefix)
     metagenes = metagene_coverage(cds, alignments, read_lengths, prefix)
     plot_metagene(metagenes, read_lengths, prefix)
-    # psite_offsets = align_metagenes(metagenes, read_lengths, prefix)
-    # merged_alignments = merge_lengths(alignments, psite_offsets)
-    # export_wig(merged_alignments, prefix)
-    # export_orf_coverages(cds + uorfs + dorfs, merged_alignments, prefix)
+    psite_offsets = align_metagenes(metagenes, read_lengths, prefix)
+    merged_alignments = merge_read_lengths(alignments, psite_offsets)
+    export_wig(merged_alignments, prefix)
+    export_orf_coverages(cds + uorfs + dorfs, merged_alignments, prefix)
