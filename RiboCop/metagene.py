@@ -55,8 +55,8 @@ def orf_coverage_length(orf,
     """
     Parameters
     ----------
-    orf: PutativeORF
-         instance of PutativeORF
+    orf: ORF
+         instance of ORF
     alignments: dict(dict(Counter))
                 alignments summarized from bam
     length: int
@@ -119,7 +119,7 @@ def metagene_coverage(cds,
     """
     Parameters
     ----------
-    cds: List[PutativeORF]
+    cds: List[ORF]
          list of cds
     alignments: dict(dict(Counter))
                 alignments summarized from bam

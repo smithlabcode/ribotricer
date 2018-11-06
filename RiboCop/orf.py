@@ -10,23 +10,10 @@ import warnings
 from collections import Counter
 from collections import defaultdict
 
-import pysam
-from tqdm import *
-import numpy as np
-import pandas as pd
-
-from .fasta import FastaReader
-from .gtf import GTFReader
 from .interval import Interval
-from .common import is_read_uniq_mapping
-from .common import merge_intervals
-from .statistics import coherence
-from .infer_protocol import infer_protocol
-from .plotting import plot_read_lengths
-from .plotting import plot_metagene
 
 
-class PutativeORF:
+class ORF:
     """Class for putative ORF."""
 
     def __init__(self,

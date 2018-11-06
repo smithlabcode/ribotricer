@@ -17,12 +17,8 @@ import pandas as pd
 from .fasta import FastaReader
 from .gtf import GTFReader
 from .interval import Interval
-from .common import is_read_uniq_mapping
 from .common import merge_intervals
-from .statistics import coherence
-from .infer_protocol import infer_protocol
-from .plotting import plot_read_lengths
-from .plotting import plot_metagene
+from .orf import ORF
 
 
 def tracks_to_ivs(tracks):
@@ -199,11 +195,11 @@ def prepare_orfs(gtf, fasta, prefix):
 
     Returns
     -------
-    cds: List[PutativeORF]
+    cds: List[ORF]
          list of CDS
-    uorfs: List[PutativeORF]
+    uorfs: List[ORF]
            list of upstream ORFs
-    dorfs: List[PutativeORF]
+    dorfs: List[ORF]
            list of downstream ORFs
     """
 
@@ -221,7 +217,7 @@ def prepare_orfs(gtf, fasta, prefix):
         for tid in gtf.cds[gid]:
             tracks = gtf.cds[gid][tid]
             # seq = fetch_seq(fasta, tracks)
-            orf = PutativeORF.from_tracks(tracks, 'CDS')
+            orf = ORF.from_tracks(tracks, 'CDS')
             if orf:
                 cds_orfs.append(orf)
 
@@ -276,7 +272,7 @@ def prepare_orfs(gtf, fasta, prefix):
         ivs = tracks_to_ivs(tracks)
         orfs = search_orfs(fasta, ivs)
         for ivs, seq, leader, trailer in orfs:
-            orf = PutativeORF('uORF', tid, ttype, gid, gname, gtype, chrom,
+            orf = ORF('uORF', tid, ttype, gid, gname, gtype, chrom,
                               strand, ivs, seq, leader, trailer)
             uorfs.append(orf)
 
@@ -294,7 +290,7 @@ def prepare_orfs(gtf, fasta, prefix):
         ivs = tracks_to_ivs(tracks)
         orfs = search_orfs(fasta, ivs)
         for ivs, seq, leader, trailer in orfs:
-            orf = PutativeORF('dORF', tid, ttype, gid, gname, gtype, chrom,
+            orf = ORF('dORF', tid, ttype, gid, gname, gtype, chrom,
                               strand, ivs, seq, leader, trailer)
             dorfs.append(orf)
 

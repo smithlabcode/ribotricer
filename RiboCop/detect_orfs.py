@@ -24,6 +24,7 @@ from .constants import CUTOFF
 from .bam import split_bam
 from .metagene import metagene_coverage
 from .metagene import align_metagenes
+from .orf import ORF
 
 
 def merge_read_lengths(alignments, psite_offsets):
@@ -63,11 +64,11 @@ def parse_annotation(annotation):
     
     Returns
     -------
-    cds: List[PutativeORF]
+    cds: List[ORF]
          list of cds
-    uorfs: List[PutativeORF]
+    uorfs: List[ORF]
           list of putative ORFs from 5'UTR
-    dorfs: List[PutativeORF]
+    dorfs: List[ORF]
           list of putative ORFs from 3'UTR
     """
 
@@ -85,7 +86,7 @@ def parse_annotation(annotation):
                 if header:
                     header = False
                     continue
-                orf = PutativeORF.from_string(line)
+                orf = ORF.from_string(line)
                 if orf is None:
                     continue
                 if orf.category == 'CDS':
@@ -101,8 +102,8 @@ def orf_coverage(orf, alignments, offset_5p=20, offset_3p=0):
     """
     Parameters
     ----------
-    orf: PutativeORF
-         instance of PutativeORF
+    orf: ORF
+         instance of ORF
     alignments: dict(Counter)
                 alignments summarized from bam by merging lengths
     offset_5p: int
@@ -161,7 +162,7 @@ def export_orf_coverages(orfs,
     """
     Parameters
     ----------
-    orfs: List[PutativeORF]
+    orfs: List[ORF]
           a list of putative orfs
     merged_alignments: dict(dict)
                        alignments by merging all lengths
