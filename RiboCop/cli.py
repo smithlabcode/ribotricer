@@ -15,7 +15,8 @@ import click
 from click_help_colors import HelpColorsGroup
 from . import __version__
 from .infer_protocol import infer_protocol
-from .orf import *
+from .prepare_orfs import prepare_orfs
+from .detect_orfs import detect_orfs
 from .utils import parse_ccds
 from .utils import test_periodicity
 from .utils import benchmark
