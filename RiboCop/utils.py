@@ -9,6 +9,7 @@ import warnings
 
 from collections import Counter
 from collections import defaultdict
+import numpy as np
 from tqdm import *
 from .statistics import coherence
 
@@ -181,3 +182,79 @@ def benchmark(rna_file, ribo_file, prefix, cutoff=5):
             ID, ribo_pval, rna_pval, ribo_coh, rna_coh, ribo_cov, rna_cov)
     with open('{}_results.txt'.format(prefix), 'w') as output:
         output.write(to_write)
+        
+
+def angle(cov, frame):
+    ans = []
+    cov = cov[frame:]
+    i = 0
+    while i + 2 < len(cov):
+        if cov[i] == cov[i+1] == cov[i+2] == 0:
+            i += 3
+            continue
+        real = cov[i] - 0.5 * (cov[i+1] + cov[i+2])
+        img = np.sqrt(3) / 2 * (cov[i+1] - cov[i+2])
+        ans.append(np.arctan2(img, real))
+        i += 3
+    return ans
+
+def theta_dist(rna_file, ribo_file, frame_file, prefix, cutoff=5):
+
+    rna = {}
+    ribo = {}
+    frame = {}
+
+    print('reading frame file')
+    with open(frame_file, 'r') as frame_r:
+        total_lines = len(['' for line in frame_r])
+    with open(frame_file, 'r') as frame_r:
+        with tqdm(total=total_lines) as pbar:
+            for line in frame_r:
+                pbar.update()
+                name, frame_n, strand, length = line.strip().split('\t')
+                frame[name] = int(frame_n)
+
+    print('reading RNA profiles')
+    with open(rna_file, 'r') as orf:
+        total_lines = len(['' for line in orf])
+    with open(rna_file, 'r') as orf:
+        with tqdm(total=total_lines) as pbar:
+            for line in orf:
+                pbar.update()
+                chrom, start, end, cat, gid, strand, cov = line.strip().split(
+                    '\t')
+                cov = [int(x) for x in cov.strip().split()]
+                if strand == '-':
+                    cov.reverse()
+                ID = '_'.join([chrom, start, end, cat, gid])
+                rna[ID] = cov
+
+    print('reading Ribo profiles')
+    with open(ribo_file, 'r') as orf:
+        total_lines = len(['' for line in orf])
+    with open(ribo_file, 'r') as orf:
+        with tqdm(total=total_lines) as pbar:
+            for line in orf:
+                pbar.update()
+                chrom, start, end, cat, gid, strand, cov = line.strip().split(
+                    '\t')
+                cov = [int(x) for x in cov.strip().split()]
+                if strand == '-':
+                    cov.reverse()
+                ID = '_'.join([chrom, start, end, cat, gid])
+                ribo[ID] = cov
+
+    rna_angles = []
+    ribo_angles = []
+    common_ids = set(ribo.keys()) & set(rna.keys())
+    for ID in tqdm(common_ids):
+        if sum(rna[ID]) < cutoff or sum(ribo[ID]) < cutoff:
+            continue
+        if len(ribo[ID]) < 10:
+            continue
+        rna_angles += angle(rna[ID], frame[ID])
+        ribo_angles += angle(ribo[ID], frame[ID])
+    with open('{}_rna_angles.txt'.format(prefix), 'w') as output:
+        output.write('\n'.join(map(str, rna_angles)))
+    with open('{}_ribo_angles.txt'.format(prefix), 'w') as output:
+        output.write('\n'.join(map(str, ribo_angles)))

@@ -20,6 +20,7 @@ from .detect_orfs import detect_orfs
 from .utils import parse_ccds
 from .utils import test_periodicity
 from .utils import benchmark
+from .utils import theta_dist
 
 click.disable_unicode_literals_warning = True
 CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
@@ -115,6 +116,18 @@ def test_periodicity_cmd(orf, prefix, method):
 def benchmark_cmd(rna, ribo, prefix, cutoff):
     benchmark(rna, ribo, prefix, cutoff)
 
+
+###################### theta distribution function #########################################
+@cli.command(
+    'theta-dist',
+    context_settings=CONTEXT_SETTINGS,
+    help='Test distribution of angles')
+@click.option('--rna', help='Path to rna ORF file')
+@click.option('--ribo', help='Path to ribo ORF file')
+@click.option('--frame', help='Path to frame file')
+@click.option('--prefix', help='Prefix to output file')
+def theta_dist_cmd(rna, ribo, frame, prefix):
+    theta_dist(rna, ribo, frame, prefix)
 
 ###################### parse-annotation function #########################################
 @cli.command(
