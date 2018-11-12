@@ -29,7 +29,7 @@ class GTFTrack:
                 setattr(self, k, v.strip('"'))
 
     @classmethod
-    def from_string(cls, line, region):
+    def from_string(cls, line):
         """
         Parameters
         ----------
