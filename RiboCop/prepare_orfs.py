@@ -182,7 +182,7 @@ def search_orfs(fasta, intervals):
     return orfs
 
 
-def prepare_orfs(gtf, fasta, prefix):
+def prepare_orfs(gtf, fasta, prefix, region=['cds']):
     """
     Parameters
     ----------
@@ -192,6 +192,8 @@ def prepare_orfs(gtf, fasta, prefix):
            instance of FastaReader
     prefix: str
             prefix for output file
+    region: array of str
+            e.g. ['cds', 'utr']
 
     Returns
     -------
@@ -204,7 +206,7 @@ def prepare_orfs(gtf, fasta, prefix):
     """
 
     if not isinstance(gtf, GTFReader):
-        gtf = GTFReader(gtf)
+        gtf = GTFReader(gtf, region)
     if not isinstance(fasta, FastaReader):
         fasta = FastaReader(fasta)
 

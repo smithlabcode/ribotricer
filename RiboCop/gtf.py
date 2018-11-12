@@ -29,7 +29,7 @@ class GTFTrack:
                 setattr(self, k, v.strip('"'))
 
     @classmethod
-    def from_string(cls, line):
+    def from_string(cls, line, region):
         """
         Parameters
         ----------
@@ -54,9 +54,6 @@ class GTFTrack:
         frame = fields[7]
         attribute = fields[8]
 
-        if feature not in ['gene', 'cds', 'utr']:
-            return None
-
         return cls(chrom, source, feature, start, end, score, strand, frame,
                    attribute)
 
@@ -67,7 +64,7 @@ class GTFTrack:
 class GTFReader:
     """Class for reading and parseing gtf file."""
 
-    def __init__(self, gtf_location):
+    def __init__(self, gtf_location, region=[]):
         """
         Parameters
         ---------
@@ -101,7 +98,7 @@ class GTFReader:
                             track.chrom, track.start, track.end))
                         continue
 
-                    if track.feature == 'cds':
+                    if track.feature == 'cds' and 'cds' in region:
                         self.cds[gid][tid].append(track)
-                    elif track.feature == 'utr':
+                    elif track.feature == 'utr' and 'utr' in region:
                         self.utr[gid][tid].append(track)

@@ -44,8 +44,12 @@ def cli():
 @click.option('--gtf', help='Path to GTF file')
 @click.option('--fasta', help='Path to FASTA file')
 @click.option('--prefix', help='Prefix to output file')
-def prepare_orfs_cmd(gtf, fasta, prefix):
-    prepare_orfs(gtf, fasta, prefix)
+@click.option(
+    '--region',
+    help='Regions to extract, comma separated str (e.g.  "cds,utr")')
+def prepare_orfs_cmd(gtf, fasta, prefix, region):
+    region = [x.strip() for x in region.strip().split(',')]
+    prepare_orfs(gtf, fasta, prefix, region)
 
 
 ###################### detect-orfs function #########################################
