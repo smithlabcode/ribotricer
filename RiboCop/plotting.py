@@ -50,12 +50,12 @@ def plot_metagene(metagenes, read_lengths, prefix, offset=200):
                 continue
             min_index = min(metagene_cov_start.index.tolist())
             max_index = max(metagene_cov_start.index.tolist())
-            offset = min(offset, max_index)
+            start_offset = min(offset, max_index)
             metagene_cov_start = metagene_cov_start[np.arange(
-                min_index, offset)]
-            x = np.arange(min_index, offset)
+                min_index, start_offset)]
+            x = np.arange(min_index, start_offset)
             colors = np.tile(['r', 'g', 'b'], len(x) // 3 + 1)
-            xticks = np.arange(min_index, offset, 20)
+            xticks = np.arange(min_index, start_offset, 20)
             ratio = read_lengths[length] / total_reads
             fig, (ax, ax2) = plt.subplots(nrows=2, ncols=1)
             ax.vlines(
@@ -65,7 +65,7 @@ def plot_metagene(metagenes, read_lengths, prefix, offset=200):
                 colors=colors)
             ax.tick_params(axis='x', which='both', top='off', direction='out')
             ax.set_xticks(xticks)
-            ax.set_xlim((min_index, offset))
+            ax.set_xlim((min_index, start_offset))
             ax.set_xlabel('Distance from start codon (nt)')
             ax.set_ylabel('Normalized mean reads')
             ax.set_title((
@@ -75,11 +75,11 @@ def plot_metagene(metagenes, read_lengths, prefix, offset=200):
             ### plot distance from stop codon
             min_index = min(metagene_cov_stop.index.tolist())
             max_index = max(metagene_cov_stop.index.tolist())
-            offset = max(-offset, min_index)
-            metagene_cov_stop = metagene_cov_stop[np.arange(offset, max_index)]
-            x = np.arange(offset, max_index)
+            stop_offset = max(-offset, min_index)
+            metagene_cov_stop = metagene_cov_stop[np.arange(stop_offset, max_index)]
+            x = np.arange(stop_offset, max_index)
             colors = np.tile(['r', 'g', 'b'], len(x) // 3 + 1)
-            xticks = np.arange(offset, max_index, 20)
+            xticks = np.arange(stop_offset, max_index, 20)
             ax2.vlines(
                 x,
                 ymin=np.zeros(len(x)),
@@ -87,7 +87,7 @@ def plot_metagene(metagenes, read_lengths, prefix, offset=200):
                 colors=colors)
             ax2.tick_params(axis='x', which='both', top='off', direction='out')
             ax2.set_xticks(xticks)
-            ax2.set_xlim((offset, max_index))
+            ax2.set_xlim((stop_offset, max_index))
             ax2.set_xlabel('Distance from stop codon (nt)')
             ax2.set_ylabel('Normalized mean reads')
 
