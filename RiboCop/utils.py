@@ -171,12 +171,8 @@ def benchmark(rna_file, ribo_file, prefix, cutoff=5):
             continue
         rna_coh, rna_pval, rna_valid = coherence(rna[ID])
         rna_cov = rna_valid / len(rna[ID])
-        if rna_valid // 3 < 4:
-            continue
         ribo_coh, ribo_pval, ribo_valid = coherence(ribo[ID])
         ribo_cov = ribo_valid / len(ribo[ID])
-        if ribo_valid // 3 < 4:
-            continue
 
         to_write += '{}\t{}\t{}\t{}\t{}\t{}\t{}\n'.format(
             ID, ribo_pval, rna_pval, ribo_coh, rna_coh, ribo_cov, rna_cov)
