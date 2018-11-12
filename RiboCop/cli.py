@@ -129,6 +129,7 @@ def benchmark_cmd(rna, ribo, prefix, cutoff):
 def theta_dist_cmd(rna, ribo, frame, prefix):
     theta_dist(rna, ribo, frame, prefix)
 
+
 ###################### parse-annotation function #########################################
 @cli.command(
     'parse-annotation',

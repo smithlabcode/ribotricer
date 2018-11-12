@@ -182,21 +182,22 @@ def benchmark(rna_file, ribo_file, prefix, cutoff=5):
             ID, ribo_pval, rna_pval, ribo_coh, rna_coh, ribo_cov, rna_cov)
     with open('{}_results.txt'.format(prefix), 'w') as output:
         output.write(to_write)
-        
+
 
 def angle(cov, frame):
     ans = []
     cov = cov[frame:]
     i = 0
     while i + 2 < len(cov):
-        if cov[i] == cov[i+1] == cov[i+2] == 0:
+        if cov[i] == cov[i + 1] == cov[i + 2] == 0:
             i += 3
             continue
-        real = cov[i] - 0.5 * (cov[i+1] + cov[i+2])
-        img = np.sqrt(3) / 2 * (cov[i+1] - cov[i+2])
+        real = cov[i] - 0.5 * (cov[i + 1] + cov[i + 2])
+        img = np.sqrt(3) / 2 * (cov[i + 1] - cov[i + 2])
         ans.append(np.arctan2(img, real))
         i += 3
     return ans
+
 
 def theta_dist(rna_file, ribo_file, frame_file, prefix, cutoff=5):
 

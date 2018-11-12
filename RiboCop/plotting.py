@@ -76,7 +76,8 @@ def plot_metagene(metagenes, read_lengths, prefix, offset=200):
             min_index = min(metagene_cov_stop.index.tolist())
             max_index = max(metagene_cov_stop.index.tolist())
             stop_offset = max(-offset, min_index)
-            metagene_cov_stop = metagene_cov_stop[np.arange(stop_offset, max_index)]
+            metagene_cov_stop = metagene_cov_stop[np.arange(
+                stop_offset, max_index)]
             x = np.arange(stop_offset, max_index)
             colors = np.tile(['r', 'g', 'b'], len(x) // 3 + 1)
             xticks = np.arange(stop_offset, max_index, 20)
