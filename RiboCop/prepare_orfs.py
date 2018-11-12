@@ -218,8 +218,8 @@ def prepare_orfs(gtf, fasta, prefix, region=['cds']):
     for gid in tqdm(gtf.cds):
         for tid in gtf.cds[gid]:
             tracks = gtf.cds[gid][tid]
-            # seq = fetch_seq(fasta, tracks)
-            orf = ORF.from_tracks(tracks, 'CDS')
+            seq = fetch_seq(fasta, tracks)
+            orf = ORF.from_tracks(tracks, 'CDS', seq=seq)
             if orf:
                 cds_orfs.append(orf)
 
