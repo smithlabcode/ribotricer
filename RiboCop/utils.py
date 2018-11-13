@@ -255,3 +255,28 @@ def theta_dist(rna_file, ribo_file, frame_file, prefix, cutoff=5):
         output.write('\n'.join(map(str, rna_angles)))
     with open('{}_ribo_angles.txt'.format(prefix), 'w') as output:
         output.write('\n'.join(map(str, ribo_angles)))
+
+
+def theta_rna(rna_file, prefix):
+
+    rna = {}
+
+    print('reading RNA profiles')
+    with open(rna_file, 'r') as orf:
+        total_lines = len(['' for line in orf])
+    with open(rna_file, 'r') as orf:
+        with tqdm(total=total_lines) as pbar:
+            for line in orf:
+                pbar.update()
+                fields = line.split('\t')
+                oid = fields[0]
+                cov = fields[1]
+                cov = cov[1:-1]
+                cov = [int(x) for x in cov.split(', ')]
+                rna[oid] = cov
+
+    rna_angles = []
+    for ID in tqdm(rna.keys()):
+        rna_angles += angle(rna[ID], frame[ID])
+    with open('{}_raw_rna_angles.txt'.format(prefix), 'w') as output:
+        output.write('\n'.join(map(str, rna_angles)))

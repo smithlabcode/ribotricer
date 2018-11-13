@@ -155,7 +155,7 @@ def orf_coverage(orf, alignments, offset_5p=20, offset_3p=0):
                             len(coverage) - offset_5p))
 
 
-def export_orf_coverages(orfs, merged_alignments, prefix):
+def export_orf_coverages(orfs, merged_alignments, prefix, testRNA=False):
     """
     Parameters
     ----------
@@ -165,6 +165,8 @@ def export_orf_coverages(orfs, merged_alignments, prefix):
                        alignments by merging all lengths
     prefix: str
             prefix for output file
+    testRNA: bool
+             if True, all coverages will be exported
     """
     print('exporting coverages for all ORFs...')
     to_write = 'ORF_ID\tcoverage\tcount\tlength\tnonzero\tperiodicity\tpval\n'
@@ -176,7 +178,7 @@ def export_orf_coverages(orfs, merged_alignments, prefix):
         count = sum(cov)
         length = len(cov)
         coh, pval, valid = coherence(cov)
-        if coh < CUTOFF:  # skip those fail the cutoff
+        if not testRNA and coh < CUTOFF:  # skip those fail the cutoff
             continue
         to_write += '{}\t{}\t{}\t{}\t{}\t{}\t{}\n'.format(
             oid, cov, count, length, valid, coh, pval)
@@ -254,7 +256,7 @@ def detect_orfs(bam,
 
     if testRNA:
         alignments = count_rna_bam(bam, protocol, prefix)
-        export_orf_coverages(cds + uorfs + dorfs, alignments, prefix)
+        export_orf_coverages(cds + uorfs + dorfs, alignments, prefix, True)
         return
     alignments, read_lengths = split_bam(bam, protocol, prefix)
     plot_read_lengths(read_lengths, prefix)
