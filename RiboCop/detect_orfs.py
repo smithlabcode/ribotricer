@@ -22,6 +22,7 @@ from .plotting import plot_read_lengths
 from .plotting import plot_metagene
 from .constants import CUTOFF
 from .bam import split_bam
+from .bam import count_rna_bam
 from .metagene import metagene_coverage
 from .metagene import align_metagenes
 from .orf import ORF
@@ -215,7 +216,8 @@ def detect_orfs(bam,
                 gtf=None,
                 fasta=None,
                 annotation=None,
-                protocol=None):
+                protocol=None,
+                testRNA=False):
     """
     Parameters
     ----------
@@ -250,6 +252,10 @@ def detect_orfs(bam,
     if protocol is None:
         protocol = infer_protocol(bam, gtf, prefix)
 
+    if testRNA:
+        alignments = count_rna_bam(bam, protocol, prefix)
+        export_orf_coverages(cds + uorfs + dorfs, alignments, prefix)
+        return
     alignments, read_lengths = split_bam(bam, protocol, prefix)
     plot_read_lengths(read_lengths, prefix)
     metagenes = metagene_coverage(cds, alignments, read_lengths, prefix)

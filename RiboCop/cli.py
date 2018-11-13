@@ -65,6 +65,19 @@ def detect_orfs_cmd(bam, prefix, gtf, annotation):
     detect_orfs(bam, prefix, gtf=gtf, annotation=annotation)
 
 
+###################### export-rna function #########################################
+@cli.command(
+    'export-rna',
+    context_settings=CONTEXT_SETTINGS,
+    help='Detect translating ORFs from RNA BAM file')
+@click.option('--bam', help='Path to BAM file')
+@click.option('--prefix', help='Prefix to output file')
+@click.option('--gtf', help='Path to GTF file')
+@click.option('--annotation', help='Path to annotation file')
+def detect_orfs_cmd(bam, prefix, gtf, annotation):
+    detect_orfs(bam, prefix, gtf=gtf, annotation=annotation, testRNA=True)
+
+
 ###################### infer-protocol function #########################################
 @cli.command(
     'infer-protocol',
