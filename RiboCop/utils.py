@@ -269,10 +269,13 @@ def theta_dist(rna_file, ribo_file, frame_file, prefix, cutoff=5):
     mean = total_reads / total_length
     poisson_cov = np.random.poisson(mean, total_length)
     poisson_angles, poisson_zeros = angle(poisson_cov, 0)
-    ### append the number of zero vector to the end
-    rna_angles.append(rna_zeros)
-    ribo_angles.append(ribo_zeros)
-    poisson_angles.append(poisson_zeros)
+    with open('{}_angle_stats.txt'.format(prefix), 'w') as output:
+        output.write('total_rna_reads: {}\n'.format(total_reads))
+        output.write('total_ccds_length: {}\n'.format(total_length))
+        output.write('mean reads: {.4}\n'.format(mean))
+        output.write('rna zero vectors: {}\n'.format(rna_zeros))
+        output.write('poisson zero vectors: {}\n'.format(poisson_zeros))
+        output.write('ribo zero vectors: {}\n'.format(ribo_zeros))
     with open('{}_rna_angles.txt'.format(prefix), 'w') as output:
         output.write('\n'.join(map(str, rna_angles)))
     with open('{}_ribo_angles.txt'.format(prefix), 'w') as output:
