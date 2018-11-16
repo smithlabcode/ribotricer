@@ -21,6 +21,7 @@ from .utils import parse_ccds
 from .utils import test_periodicity
 from .utils import benchmark
 from .utils import theta_dist
+from .utils import theta_rna
 
 click.disable_unicode_literals_warning = True
 CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
@@ -145,6 +146,18 @@ def benchmark_cmd(rna, ribo, prefix, cutoff):
 @click.option('--prefix', help='Prefix to output file')
 def theta_dist_cmd(rna, ribo, frame, prefix):
     theta_dist(rna, ribo, frame, prefix)
+
+
+###################### theta rna distribution function #########################################
+@cli.command(
+    'theta-rna',
+    context_settings=CONTEXT_SETTINGS,
+    help='Test distribution of angles in RNA')
+@click.option('--rna', help='Path to rna ORF file')
+@click.option('--prefix', help='Prefix to output file')
+@click.option('--cutoff', help='Cutoff of reads', type=int, default=10)
+def theta_rna_cmd(rna, prefix, cutoff):
+    theta_rna(rna, prefix, cutoff)
 
 
 ###################### parse-annotation function #########################################
