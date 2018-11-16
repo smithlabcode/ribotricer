@@ -182,11 +182,13 @@ def benchmark(rna_file, ribo_file, prefix, cutoff=5):
 
 def angle(cov, frame):
     ans = []
+    nzeros = 0
     cov = cov[frame:]
     i = 0
     while i + 2 < len(cov):
         if cov[i] == cov[i + 1] == cov[i + 2] == 0:
             i += 3
+            nzeros += 1
             continue
         real = cov[i] - 0.5 * (cov[i + 1] + cov[i + 2])
         img = np.sqrt(3) / 2 * (cov[i + 1] - cov[i + 2])
@@ -195,7 +197,7 @@ def angle(cov, frame):
             continue
         ans.append(np.arctan2(img, real))
         i += 3
-    return ans
+    return ans, nzeros
 
 
 def theta_dist(rna_file, ribo_file, frame_file, prefix, cutoff=5):
@@ -246,18 +248,37 @@ def theta_dist(rna_file, ribo_file, frame_file, prefix, cutoff=5):
 
     rna_angles = []
     ribo_angles = []
+    rna_zeros=ribo_zeros=0
+    total_reads = 0
+    total_length = 0
     common_ids = set(ribo.keys()) & set(rna.keys())
     for ID in tqdm(common_ids):
         if sum(rna[ID]) < cutoff or sum(ribo[ID]) < cutoff:
             continue
         if len(ribo[ID]) < 10:
             continue
-        rna_angles += angle(rna[ID], frame[ID])
-        ribo_angles += angle(ribo[ID], frame[ID])
+        cur_rna_angles, cur_rna_zeros = angle(rna[ID], frame[ID])
+        rna_angles += cur_rna_angles
+        rna_zeros += cur_rna_zeros
+        cur_ribo_angles, cur_ribo_zeros = angle(ribo[ID], frame[ID])
+        ribo_angles += cur_ribo_angles
+        ribo_zeros += cur_ribo_zeros
+        total_reads += sum(rna[ID])
+        total_length += len(rna[ID])
+    ### generate theoretical theta dist from Poisson
+    mean = total_reads / total_length
+    poisson_cov = np.random.poisson(mean, total_length)
+    poisson_angles, poisson_zeros = angle(poisson_cov, 0)
+    ### append the number of zero vector to the end
+    rna_angles.append(rna_zeros)
+    ribo_angles.append(ribo_zeros)
+    poisson_angles.append(poisson_zeros)
     with open('{}_rna_angles.txt'.format(prefix), 'w') as output:
         output.write('\n'.join(map(str, rna_angles)))
     with open('{}_ribo_angles.txt'.format(prefix), 'w') as output:
         output.write('\n'.join(map(str, ribo_angles)))
+    with open('{}_poisson_angles.txt'.format(prefix), 'w') as output:
+        output.write('\n'.join(map(str, poisson_angles)))
 
 
 def theta_rna(rna_file, prefix, cutoff=10):
