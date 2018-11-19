@@ -93,7 +93,7 @@ def split_bam(bam, protocol, prefix):
                    total_count, valid, qcfail, duplicate, secondary, unmapped,
                    multi)
 
-    for length in read_lengths:
+    for length in sorted(read_lengths):
         summary += '\t{}: {}\n'.format(length, read_lengths[length])
 
     with open('{}_bam_summary.txt'.format(prefix), 'w') as output:

@@ -251,6 +251,7 @@ def theta_dist(rna_file, ribo_file, frame_file, prefix, cutoff=5):
     rna_zeros=ribo_zeros=0
     total_reads = 0
     total_length = 0
+    total_ribo_reads = total_ribo_length=0
     common_ids = set(ribo.keys()) & set(rna.keys())
     print('calculating angles')
     for ID in tqdm(common_ids):
@@ -266,6 +267,8 @@ def theta_dist(rna_file, ribo_file, frame_file, prefix, cutoff=5):
         ribo_zeros += cur_ribo_zeros
         total_reads += sum(rna[ID])
         total_length += len(rna[ID])
+        total_ribo_reads += sum(ribo[ID])
+        total_ribo_length += len(ribo[ID])
     ### generate theoretical theta dist from Poisson
     print('generating theoretical theta dist from Poisson')
     mean = total_reads / total_length
@@ -273,7 +276,9 @@ def theta_dist(rna_file, ribo_file, frame_file, prefix, cutoff=5):
     poisson_angles, poisson_zeros = angle(poisson_cov, 0)
     with open('{}_angle_stats.txt'.format(prefix), 'w') as output:
         output.write('total_rna_reads: {}\n'.format(total_reads))
-        output.write('total_ccds_length: {}\n'.format(total_length))
+        output.write('total_rna_ccds_length: {}\n'.format(total_length))
+        output.write('total_ribo_reads: {}\n'.format(total_ribo_reads))
+        output.write('total_ribo_ccds_length: {}\n'.format(total_ribo_length))
         output.write('mean reads: {}\n'.format(mean))
         output.write('rna zero vectors: {}\n'.format(rna_zeros))
         output.write('poisson zero vectors: {}\n'.format(poisson_zeros))
