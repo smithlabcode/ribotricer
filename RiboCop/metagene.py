@@ -191,10 +191,10 @@ def metagene_coverage(cds,
     to_write_5p = ''
     to_write_3p = ''
     for length in sorted(metagenes):
-        to_write_5p += '{}\t{}\t{}\n'.format(
-            length, offset_5p, metagenes[length][0].tolist())
-        to_write_3p += '{}\t{}\t{}\n'.format(
-            length, offset_3p, metagenes[length][1].tolist())
+        to_write_5p += '{}\t{}\t{}\n'.format(length, offset_5p,
+                                             metagenes[length][0].tolist())
+        to_write_3p += '{}\t{}\t{}\n'.format(length, offset_3p,
+                                             metagenes[length][1].tolist())
 
     with open('{}_metagene_profiles_5p.tsv'.format(prefix), 'w') as output:
         output.write(to_write_5p)

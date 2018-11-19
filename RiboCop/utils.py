@@ -174,8 +174,8 @@ def benchmark(rna_file, ribo_file, prefix, cutoff=5):
         ribo_coh, ribo_pval, ribo_valid = coherence(ribo[ID])
         ribo_cov = ribo_valid / len(ribo[ID])
 
-        to_write += '{}\t{}\t{}\t{}\t{}\n'.format(
-            ID, ribo_coh, rna_coh, ribo_cov, rna_cov)
+        to_write += '{}\t{}\t{}\t{}\t{}\n'.format(ID, ribo_coh, rna_coh,
+                                                  ribo_cov, rna_cov)
     with open('{}_results.txt'.format(prefix), 'w') as output:
         output.write(to_write)
 
@@ -248,10 +248,10 @@ def theta_dist(rna_file, ribo_file, frame_file, prefix, cutoff=5):
 
     rna_angles = []
     ribo_angles = []
-    rna_zeros=ribo_zeros=0
+    rna_zeros = ribo_zeros = 0
     total_reads = 0
     total_length = 0
-    total_ribo_reads = total_ribo_length=0
+    total_ribo_reads = total_ribo_length = 0
     common_ids = set(ribo.keys()) & set(rna.keys())
     print('calculating angles')
     for ID in tqdm(common_ids):
