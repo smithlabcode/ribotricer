@@ -165,10 +165,10 @@ def benchmark(rna_file, ribo_file, prefix, cutoff=5):
     to_write = 'ID\tribo_coh\trna_coh\tribo_cov\trna_cov\n'
     common_ids = set(ribo.keys()) & set(rna.keys())
     for ID in tqdm(common_ids):
-        if sum(rna[ID]) < cutoff or sum(ribo[ID]) < cutoff:
-            continue
-        if len(ribo[ID]) < 10:
-            continue
+        # if sum(rna[ID]) < cutoff or sum(ribo[ID]) < cutoff:
+        #     continue
+        # if len(ribo[ID]) < 10:
+        #     continue
         rna_coh, rna_pval, rna_valid = coherence(rna[ID])
         rna_cov = rna_valid / len(rna[ID])
         ribo_coh, ribo_pval, ribo_valid = coherence(ribo[ID])
