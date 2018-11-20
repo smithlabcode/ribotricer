@@ -91,4 +91,4 @@ def coherence(original_values):
             valid = length
         if valid == -1:
             valid = length
-    return coh, pval, valid
+    return np.sqrt(coh), pval, valid
