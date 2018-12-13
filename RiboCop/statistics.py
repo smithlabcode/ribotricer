@@ -6,6 +6,47 @@ from scipy import signal
 from math import sin, cos, pi, sqrt
 
 
+def phasescore(profile):
+    """Calculate phase score for a RPF profile
+
+    Parameters
+    ----------
+    profile: array like
+             list of value
+
+    Returns
+    -------
+    phase_score: double
+                 phase score for RPF profile
+    nonempty: int
+              numbere of non-empty codons
+    """
+    phase_score, nonempty = 0.0, 0
+    for frame in [0, 1, 2]:
+        values = profile[frame:]
+        x = y = 0.0
+        valid = 0
+        i = 0
+        while i + 2 < len(values):
+            if values[i] == values[i + 1] == values[i + 2] == 0:
+                continue
+            valid += 1
+            cur_x = values[i] * 1 + values[i + 1] * cos(
+                -2 * pi / 3) + values[i + 2] * cos(-4 * pi / 3)
+            cur_y = values[i] * 0 + values[i + 1] * sin(
+                -2 * pi / 3) + values[i + 2] * sin(-4 * pi / 3)
+            norm = sqrt(cur_x * cur_x + cur_y * cur_y)
+            if norm > 0:
+                x += cur_x / norm
+                y += cur_y / norm
+            i += 3
+        cur_phase_score = sqrt(x * x + y * y)
+        if cur_phase_score > phase_score:
+            phase_score = cur_phase_score
+            nonempty = valid
+    return phase_score, nonempty
+
+
 def pvalue(x, N):
     """Calculate p-value for coherence score
 
