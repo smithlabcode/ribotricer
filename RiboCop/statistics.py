@@ -21,14 +21,16 @@ def phasescore(profile):
     nonempty: int
               numbere of non-empty codons
     """
-    phase_score, nonempty = 0.0, 0
+    phase_score, nonempty = 0.0, -1
     for frame in [0, 1, 2]:
         values = profile[frame:]
+        cur_phase_score = 0.0
         x = y = 0.0
         valid = 0
         i = 0
         while i + 2 < len(values):
             if values[i] == values[i + 1] == values[i + 2] == 0:
+                i += 3
                 continue
             valid += 1
             cur_x = values[i] * 1 + values[i + 1] * cos(
@@ -40,7 +42,10 @@ def phasescore(profile):
                 x += cur_x / norm
                 y += cur_y / norm
             i += 3
-        cur_phase_score = sqrt(x * x + y * y)
+        if valid > 0:
+            cur_phase_score = sqrt(x * x + y * y) / valid
+        if nonempty == -1:
+            nonempty = valid
         if cur_phase_score > phase_score:
             phase_score = cur_phase_score
             nonempty = valid
