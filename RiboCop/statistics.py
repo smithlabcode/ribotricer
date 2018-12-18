@@ -73,7 +73,10 @@ def pvalue(x, N):
 
 
 def coherence(original_values):
-    """Calculate coherence with an idea ribo-seq signal
+    """Calculate coherence with an idea ribo-seq signal,
+    this function is equivalent to phasescore implemented
+    above, but we expect scipy has better handling of numerical
+    precision.
 
     Parameters
     ----------
@@ -86,14 +89,11 @@ def coherence(original_values):
           Periodicity score calculated as
           coherence between input and idea 1-0-0 signal
 
-    pval: float
-          p value for the coherence
-
     valid: int
            number of valid codons used for calculation
 
     """
-    coh, pval, valid = 0.0, 1.0, -1
+    coh, valid = 0.0, 1.0, -1
     for frame in [0, 1, 2]:
         values = original_values[frame:]
         normalized_values = []
@@ -116,7 +116,7 @@ def coherence(original_values):
 
         length = len(normalized_values) // 3 * 3
         if length == 0:
-            return (0.0, 1.0, 0)
+            return (0.0, 0)
         normalized_values = normalized_values[:length]
         uniform_signal = [1, 0, 0] * (len(normalized_values) // 3)
         f, Cxy = signal.coherence(
@@ -127,14 +127,11 @@ def coherence(original_values):
             noverlap=0)
         try:
             periodicity_score = Cxy[np.argwhere(np.isclose(f, 1 / 3.0))[0]][0]
-            periodicity_pval = pvalue(periodicity_score, length // 3)
         except:
             periodicity_score = 0.0
-            periodicity_pval = 1.0
         if periodicity_score > coh:
             coh = periodicity_score
-            pval = periodicity_pval
-            valid = length
+            valid = length // 3
         if valid == -1:
-            valid = length
-    return np.sqrt(coh), pval, valid
+            valid = length // 3
+    return np.sqrt(coh), valid

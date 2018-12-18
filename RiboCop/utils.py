@@ -118,7 +118,7 @@ def test_periodicity(orf_file, prefix, method):
                 if len(cov) < 60:
                     corr, pval, nonzero = (0, 1, 0)
                 else:
-                    corr, pval, nonzero = coherence(cov)
+                    corr, nonzero = coherence(cov)
 
                 to_write += '{}\t{}\t{}\t{}\t{}\t{}\t{}\n'.format(
                     oid, cov, count, length, nonzero, corr, pval)
@@ -169,9 +169,9 @@ def benchmark(rna_file, ribo_file, prefix, cutoff=5):
             continue
         if len(ribo[ID]) < 10:
             continue
-        rna_coh, rna_pval, rna_valid = coherence(rna[ID])
+        rna_coh, rna_valid = coherence(rna[ID])
         rna_cov = rna_valid / len(rna[ID])
-        ribo_coh, ribo_pval, ribo_valid = coherence(ribo[ID])
+        ribo_coh, ribo_valid = coherence(ribo[ID])
         ribo_cov = ribo_valid / len(ribo[ID])
 
         to_write += '{}\t{}\t{}\t{}\t{}\n'.format(ID, ribo_coh, rna_coh,

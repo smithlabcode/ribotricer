@@ -178,7 +178,7 @@ def export_orf_coverages(orfs, merged_alignments, prefix, testRNA=False):
         cov = cov.tolist()
         count = sum(cov)
         length = len(cov)
-        coh, pval, valid = coherence(cov)
+        coh, valid = coherence(cov)
         # if not testRNA and coh < CUTOFF:  # skip those fail the cutoff
         #     continue
         to_write += '{}\t{}\t{}\t{}\t{}\t{}\t{}\n'.format(

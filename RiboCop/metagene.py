@@ -184,7 +184,7 @@ def metagene_coverage(cds,
         metagene_coverage_stop = metagene_coverage_stop.div(
             position_counter_stop)
 
-        coh, pval, valid = coherence(metagene_coverage_start.tolist())
+        coh, valid = coherence(metagene_coverage_start.tolist())
         metagenes[length] = (metagene_coverage_start, metagene_coverage_stop,
                              coh, pval, valid)
 
