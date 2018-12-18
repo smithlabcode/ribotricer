@@ -14,9 +14,9 @@ import pandas as pd
 import click
 from click_help_colors import HelpColorsGroup
 from . import __version__
+from .detect_orfs import detect_orfs
 from .infer_protocol import infer_protocol
 from .prepare_orfs import prepare_orfs
-from .detect_orfs import detect_orfs
 from .utils import parse_ccds
 from .utils import test_periodicity
 from .utils import benchmark
@@ -42,9 +42,9 @@ def cli():
     'prepare-orfs',
     context_settings=CONTEXT_SETTINGS,
     help='Extract candidate orfs based on GTF and FASTA files')
-@click.option('--gtf', help='Path to GTF file')
-@click.option('--fasta', help='Path to FASTA file')
-@click.option('--prefix', help='Prefix to output file')
+@click.option('--gtf', help='Path to GTF file', required=True)
+@click.option('--fasta', help='Path to FASTA file', required=True)
+@click.option('--prefix', help='Prefix to output file', required=True)
 @click.option(
     '--region',
     help='Regions to extract, comma separated str (e.g.  "cds,utr")')
@@ -58,10 +58,10 @@ def prepare_orfs_cmd(gtf, fasta, prefix, region):
     'detect-orfs',
     context_settings=CONTEXT_SETTINGS,
     help='Detect translating ORFs from BAM file')
-@click.option('--bam', help='Path to BAM file')
-@click.option('--prefix', help='Prefix to output file')
-@click.option('--gtf', help='Path to GTF file')
-@click.option('--annotation', help='Path to annotation file')
+@click.option('--bam', help='Path to BAM file', required=True)
+@click.option('--prefix', help='Prefix to output file', required=True)
+@click.option('--gtf', help='Path to GTF file', required=True)
+@click.option('--annotation', help='Path to annotation file', required=True)
 def detect_orfs_cmd(bam, prefix, gtf, annotation):
     detect_orfs(bam, prefix, gtf=gtf, annotation=annotation)
 
@@ -84,9 +84,9 @@ def detect_orfs_cmd(bam, prefix, gtf, annotation):
     'infer-protocol',
     context_settings=CONTEXT_SETTINGS,
     help='Infer protocol from BAM')
-@click.option('--bam', help='Path to bam file')
+@click.option('--bam', help='Path to bam file', required=True)
 @click.option(
-    '--gtf', help='Path to gtf file to be used for defining the gene strands')
+    '--gtf', help='Path to gtf file to be used for defining the gene strands', required=True)
 @click.option('--prefix', help='Prefix to output protocol file')
 @click.option(
     '--n_reads',
@@ -126,9 +126,9 @@ def test_periodicity_cmd(orf, prefix, method):
     'benchmark',
     context_settings=CONTEXT_SETTINGS,
     help='Test different method for periodicity score')
-@click.option('--rna', help='Path to rna ORF file')
-@click.option('--ribo', help='Path to ribo ORF file')
-@click.option('--prefix', help='Prefix to output file')
+@click.option('--rna', help='Path to rna ORF file', required=True)
+@click.option('--ribo', help='Path to ribo ORF file', required=True)
+@click.option('--prefix', help='Prefix to output file', required=True)
 @click.option(
     '--cutoff', type=int, default=5, help='Cutoff of number of reads')
 def benchmark_cmd(rna, ribo, prefix, cutoff):

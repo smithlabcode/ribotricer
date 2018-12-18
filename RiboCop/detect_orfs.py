@@ -14,18 +14,19 @@ from tqdm import *
 import numpy as np
 import pandas as pd
 
-from .fasta import FastaReader
-from .gtf import GTFReader
-from .statistics import coherence
-from .infer_protocol import infer_protocol
-from .plotting import plot_read_lengths
-from .plotting import plot_metagene
-from .constants import CUTOFF
 from .bam import split_bam
 from .bam import count_rna_bam
+from .constants import CUTOFF
+from .fasta import FastaReader
+from .gtf import GTFReader
+from .infer_protocol import infer_protocol
 from .metagene import metagene_coverage
 from .metagene import align_metagenes
 from .orf import ORF
+from .plotting import plot_read_lengths
+from .plotting import plot_metagene
+from .prepare_orfs import prepare_orfs
+from .statistics import coherence
 
 
 def merge_read_lengths(alignments, psite_offsets):
