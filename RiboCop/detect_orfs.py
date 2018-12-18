@@ -178,8 +178,8 @@ def export_orf_coverages(orfs, merged_alignments, prefix, testRNA=False):
         count = sum(cov)
         length = len(cov)
         coh, pval, valid = coherence(cov)
-        if not testRNA and coh < CUTOFF:  # skip those fail the cutoff
-            continue
+        # if not testRNA and coh < CUTOFF:  # skip those fail the cutoff
+        #     continue
         to_write += '{}\t{}\t{}\t{}\t{}\t{}\t{}\n'.format(
             oid, cov, count, length, valid, coh, pval)
     with open('{}_translating_ORFs.tsv'.format(prefix), 'w') as output:
