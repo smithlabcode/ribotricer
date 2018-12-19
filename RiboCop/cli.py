@@ -34,7 +34,7 @@ def cli():
     'prepare-orfs',
     context_settings=CONTEXT_SETTINGS,
     help='Extract candidate orfs based on GTF and FASTA files')
-@click.option('--gtf', help='Path to GTF file', required=True)
+@click.option('--gtf', help='Path to GTF file\nhahaha', required=True)
 @click.option('--fasta', help='Path to FASTA file', required=True)
 @click.option('--prefix', help='Prefix to output file', required=True)
 @click.option(
