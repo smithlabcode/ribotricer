@@ -33,16 +33,29 @@ def cli():
 @cli.command(
     'prepare-orfs',
     context_settings=CONTEXT_SETTINGS,
-    help='Extract candidate orfs based on GTF and FASTA files')
-@click.option('--gtf', help='Path to GTF file\nhahaha', required=True)
+    help='Extract candidate ORFS based on GTF and FASTA files')
+@click.option('--gtf', help='Path to GTF file', required=True)
 @click.option('--fasta', help='Path to FASTA file', required=True)
 @click.option('--prefix', help='Prefix to output file', required=True)
 @click.option(
-    '--region',
-    help='Regions to extract, comma separated str (e.g.  "cds,utr")')
-def prepare_orfs_cmd(gtf, fasta, prefix, region):
-    region = [x.strip() for x in region.strip().split(',')]
-    prepare_orfs(gtf, fasta, prefix, region)
+    '--min_orf_length',
+    type=int,
+    default=60,
+    show_default=True,
+    help='The minimum length (nts) of ORF to include')
+@click.option(
+    '--startcodon',
+    default='ATG',
+    show_default=True,
+    help='Comma separated list of start codons')
+@click.option(
+    '--stopcodon',
+    default='TAG,TAA,TGA',
+    show_default=True,
+    help='Comma separated list of stop codons')
+def prepare_orfs_cmd(gtf, fasta, prefix, min_orf_length, startcodon,
+                     stopcodon):
+    prepare_orfs(gtf, fasta, prefix, min_orf_length, startcodon, stopcodon)
 
 
 ###################### detect-orfs function #########################################
@@ -51,10 +64,35 @@ def prepare_orfs_cmd(gtf, fasta, prefix, region):
     context_settings=CONTEXT_SETTINGS,
     help='Detect translating ORFs from BAM file')
 @click.option('--bam', help='Path to BAM file', required=True)
-@click.option('--prefix', help='Prefix to output file', required=True)
+@click.option(
+    '--annotation',
+    help=('Path to annotation file\n'
+          'This file should be generated using prepare-orfs'),
+    required=True)
 @click.option('--gtf', help='Path to GTF file', required=True)
-@click.option('--annotation', help='Path to annotation file', required=True)
-def detect_orfs_cmd(bam, prefix, gtf, annotation):
+@click.option('--prefix', help='Prefix to output file', required=True)
+@click.option(
+    '--readlength',
+    default=None,
+    show_default=True,
+    help=('Comma separated read lengths to be used, such as 28,29,30\n'
+          'If not provided, the metagene level '
+          'periodic read lengths will be used'))
+@click.option(
+    '--offset',
+    default=None,
+    show_default=True,
+    help=('Comma separated P-site offsets for each read length '
+          'matching the read lengths provided.\n'
+          'If not provided, reads from different read lengths will be '
+          'automatically aligned using cross-correlation'))
+@click.option(
+    '--outputall',
+    help=('Whether output all ORFs including those '
+          'non-translating ones'),
+    is_flag=True)
+def detect_orfs_cmd(bam, annotation, gtf, prefix, readlength, offset,
+                    outputall):
     detect_orfs(bam, prefix, gtf=gtf, annotation=annotation)
 
 
