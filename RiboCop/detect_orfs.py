@@ -93,8 +93,8 @@ def parse_annotation(annotation):
                 orf = ORF.from_string(line)
                 if orf is None:
                     continue
-                strand_info[orf.chrom].insert(orf.intervals[0].start,
-                        orf.intervals[-1].end, orf.strand)
+                strand_info[orf.chrom].insert(
+                    orf.intervals[0].start, orf.intervals[-1].end, orf.strand)
                 if orf.category == 'annotated':
                     cds.append(orf)
                 elif orf.category == 'uORF':

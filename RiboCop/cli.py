@@ -67,14 +67,16 @@ def prepare_orfs_cmd(gtf, fasta, prefix, min_orf_length, start_codons,
     help=('Path to the index file of RiboCop\n'
           'This file should be generated using RiboCop prepare-orfs'),
     required=True)
-@click.option(
-    '--gtf',
-    help=(
-        'Path to GTF file\n'
-        'This file is used to check the strandedness of experimental protocol'
-    ),
-    required=True)
 @click.option('--prefix', help='Prefix to output file', required=True)
+@click.option(
+    '--stranded',
+    type=click.Choice(['yes', 'no', 'reverse']),
+    default=None,
+    show_default=True,
+    help=
+    ('whether the data is from a strand-specific assay'
+     ' If not provided, the experimental protocol will be automatically inferred'
+     ))
 @click.option(
     '--read_lengths',
     default=None,
@@ -115,7 +117,7 @@ def detect_orfs_cmd(bam, ribocop_index, gtf, prefix, read_lengths,
     help='Number of mapped reads to use for estimation')
 def infer_protocol_cmd(bam, gtf, prefix, n_reads):
     infer_protocol(bam, gtf, prefix, n_reads)
-    
+
 
 ###################### infer-protocol function #########################################
 @cli.command(

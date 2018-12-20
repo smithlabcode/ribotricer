@@ -182,7 +182,8 @@ def search_orfs(fasta, intervals):
     return orfs
 
 
-def prepare_orfs(gtf, fasta, prefix, min_orf_length, start_codons, stop_codons):
+def prepare_orfs(gtf, fasta, prefix, min_orf_length, start_codons,
+                 stop_codons):
     """
     Parameters
     ----------
