@@ -182,7 +182,7 @@ def search_orfs(fasta, intervals):
     return orfs
 
 
-def prepare_orfs(gtf, fasta, prefix, region=['cds']):
+def prepare_orfs(gtf, fasta, prefix, min_orf_length, start_codons, stop_codons):
     """
     Parameters
     ----------
@@ -192,17 +192,12 @@ def prepare_orfs(gtf, fasta, prefix, region=['cds']):
            instance of FastaReader
     prefix: str
             prefix for output file
-    region: array of str
-            e.g. ['cds', 'utr']
-
-    Returns
-    -------
-    cds: List[ORF]
-         list of CDS
-    uorfs: List[ORF]
-           list of upstream ORFs
-    dorfs: List[ORF]
-           list of downstream ORFs
+    min_orf_length: int
+                    minimum length (nts) of ORF to include
+    start_codons: set
+                  set of start codons
+    stop_codons: set
+                 set of stop codons
     """
 
     if not isinstance(gtf, GTFReader):
@@ -312,5 +307,3 @@ def prepare_orfs(gtf, fasta, prefix, region=['cds']):
 
     with open('{}_candidate_orfs.tsv'.format(prefix), 'w') as output:
         output.write(to_write)
-
-    return (cds_orfs, uorfs, dorfs)
