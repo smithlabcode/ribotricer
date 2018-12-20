@@ -16,6 +16,7 @@ import pandas as pd
 
 from .bam import split_bam
 from .bam import count_rna_bam
+from bx.intervals.intersection import IntervalTree
 from .constants import CUTOFF
 from .fasta import FastaReader
 from .gtf import GTFReader
@@ -74,9 +75,10 @@ def parse_annotation(annotation):
           list of candidate ORFs from 3'UTR
     """
 
-    cds = []
-    uorfs = []
-    dorfs = []
+    annotated = []
+    novel = []
+    strand_info = defaultdict(IntervalTree)
+
     print('parsing candidate ORFs...')
     with open(annotation, 'r') as anno:
         total_lines = len(['' for line in anno])
@@ -91,13 +93,15 @@ def parse_annotation(annotation):
                 orf = ORF.from_string(line)
                 if orf is None:
                     continue
-                if orf.category == 'CDS':
+                strand_info[orf.chrom].insert(orf.intervals[0].start,
+                        orf.intervals[-1].end, orf.strand)
+                if orf.category == 'annotated':
                     cds.append(orf)
                 elif orf.category == 'uORF':
                     uorfs.append(orf)
                 elif orf.category == 'dORF':
                     dorfs.append(orf)
-    return (cds, uorfs, dorfs)
+    return (annotated, novel, strand_info)
 
 
 def orf_coverage(orf, alignments, offset_5p=20, offset_3p=0):

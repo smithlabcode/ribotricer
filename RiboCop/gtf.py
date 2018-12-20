@@ -64,16 +64,16 @@ class GTFTrack:
 class GTFReader:
     """Class for reading and parseing gtf file."""
 
-    def __init__(self, gtf_location, region=[]):
+    def __init__(self, gtf_location):
         """
         Parameters
         ---------
         gtf_location : string
                        Path to gtf file
-
         """
         self.gtf_location = gtf_location
         self.gene = defaultdict(IntervalTree)
+        self.transcript = defaultdict(GTFTrack)
         self.cds = defaultdict(lambda: defaultdict(list))
         self.utr = defaultdict(lambda: defaultdict(list))
         print('reading GTF file...')
@@ -98,7 +98,9 @@ class GTFReader:
                             track.chrom, track.start, track.end))
                         continue
 
-                    if track.feature == 'cds' and 'cds' in region:
+                    if track.feature == 'transcript':
+                        self.transcript = track
+                    elif track.feature == 'cds':
                         self.cds[gid][tid].append(track)
-                    elif track.feature == 'utr' and 'utr' in region:
+                    elif track.feature == 'utr':
                         self.utr[gid][tid].append(track)

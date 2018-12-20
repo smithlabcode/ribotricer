@@ -11,15 +11,15 @@ from .gtf import GTFReader
 from .common import is_read_uniq_mapping
 
 
-def infer_protocol(bam, gtf, prefix, n_reads=20000):
+def infer_protocol(bam, refseq, prefix, n_reads=20000):
     """Infer strandedness protocol given a bam file
 
     Parameters
     ----------
     bam: str
          Path to bam file
-    gtf: GTFReader instance
-         GTFReader instance
+    strand_info: defaultdict(IntervalTree)
+                 chrom: (start, end, strand)
     prefix: str
             Prefix for protocol file
     n_reads: int
@@ -30,9 +30,6 @@ def infer_protocol(bam, gtf, prefix, n_reads=20000):
     protocol: string
               forward/reverse
     """
-    if not isinstance(gtf, GTFReader):
-        gtf = GTFReader(gtf)
-    refseq = gtf.gene
     iteration = 0
     bam = pysam.AlignmentFile(bam, 'rb')
     strandedness = Counter()

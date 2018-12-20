@@ -11,6 +11,7 @@ from . import __version__
 from .detect_orfs import detect_orfs
 from .infer_protocol import infer_protocol
 from .prepare_orfs import prepare_orfs
+from .detect_orfs import parse_annotation
 
 click.disable_unicode_literals_warning = True
 CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
@@ -114,3 +115,21 @@ def detect_orfs_cmd(bam, ribocop_index, gtf, prefix, read_lengths,
     help='Number of mapped reads to use for estimation')
 def infer_protocol_cmd(bam, gtf, prefix, n_reads):
     infer_protocol(bam, gtf, prefix, n_reads)
+    
+
+###################### infer-protocol function #########################################
+@cli.command(
+    'infer-protocol-index',
+    context_settings=CONTEXT_SETTINGS,
+    help='Infer protocol from BAM')
+@click.option('--bam', help='Path to bam file', required=True)
+@click.option('--ribocop_index', help='path to index', required=True)
+@click.option('--prefix', help='Prefix to output file')
+@click.option(
+    '--n_reads',
+    type=int,
+    default=20000,
+    help='Number of mapped reads to use for estimation')
+def infer_protocol_cmd(bam, ribocop_index, prefix, n_reads):
+    annotated, novel, refseq = parse_annotation(ribocop_index)
+    infer_protocol(bam, refseq, prefix, n_reads)
