@@ -124,7 +124,7 @@ def fetch_seq(fasta, tracks):
     return merged_seq
 
 
-def search_orfs(fasta, intervals):
+def search_orfs(fasta, intervals, min_orf_length, start_codons, stop_codons):
     """
     Parameters
     ----------
@@ -132,6 +132,12 @@ def search_orfs(fasta, intervals):
            instance of FastaReader
     intervals: List[Interval]
                list of intervals
+    min_orf_length: int
+                    minimum length (nts) of ORF to include
+    start_codons: set
+                  set of start codons
+    stop_codons: set
+                 set of stop codons
 
     Returns
     -------
@@ -156,11 +162,6 @@ def search_orfs(fasta, intervals):
     if strand == '-':
         merged_seq = fasta.reverse_complement(merged_seq)
         reverse = True
-    start_codons = set([
-        'ATG', 'TTG', 'CTG', 'GTG', 'AAG', 'AGG', 'ACG', 'ACG', 'ATA', 'ATT',
-        'ATC'
-    ])
-    stop_codons = set(['TAG', 'TAA', 'TGA'])
     for sc in start_codons:
         cur = 0
         while cur < len(merged_seq):
@@ -232,7 +233,8 @@ def prepare_orfs(gtf, fasta, prefix, min_orf_length, start_codons,
         chrom = tracks[0].chrom
         strand = tracks[0].strand
         ivs = tracks_to_ivs(tracks)
-        orfs = search_orfs(fasta, ivs)
+        orfs = search_orfs(fasta, ivs, min_orf_length, start_codons,
+                           stop_codons)
         for ivs, seq, leader, trailer in orfs:
             otype = check_orf_type(gid, tid, ivs)
             orf = ORF(otype, tid, ttype, gid, gname, gtype, chrom, strand, ivs,
@@ -245,7 +247,7 @@ def prepare_orfs(gtf, fasta, prefix, min_orf_length, start_codons,
                 '\tgene_id\tgene_name\tgene_type\tchrom'
                 '\tstrand\tcoordinate\tseq\tleader\ttrailer\n')
     formatter = '{}\t' * 12 + '{}\n'
-    for orf in tqdm(cds_orfs):
+    for orf in tqdm(candidate_orfs):
         coordinate = ','.join(
             ['{}-{}'.format(iv.start, iv.end) for iv in orf.intervals])
         to_write += formatter.format(orf.oid, orf.category, orf.tid, orf.ttype,
