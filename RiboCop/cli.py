@@ -5,9 +5,6 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
-import numpy as np
-import pandas as pd
-
 import click
 from click_help_colors import HelpColorsGroup
 from . import __version__
@@ -44,18 +41,18 @@ def cli():
     show_default=True,
     help='The minimum length (nts) of ORF to include')
 @click.option(
-    '--startcodon',
+    '--start_codons',
     default='ATG',
     show_default=True,
     help='Comma separated list of start codons')
 @click.option(
-    '--stopcodon',
+    '--stop_codons',
     default='TAG,TAA,TGA',
     show_default=True,
     help='Comma separated list of stop codons')
-def prepare_orfs_cmd(gtf, fasta, prefix, min_orf_length, startcodon,
-                     stopcodon):
-    prepare_orfs(gtf, fasta, prefix, min_orf_length, startcodon, stopcodon)
+def prepare_orfs_cmd(gtf, fasta, prefix, min_orf_length, start_codons,
+                     stop_codons):
+    prepare_orfs(gtf, fasta, prefix, min_orf_length, start_codons, stop_codons)
 
 
 ###################### detect-orfs function #########################################
@@ -65,21 +62,21 @@ def prepare_orfs_cmd(gtf, fasta, prefix, min_orf_length, startcodon,
     help='Detect translating ORFs from BAM file')
 @click.option('--bam', help='Path to BAM file', required=True)
 @click.option(
-    '--annotation',
-    help=('Path to annotation file\n'
-          'This file should be generated using prepare-orfs'),
+    '--ribocop_index',
+    help=('Path to the index file of RiboCop\n'
+          'This file should be generated using RiboCop prepare-orfs'),
     required=True)
-@click.option('--gtf', help='Path to GTF file', required=True)
+@click.option('--gtf', help=('Path to GTF file\n''This file is used to check the strandedness of experimental protocol'), required=True)
 @click.option('--prefix', help='Prefix to output file', required=True)
 @click.option(
-    '--readlength',
+    '--read_lengths',
     default=None,
     show_default=True,
     help=('Comma separated read lengths to be used, such as 28,29,30\n'
-          'If not provided, the metagene level '
-          'periodic read lengths will be used'))
+          'If not provided, it will be automatically determined by assessing'
+          ' the metagene periodicity'))
 @click.option(
-    '--offset',
+    '--psite_offsets',
     default=None,
     show_default=True,
     help=('Comma separated P-site offsets for each read length '
@@ -87,13 +84,13 @@ def prepare_orfs_cmd(gtf, fasta, prefix, min_orf_length, startcodon,
           'If not provided, reads from different read lengths will be '
           'automatically aligned using cross-correlation'))
 @click.option(
-    '--outputall',
+    '--report_all',
     help=('Whether output all ORFs including those '
           'non-translating ones'),
     is_flag=True)
-def detect_orfs_cmd(bam, annotation, gtf, prefix, readlength, offset,
-                    outputall):
-    detect_orfs(bam, prefix, gtf=gtf, annotation=annotation)
+def detect_orfs_cmd(bam, ribocop_index, gtf, prefix, read_lengths, psite_offsets,
+                    report_all):
+    detect_orfs(bam, ribocop_index, gtf, prefix, read_lengths, psite_offsets)
 
 
 ###################### infer-protocol function #########################################
