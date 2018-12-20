@@ -100,7 +100,7 @@ def prepare_orfs_cmd(gtf, fasta, prefix, min_orf_length, start_codons,
 def detect_orfs_cmd(bam, ribocop_index, prefix, stranded, read_lengths,
                     psite_offsets, report_all):
     detect_orfs(bam, ribocop_index, prefix, stranded, read_lengths,
-            psite_offsets, report_all)
+                psite_offsets, report_all)
 
 
 ###################### infer-protocol function #########################################

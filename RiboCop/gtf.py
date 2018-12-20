@@ -6,12 +6,16 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 from collections import defaultdict
-from bx.intervals.intersection import IntervalTree
 from tqdm import *
 
 
 class GTFTrack:
     """Class for feature in GTF file."""
+
+    standards = {
+        'gene_biotype': 'gene_type',
+        'transcript_biotype': 'transcript_type'
+    }
 
     def __init__(self, chrom, source, feature, start, end, score, strand,
                  frame, attribute):
@@ -26,7 +30,14 @@ class GTFTrack:
         for att in attribute.split(';'):
             if len(att.split()) == 2:
                 k, v = att.strip().split()
+                if k in GTFTrack.standards:
+                    k = GTFTrack.standards[k]
                 setattr(self, k, v.strip('"'))
+        if not hasattr(self, 'gene_name') and hasattr(self, 'gene_id'):
+            setattr(self, 'gene_name', self.gene_id)
+        if not hasattr(self, 'transcript_name') and hasattr(
+                self, 'transcript_id'):
+            setattr(self, 'transcript_name', self.transcript_id)
 
     @classmethod
     def from_string(cls, line):
@@ -54,6 +65,9 @@ class GTFTrack:
         frame = fields[7]
         attribute = fields[8]
 
+        if feature not in ['transcript', 'cds']:
+            return None
+
         return cls(chrom, source, feature, start, end, score, strand, frame,
                    attribute)
 
@@ -72,10 +86,8 @@ class GTFReader:
                        Path to gtf file
         """
         self.gtf_location = gtf_location
-        self.gene = defaultdict(IntervalTree)
         self.transcript = defaultdict(GTFTrack)
         self.cds = defaultdict(lambda: defaultdict(list))
-        self.utr = defaultdict(lambda: defaultdict(list))
         print('reading GTF file...')
         with open(self.gtf_location, 'r') as gtf:
             total_lines = len(['' for line in gtf])
@@ -86,10 +98,6 @@ class GTFReader:
                     track = GTFTrack.from_string(line)
                     if track is None:
                         continue
-                    if track.feature == 'gene':
-                        self.gene[track.chrom].insert(track.start, track.end,
-                                                      track.strand)
-                        continue
                     try:
                         gid = track.gene_id
                         tid = track.transcript_id
@@ -99,8 +107,6 @@ class GTFReader:
                         continue
 
                     if track.feature == 'transcript':
-                        self.transcript = track
+                        self.transcript[tid] = track
                     elif track.feature == 'cds':
                         self.cds[gid][tid].append(track)
-                    elif track.feature == 'utr':
-                        self.utr[gid][tid].append(track)
