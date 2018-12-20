@@ -65,7 +65,7 @@ class GTFTrack:
         frame = fields[7]
         attribute = fields[8]
 
-        if feature not in ['transcript', 'cds']:
+        if feature not in ['exon', 'cds']:
             return None
 
         return cls(chrom, source, feature, start, end, score, strand, frame,
@@ -86,7 +86,7 @@ class GTFReader:
                        Path to gtf file
         """
         self.gtf_location = gtf_location
-        self.transcript = defaultdict(GTFTrack)
+        self.transcript = defaultdict(list)
         self.cds = defaultdict(lambda: defaultdict(list))
         print('reading GTF file...')
         with open(self.gtf_location, 'r') as gtf:
@@ -106,7 +106,7 @@ class GTFReader:
                             track.chrom, track.start, track.end))
                         continue
 
-                    if track.feature == 'transcript':
-                        self.transcript[tid] = track
+                    if track.feature == 'exon':
+                        self.transcript[tid].append(track)
                     elif track.feature == 'cds':
                         self.cds[gid][tid].append(track)

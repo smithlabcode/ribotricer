@@ -182,6 +182,10 @@ def search_orfs(fasta, intervals):
     return orfs
 
 
+def check_orf_type(orf):
+    return 'novel'
+
+
 def prepare_orfs(gtf, fasta, prefix, min_orf_length, start_codons,
                  stop_codons):
     """
@@ -201,6 +205,7 @@ def prepare_orfs(gtf, fasta, prefix, min_orf_length, start_codons,
                  set of stop codons
     """
 
+    candidate_orfs = []
     if not isinstance(gtf, GTFReader):
         gtf = GTFReader(gtf)
     if not isinstance(fasta, FastaReader):
@@ -214,84 +219,25 @@ def prepare_orfs(gtf, fasta, prefix, min_orf_length, start_codons,
     for gid in tqdm(gtf.cds):
         for tid in gtf.cds[gid]:
             tracks = gtf.cds[gid][tid]
-            # seq = fetch_seq(fasta, tracks)
-            seq = ''
-            orf = ORF.from_tracks(tracks, 'CDS', seq=seq)
+            orf = ORF.from_tracks(tracks, 'CDS')
             if orf:
                 cds_orfs.append(orf)
 
-    # ### process UTR gtf
-    # utr5 = defaultdict(list)
-    # utr3 = defaultdict(list)
-    # for gid in gtf.utr:
-    #     ### find first cds and last cds for gene
-    #     gene_cds = []
-    #     for tid in gtf.cds[gid]:
-    #         gene_cds += gtf.cds[gid][tid]
-    #     if not gene_cds:
-    #         print('fail to find CDS for UTR')
-    #         continue
-    #     first_cds = gene_cds[0]
-    #     for gc in gene_cds:
-    #         if gc.start < first_cds.start:
-    #             first_cds = gc
-    #     last_cds = gene_cds[-1]
-    #     for gc in gene_cds:
-    #         if gc.end > last_cds.end:
-    #             last_cds = gc
-    #
-    #     for tid in gtf.utr[gid]:
-    #         for track in gtf.utr[gid][tid]:
-    #             if track.start < first_cds.start:
-    #                 if track.end >= first_cds.start:
-    #                     track.end = first_cds.start - 1
-    #                 if track.strand == '+':
-    #                     utr5[tid].append(track)
-    #                 else:
-    #                     utr3[tid].append(track)
-    #             elif track.end > last_cds.end:
-    #                 if track.start <= last_cds.end:
-    #                     track.start = last_cds.end + 1
-    #                 if track.strand == '+':
-    #                     utr3[tid].append(track)
-    #                 else:
-    #                     utr5[tid].append(track)
-    #
-    # uorfs = []
-    # print('searching uORFs...')
-    # for tid in tqdm(utr5):
-    #     tracks = utr5[tid]
-    #     ttype = tracks[0].transcript_type
-    #     gid = tracks[0].gene_id
-    #     gname = tracks[0].gene_name
-    #     gtype = tracks[0].gene_type
-    #     chrom = tracks[0].chrom
-    #     strand = tracks[0].strand
-    #
-    #     ivs = tracks_to_ivs(tracks)
-    #     orfs = search_orfs(fasta, ivs)
-    #     for ivs, seq, leader, trailer in orfs:
-    #         orf = ORF('uORF', tid, ttype, gid, gname, gtype, chrom, strand,
-    #                   ivs, seq, leader, trailer)
-    #         uorfs.append(orf)
-    #
-    # dorfs = []
-    # print('searching dORFs...')
-    # for tid in tqdm(utr3):
-    #     tracks = utr3[tid]
-    #     ttype = tracks[0].transcript_type
-    #     gid = tracks[0].gene_id
-    #     gname = tracks[0].gene_name
-    #     gtype = tracks[0].gene_type
-    #     chrom = tracks[0].chrom
-    #     strand = tracks[0].strand
-    #
-    #     ivs = tracks_to_ivs(tracks)
-    #     orfs = search_orfs(fasta, ivs)
-    #     for ivs, seq, leader, trailer in orfs:
-    #         orf = ORF('dORF', tid, ttype, gid, gname, gtype, chrom, strand,
-    #                   ivs, seq, leader, trailer)
-    #         dorfs.append(orf)
+    for tid in tqdm(gtf.transcript):
+        tracks = gtf.transcript[tid]
+        ttype = tracks[0].transcript_type
+        gid = tracks[0].gene_id
+        gname = tracks[0].gene_name
+        gtype = tracks[0].gene_type
+        chrom = tracks[0].chrom
+        strand = tracks[0].strand
+        ivs = tracks_to_ivs(tracks)
+        orfs = search_orfs(fasta, ivs)
+        for ivs, seq, leader, trailer in orfs:
+            otype = check_orf_type(gid, tid, ivs)
+            orf = ORF(otype, tid, ttype, gid, gname, gtype, chrom, strand, ivs,
+                      seq, leader, trailer)
+            candidate_orfs.append(orf)
 
     ### save to file
     print('saving candidate ORFs file...')
