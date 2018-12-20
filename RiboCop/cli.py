@@ -66,7 +66,13 @@ def prepare_orfs_cmd(gtf, fasta, prefix, min_orf_length, start_codons,
     help=('Path to the index file of RiboCop\n'
           'This file should be generated using RiboCop prepare-orfs'),
     required=True)
-@click.option('--gtf', help=('Path to GTF file\n''This file is used to check the strandedness of experimental protocol'), required=True)
+@click.option(
+    '--gtf',
+    help=(
+        'Path to GTF file\n'
+        'This file is used to check the strandedness of experimental protocol'
+    ),
+    required=True)
 @click.option('--prefix', help='Prefix to output file', required=True)
 @click.option(
     '--read_lengths',
@@ -88,8 +94,8 @@ def prepare_orfs_cmd(gtf, fasta, prefix, min_orf_length, start_codons,
     help=('Whether output all ORFs including those '
           'non-translating ones'),
     is_flag=True)
-def detect_orfs_cmd(bam, ribocop_index, gtf, prefix, read_lengths, psite_offsets,
-                    report_all):
+def detect_orfs_cmd(bam, ribocop_index, gtf, prefix, read_lengths,
+                    psite_offsets, report_all):
     detect_orfs(bam, ribocop_index, gtf, prefix, read_lengths, psite_offsets)
 
 
