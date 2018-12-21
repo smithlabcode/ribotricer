@@ -10,15 +10,12 @@ from collections import Counter
 from collections import defaultdict
 
 import datetime
-import pysam
 from tqdm import *
-import numpy as np
-import pandas as pd
 
+from .common import merge_intervals
 from .fasta import FastaReader
 from .gtf import GTFReader
 from .interval import Interval
-from .common import merge_intervals
 from .orf import ORF
 
 
@@ -210,7 +207,7 @@ def check_orf_type(orf, cds_orfs):
     gene_start = min([gc.intervals[0].start for gc in gene_cds])
     gene_end = max([gc.intervals[-1].end for gc in gene_cds])
     if orf.intervals == matched_cds.intervals:
-        return 'CDS'
+        return 'annotated'
     if orf.intervals[-1].end <= matched_cds.intervals[0].start:
         if orf.intervals[-1].end <= gene_start:
             return 'uORF' if orf.strand == '+' else 'dORF'
@@ -261,7 +258,7 @@ def prepare_orfs(gtf, fasta, prefix, min_orf_length, start_codons,
     for gid in tqdm(gtf.cds):
         for tid in gtf.cds[gid]:
             tracks = gtf.cds[gid][tid]
-            orf = ORF.from_tracks(tracks, 'CDS')
+            orf = ORF.from_tracks(tracks, 'annotated')
             if orf:
                 cds_orfs[gid][tid] = orf
 
