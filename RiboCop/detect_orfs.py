@@ -14,7 +14,6 @@ from tqdm import *
 import pandas as pd
 
 from .bam import split_bam
-from .bam import count_rna_bam
 from bx.intervals.intersection import IntervalTree
 from .const import CUTOFF
 from .fasta import FastaReader

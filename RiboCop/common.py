@@ -2,6 +2,7 @@
 """
 from .interval import Interval
 
+
 def is_read_uniq_mapping(read):
     """Check if read is uniquely mappable.
 
