@@ -223,8 +223,7 @@ def prepare_orfs(gtf, fasta, prefix, min_orf_length, start_codons,
     ### process CDS gtf
     now = datetime.datetime.now()
     print(
-        now.strftime(
-            '%b %d %H:%M:%S ..... starting extracting annotated ORFs'))
+        now.strftime('%b %d %H:%M:%S ... starting extracting annotated ORFs'))
     cds_orfs = []
     for gid in tqdm(gtf.cds):
         for tid in gtf.cds[gid]:
@@ -234,9 +233,10 @@ def prepare_orfs(gtf, fasta, prefix, min_orf_length, start_codons,
                 cds_orfs.append(orf)
 
     now = datetime.datetime.now()
-    print(
-        now.strftime('%b %d %H:%M:%S ..... starting searching \
-        transcriptome-wide ORFs. This may take a long time...'))
+    print('{} ... {}'.format(
+        now.strftime('%b %d %H:%M:%S'),
+        'starting searching transcriptome-wide ORFs. This may take a long time...'
+    ))
     for tid in tqdm(gtf.transcript):
         tracks = gtf.transcript[tid]
         ttype = tracks[0].transcript_type
@@ -257,7 +257,7 @@ def prepare_orfs(gtf, fasta, prefix, min_orf_length, start_codons,
 
     ### save to file
     now = datetime.datetime.now()
-    print(now.strftime('%b %d %H:%M:%S ..... saving candidate ORFs into disk'))
+    print(now.strftime('%b %d %H:%M:%S ... saving candidate ORFs into disk'))
     to_write = ('ORF_ID\tORF_type\ttranscript_id\ttranscript_type'
                 '\tgene_id\tgene_name\tgene_type\tchrom'
                 '\tstrand\tcoordinate\tseq\tleader\ttrailer\n')

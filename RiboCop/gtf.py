@@ -88,7 +88,7 @@ class GTFReader:
         self.gtf_location = gtf_location
         self.transcript = defaultdict(list)
         self.cds = defaultdict(lambda: defaultdict(list))
-        print('reading GTF file...')
+        # print('reading GTF file...')
         with open(self.gtf_location, 'r') as gtf:
             total_lines = len(['' for line in gtf])
         with open(self.gtf_location, 'r') as gtf:
