@@ -244,17 +244,7 @@ def detect_orfs(bam, ribocop_index, prefix, stranded, read_lengths,
                 status
     """
 
-    cds = uorfs = dorfs = None
-    if gtf and not isinstance(gtf, GTFReader):
-        gtf = GTFReader(gtf)
-
-    if fasta and not isinstance(fasta, FastaReader):
-        fasta = FastaReader(fasta)
-
-    if annotation is None:
-        cds, uorfs, dorfs = prepare_orfs(gtf, fasta, prefix)
-    else:
-        cds, uorfs, dorfs = parse_annotation(annotation)
+    cds, uorfs, dorfs = parse_annotation(annotation)
 
     if protocol is None:
         protocol = infer_protocol(bam, gtf, prefix)
