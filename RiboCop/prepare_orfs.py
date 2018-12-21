@@ -187,8 +187,41 @@ def search_orfs(fasta, intervals, min_orf_length, start_codons, stop_codons):
     return orfs
 
 
-def check_orf_type(orf):
-    return 'novel'
+def check_orf_type(orf, cds_orfs):
+    """
+    Parameters
+    ----------
+    orf: GTFReader
+         instance of GTFReader
+    cds_orfs: FastaReader
+           instance of FastaReader
+
+    Returns
+    -------
+    otype: str
+           Type of the candidate ORF
+    """
+    if orf.gene_id not in cds_orfs:
+        return 'novel'
+    if orf.transcript_id not in cds_orfs[orf.gene_id]:
+        return 'novel'
+    matched_cds = cds_orfs[orf.gene_id][orf.transcript_id]
+    gene_cds = [cds_orfs[tid] for tid in cds_orfs[orf.gene_id]]
+    gene_start = min([gc.intervals[0].start for gc in gene_cds])
+    gene_end = max([gc.intervals[-1].end for gc in gene_cds])
+    if orf.intervals == matched_cds.intervals:
+        return 'CDS'
+    if orf.intervals[-1].end <= matched_cds.intervals[0].start:
+        if orf.intervals[-1].end <= gene_start:
+            return 'uORF' if orf.strand == '+' else 'dORF'
+        else:
+            return 'overlap_uORF' if orf.strand == '+' else 'overlap_dORF'
+    elif orf.intervals[0].start >= matched_cds.intervals[-1].end:
+        if orf.intervals[0].start >= gene_end:
+            return 'dORF' if orf.strand == '+' else 'uORF'
+        else:
+            return 'overlap_dORF' if orf.strand == '+' else 'overlap_uORF'
+    return 'internal'
 
 
 def prepare_orfs(gtf, fasta, prefix, min_orf_length, start_codons,
@@ -224,13 +257,13 @@ def prepare_orfs(gtf, fasta, prefix, min_orf_length, start_codons,
     now = datetime.datetime.now()
     print(
         now.strftime('%b %d %H:%M:%S ... starting extracting annotated ORFs'))
-    cds_orfs = []
+    cds_orfs = defaultdict(defaultdict(ORF))
     for gid in tqdm(gtf.cds):
         for tid in gtf.cds[gid]:
             tracks = gtf.cds[gid][tid]
             orf = ORF.from_tracks(tracks, 'CDS')
             if orf:
-                cds_orfs.append(orf)
+                cds_orfs[gid][tid] = orf
 
     now = datetime.datetime.now()
     print('{} ... {}'.format(
@@ -250,9 +283,9 @@ def prepare_orfs(gtf, fasta, prefix, min_orf_length, start_codons,
                            stop_codons)
         for ivs, seq, leader, trailer in orfs:
             # otype = check_orf_type(gid, tid, ivs)
-            otype = 'novel'
-            orf = ORF(otype, tid, ttype, gid, gname, gtype, chrom, strand, ivs,
-                      seq, leader, trailer)
+            orf = ORF('unknown', tid, ttype, gid, gname, gtype, chrom, strand,
+                      ivs, seq, leader, trailer)
+            orf.category = check_orf_type(orf, cds_orfs)
             candidate_orfs.append(orf)
 
     ### save to file
