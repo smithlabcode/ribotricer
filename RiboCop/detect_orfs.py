@@ -242,15 +242,10 @@ def detect_orfs(bam, ribocop_index, prefix, stranded, read_lengths,
                 status
     """
 
-    cds, uorfs, dorfs = parse_ribocop_index(ribocop_index)
+    annotated, novel, refseq = parse_ribocop_index(ribocop_index)
+    if stranded is None:
+        stranded = infer_protocol(bam, refseq, prefix)
 
-    if protocol is None:
-        protocol = infer_protocol(bam, gtf, prefix)
-
-    if testRNA:
-        alignments = count_rna_bam(bam, protocol, prefix)
-        export_orf_coverages(cds + uorfs + dorfs, alignments, prefix, True)
-        return
     alignments, read_lengths = split_bam(bam, protocol, prefix)
     plot_read_lengths(read_lengths, prefix)
     metagenes = metagene_coverage(cds, alignments, read_lengths, prefix)
