@@ -9,6 +9,7 @@ import warnings
 from collections import Counter
 from collections import defaultdict
 
+import datetime
 import pysam
 from tqdm import *
 import numpy as np
@@ -209,16 +210,21 @@ def prepare_orfs(gtf, fasta, prefix, min_orf_length, start_codons,
                  set of stop codons
     """
 
+    now = datetime.datetime.now()
+    print(now.strftime('%b %d %H:%M:%S ..... started RiboCop run'))
+    now = datetime.datetime.now()
+    print(now.strftime('%b %d %H:%M:%S ... starting to parse GTF file'))
     candidate_orfs = []
     if not isinstance(gtf, GTFReader):
         gtf = GTFReader(gtf)
     if not isinstance(fasta, FastaReader):
         fasta = FastaReader(fasta)
 
-    print('preparing candidate ORFs...')
-
     ### process CDS gtf
-    print('searching cds...')
+    now = datetime.datetime.now()
+    print(
+        now.strftime(
+            '%b %d %H:%M:%S ..... starting extracting annotated ORFs'))
     cds_orfs = []
     for gid in tqdm(gtf.cds):
         for tid in gtf.cds[gid]:
@@ -227,6 +233,10 @@ def prepare_orfs(gtf, fasta, prefix, min_orf_length, start_codons,
             if orf:
                 cds_orfs.append(orf)
 
+    now = datetime.datetime.now()
+    print(
+        now.strftime('%b %d %H:%M:%S ..... starting searching \
+        transcriptome-wide ORFs. This may take a long time...'))
     for tid in tqdm(gtf.transcript):
         tracks = gtf.transcript[tid]
         ttype = tracks[0].transcript_type
@@ -246,18 +256,19 @@ def prepare_orfs(gtf, fasta, prefix, min_orf_length, start_codons,
             candidate_orfs.append(orf)
 
     ### save to file
-    print('saving candidate ORFs file...')
+    now = datetime.datetime.now()
+    print(now.strftime('%b %d %H:%M:%S ..... saving candidate ORFs into disk'))
     to_write = ('ORF_ID\tORF_type\ttranscript_id\ttranscript_type'
                 '\tgene_id\tgene_name\tgene_type\tchrom'
                 '\tstrand\tcoordinate\tseq\tleader\ttrailer\n')
     formatter = '{}\t' * 12 + '{}\n'
-    for orf in tqdm(candidate_orfs):
-        coordinate = ','.join(
-            ['{}-{}'.format(iv.start, iv.end) for iv in orf.intervals])
-        to_write += formatter.format(orf.oid, orf.category, orf.tid, orf.ttype,
-                                     orf.gid, orf.gname, orf.gtype, orf.chrom,
-                                     orf.strand, coordinate, orf.seq,
-                                     orf.leader, orf.trailer)
-
     with open('{}_candidate_orfs.tsv'.format(prefix), 'w') as output:
         output.write(to_write)
+        for orf in tqdm(candidate_orfs):
+            coordinate = ','.join(
+                ['{}-{}'.format(iv.start, iv.end) for iv in orf.intervals])
+            to_write = formatter.format(
+                orf.oid, orf.category, orf.tid, orf.ttype, orf.gid, orf.gname,
+                orf.gtype, orf.chrom, orf.strand, coordinate, orf.seq,
+                orf.leader, orf.trailer)
+            output.write(to_write)
