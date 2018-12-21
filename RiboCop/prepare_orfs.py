@@ -172,12 +172,11 @@ def search_orfs(fasta, intervals, min_orf_length, start_codons, stop_codons):
                     ### found orf
                     if i - start < min_orf_length:
                         continue
-                    ivs = transcript_to_genome_iv(start, i + 2, intervals,
+                    ivs = transcript_to_genome_iv(start, i - 1, intervals,
                                                   reverse)
-                    # seq = merged_seq[start:i]
-                    # leader = merged_seq[:start]
-                    # trailer = merged_seq[i:]
-                    seq = leader = trailer = ''
+                    seq = merged_seq[start:i]
+                    leader = merged_seq[:start]
+                    trailer = merged_seq[i + 3:]
                     if ivs:
                         orfs.append((ivs, seq, leader, trailer))
                     break
