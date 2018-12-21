@@ -51,10 +51,13 @@ def transcript_to_genome_iv(start, end, intervals, reverse=False):
     ----------
     start: int
            start position in transcript
+           0-based closed
     end: int
          end position in transcript
+         0-based closed
     intervals: List[Interval]
                coordinate in genome
+               1-based closed
     reverse: bool
              whether if it is on the reverse strand
 
