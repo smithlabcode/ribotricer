@@ -101,6 +101,8 @@ def prepare_orfs_cmd(gtf, fasta, prefix, min_orf_length, start_codons,
     is_flag=True)
 def detect_orfs_cmd(bam, ribocop_index, prefix, stranded, read_lengths,
                     psite_offsets, report_all):
+    read_lengths = [int(x.strip()) for x in read_lengths.strip().split(',')]
+    psite_offsets = [int(x.strip()) for x in psite_offsets.strip().split(',')]
     detect_orfs(bam, ribocop_index, prefix, stranded, read_lengths,
                 psite_offsets, report_all)
 
