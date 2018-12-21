@@ -201,12 +201,12 @@ def check_orf_type(orf, cds_orfs):
     otype: str
            Type of the candidate ORF
     """
-    if orf.gene_id not in cds_orfs:
+    if orf.gid not in cds_orfs:
         return 'novel'
-    if orf.transcript_id not in cds_orfs[orf.gene_id]:
+    if orf.tid not in cds_orfs[orf.gid]:
         return 'novel'
-    matched_cds = cds_orfs[orf.gene_id][orf.transcript_id]
-    gene_cds = [cds_orfs[tid] for tid in cds_orfs[orf.gene_id]]
+    matched_cds = cds_orfs[orf.gid][orf.tid]
+    gene_cds = [cds_orfs[orf.gid][tid] for tid in cds_orfs[orf.gid]]
     gene_start = min([gc.intervals[0].start for gc in gene_cds])
     gene_end = max([gc.intervals[-1].end for gc in gene_cds])
     if orf.intervals == matched_cds.intervals:
@@ -257,7 +257,7 @@ def prepare_orfs(gtf, fasta, prefix, min_orf_length, start_codons,
     now = datetime.datetime.now()
     print(
         now.strftime('%b %d %H:%M:%S ... starting extracting annotated ORFs'))
-    cds_orfs = defaultdict(defaultdict(ORF))
+    cds_orfs = defaultdict(lambda: defaultdict(ORF))
     for gid in tqdm(gtf.cds):
         for tid in gtf.cds[gid]:
             tracks = gtf.cds[gid][tid]
