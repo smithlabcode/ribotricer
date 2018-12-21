@@ -250,14 +250,27 @@ def detect_orfs(bam, ribocop_index, prefix, stranded, read_lengths,
         now.strftime('%b %d %H:%M:%S ... started parsing RiboCop index file'))
     annotated, novel, refseq = parse_ribocop_index(ribocop_index)
 
+    ### infer experimental protocol if not provided
     if stranded is None:
         now = datetime.datetime.now()
         print('{} ... {}'.format(
             now.strftime('%b %d %H:%M:%S'),
             'started inferring experimental design'))
         stranded = infer_protocol(bam, refseq, prefix)
-    alignments, read_length_counts = split_bam(bam, protocol, prefix)
+
+    ### split bam file into strand and read length
+    now = datetime.datetime.now()
+    print(now.strftime('%b %d %H:%M:%S ... started reading bam file'))
+    alignments, read_length_counts = split_bam(bam, protocol, prefix,
+                                               read_lengths, psite_offsets)
+
+    ### plot read length distribution
+    now = datetime.datetime.now()
+    print('{} ... {}'.format(
+        now.strftime('%b %d %H:%M:%S'),
+        'started plotting read length distribution'))
     plot_read_lengths(read_length_counts, prefix)
+
     metagenes = metagene_coverage(cds, alignments, read_length_counts, prefix)
     plot_metagene(metagenes, read_length_counts, prefix)
     psite_offsets = align_metagenes(metagenes, read_length_counts, prefix)
