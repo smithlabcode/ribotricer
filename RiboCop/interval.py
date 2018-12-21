@@ -1,7 +1,9 @@
 class Interval:
-    """Class for interval"""
+    """Class for interval
+       All the intervals used in this project is 1-based and closed
+    """
 
-    def __init__(self, chrom=None, start=0, end=0, strand=None):
+    def __init__(self, chrom=None, start=1, end=1, strand=None):
         self.chrom = chrom
         self.start = int(start)
         self.end = int(end)
