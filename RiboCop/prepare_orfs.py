@@ -263,6 +263,7 @@ def prepare_orfs(gtf, fasta, prefix, min_orf_length, start_codons,
             orf = ORF.from_tracks(tracks, 'annotated')
             if orf:
                 cds_orfs[gid][tid] = orf
+                candidate_orfs.append(orf)
 
     now = datetime.datetime.now()
     print('{} ... {}'.format(
@@ -285,7 +286,8 @@ def prepare_orfs(gtf, fasta, prefix, min_orf_length, start_codons,
             orf = ORF('unknown', tid, ttype, gid, gname, gtype, chrom, strand,
                       ivs, seq, leader, trailer)
             orf.category = check_orf_type(orf, cds_orfs)
-            candidate_orfs.append(orf)
+            if orf.category != 'annotated':
+                candidate_orfs.append(orf)
 
     ### save to file
     now = datetime.datetime.now()
