@@ -103,4 +103,3 @@ def detect_orfs_cmd(bam, ribocop_index, prefix, stranded, read_lengths,
     psite_offsets = [int(x.strip()) for x in psite_offsets.strip().split(',')]
     detect_orfs(bam, ribocop_index, prefix, stranded, read_lengths,
                 psite_offsets, report_all)
-

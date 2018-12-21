@@ -18,8 +18,8 @@ def infer_protocol(bam, refseq, prefix, n_reads=20000):
     ----------
     bam: str
          Path to bam file
-    strand_info: defaultdict(IntervalTree)
-                 chrom: (start, end, strand)
+    refseq: defaultdict(IntervalTree)
+            chrom: (start, end, strand)
     prefix: str
             Prefix for protocol file
     n_reads: int
