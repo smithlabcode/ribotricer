@@ -9,15 +9,14 @@ import warnings
 from collections import Counter
 from collections import defaultdict
 
-import pysam
-from tqdm import *
 import numpy as np
+from tqdm import *
 import pandas as pd
 
 from .bam import split_bam
 from .bam import count_rna_bam
 from bx.intervals.intersection import IntervalTree
-from .constants import CUTOFF
+from .const import CUTOFF
 from .fasta import FastaReader
 from .gtf import GTFReader
 from .infer_protocol import infer_protocol

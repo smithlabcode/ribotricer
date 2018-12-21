@@ -9,14 +9,14 @@ import warnings
 from collections import Counter
 from collections import defaultdict
 
-import sys
-from tqdm import *
 import numpy as np
 import pandas as pd
+import sys
+from tqdm import *
 
+from .const import CUTOFF
 from .interval import Interval
 from .statistics import coherence
-from .constants import CUTOFF
 
 
 def next_genome_pos(ivs, max_positions, leader, trailer, reverse=False):
