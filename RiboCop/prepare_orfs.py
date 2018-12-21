@@ -293,8 +293,8 @@ def prepare_orfs(gtf, fasta, prefix, min_orf_length, start_codons,
     print(now.strftime('%b %d %H:%M:%S ... saving candidate ORFs into disk'))
     to_write = ('ORF_ID\tORF_type\ttranscript_id\ttranscript_type'
                 '\tgene_id\tgene_name\tgene_type\tchrom'
-                '\tstrand\tcoordinate\tseq\tleader\ttrailer\n')
-    formatter = '{}\t' * 12 + '{}\n'
+                '\tstrand\tcoordinate\n')
+    formatter = '{}\t' * 9 + '{}\n'
     with open('{}_candidate_orfs.tsv'.format(prefix), 'w') as output:
         output.write(to_write)
         for orf in tqdm(candidate_orfs):
@@ -302,6 +302,5 @@ def prepare_orfs(gtf, fasta, prefix, min_orf_length, start_codons,
                 ['{}-{}'.format(iv.start, iv.end) for iv in orf.intervals])
             to_write = formatter.format(
                 orf.oid, orf.category, orf.tid, orf.ttype, orf.gid, orf.gname,
-                orf.gtype, orf.chrom, orf.strand, coordinate, orf.seq,
-                orf.leader, orf.trailer)
+                orf.gtype, orf.chrom, orf.strand, coordinate)
             output.write(to_write)
