@@ -53,6 +53,9 @@ def cli():
     help='Comma separated list of stop codons')
 def prepare_orfs_cmd(gtf, fasta, prefix, min_orf_length, start_codons,
                      stop_codons):
+    start_codons = set([x for x in start_codons.strip().split(',')])
+    stop_codons = set([x for x in stop_codons.strip().split(',')])
+    print(start_codons, stop_codons)
     prepare_orfs(gtf, fasta, prefix, min_orf_length, start_codons, stop_codons)
 
 

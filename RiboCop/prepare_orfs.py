@@ -176,9 +176,10 @@ def search_orfs(fasta, intervals, min_orf_length, start_codons, stop_codons):
                         continue
                     ivs = transcript_to_genome_iv(start, i + 2, intervals,
                                                   reverse)
-                    seq = merged_seq[start:i]
-                    leader = merged_seq[:start]
-                    trailer = merged_seq[i:]
+                    # seq = merged_seq[start:i]
+                    # leader = merged_seq[:start]
+                    # trailer = merged_seq[i:]
+                    seq = leader = trailer = ''
                     if ivs:
                         orfs.append((ivs, seq, leader, trailer))
                     break
@@ -238,7 +239,8 @@ def prepare_orfs(gtf, fasta, prefix, min_orf_length, start_codons,
         orfs = search_orfs(fasta, ivs, min_orf_length, start_codons,
                            stop_codons)
         for ivs, seq, leader, trailer in orfs:
-            otype = check_orf_type(gid, tid, ivs)
+            # otype = check_orf_type(gid, tid, ivs)
+            otype = 'novel'
             orf = ORF(otype, tid, ttype, gid, gname, gtype, chrom, strand, ivs,
                       seq, leader, trailer)
             candidate_orfs.append(orf)
