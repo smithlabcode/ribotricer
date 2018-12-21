@@ -101,5 +101,7 @@ def detect_orfs_cmd(bam, ribocop_index, prefix, stranded, read_lengths,
                     psite_offsets, report_all):
     read_lengths = [int(x.strip()) for x in read_lengths.strip().split(',')]
     psite_offsets = [int(x.strip()) for x in psite_offsets.strip().split(',')]
+    if stranded == 'yes':
+        stranded = 'forward'
     detect_orfs(bam, ribocop_index, prefix, stranded, read_lengths,
                 psite_offsets, report_all)

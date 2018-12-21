@@ -13,10 +13,11 @@ from collections import defaultdict
 import pysam
 from tqdm import *
 
+from .const import TYPICAL_OFFSET
 from .common import is_read_uniq_mapping
 
 
-def split_bam(bam, protocol, prefix):
+def split_bam(bam, protocol, prefix, read_lengths=None, psite_offsets=None):
     """Split bam by read length and strand
 
     Parameters
@@ -27,18 +28,26 @@ def split_bam(bam, protocol, prefix):
           Experiment protocol [forward, reverse]
     prefix: str
             prefix for output files
+    read_lengths: list[int]
+                  read lengths to use
+                  If None, it will be automatically determined by assessing
+                  the periodicity of metagene profile of this read length
+    psite_offsets: list[int]
+                   Psite offsets for each read lengths
+                   If None, the profiles from different read lengths will be
+                   automatically aligned using cross-correlation
 
     Returns
     -------
     alignments: dict(dict(Counter))
                 bam split by length, strand, (chrom, pos)
-    read_lengths: dict
+    read_length_counts: dict
                   key is the length, value is the number of reads
     """
     alignments = defaultdict(lambda: defaultdict(Counter))
-    read_lengths = defaultdict(int)
+    read_length_counts = defaultdict(int)
     total_count = qcfail = duplicate = secondary = unmapped = multi = valid = 0
-    print('reading bam file...')
+    # print('reading bam file...')
     bam = pysam.AlignmentFile(bam, 'rb')
     for r in tqdm(bam.fetch(until_eof=True)):
 
@@ -67,6 +76,8 @@ def split_bam(bam, protocol, prefix):
         chrom = r.reference_name
         # length = r.query_length
         length = len(ref_positions)
+        if read_lengths is not None and length not in read_lengths:
+            continue
         if protocol == 'forward':
             if map_strand == '+':
                 strand = '+'
@@ -81,9 +92,20 @@ def split_bam(bam, protocol, prefix):
             else:
                 strand = '+'
                 pos = ref_positions[0]
+        offset = 0
+        if (read_lengths is not None and psite_offsets is not None):
+            offset_idx = read_lengths.index(length)
+            offset = psite_offsets[offset_idx]
+        else:
+            offset = TYPICAL_OFFSET
+        if strand == '+':
+            pos += offset
+        else:
+            pos -= offset
+
         # convert bam coordinate to one-based
         alignments[length][strand][(chrom, pos + 1)] += 1
-        read_lengths[length] += 1
+        read_length_counts[length] += 1
 
         valid += 1
 
@@ -93,10 +115,10 @@ def split_bam(bam, protocol, prefix):
                    total_count, valid, qcfail, duplicate, secondary, unmapped,
                    multi)
 
-    for length in sorted(read_lengths):
-        summary += '\t{}: {}\n'.format(length, read_lengths[length])
+    for length in sorted(read_length_counts):
+        summary += '\t{}: {}\n'.format(length, read_length_counts[length])
 
     with open('{}_bam_summary.txt'.format(prefix), 'w') as output:
         output.write(summary)
 
-    return (alignments, read_lengths)
+    return (alignments, read_length_counts)

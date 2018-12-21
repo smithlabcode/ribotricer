@@ -243,7 +243,7 @@ def prepare_orfs(gtf, fasta, prefix, min_orf_length, start_codons,
     """
 
     now = datetime.datetime.now()
-    print(now.strftime('%b %d %H:%M:%S ..... started RiboCop run'))
+    print(now.strftime('%b %d %H:%M:%S ..... started RiboCop prepare-orfs'))
     now = datetime.datetime.now()
     print(now.strftime('%b %d %H:%M:%S ... starting to parse GTF file'))
     candidate_orfs = []

@@ -9,6 +9,7 @@ import warnings
 from collections import Counter
 from collections import defaultdict
 
+import datetime
 import numpy as np
 from tqdm import *
 import pandas as pd
@@ -226,7 +227,7 @@ def detect_orfs(bam, ribocop_index, prefix, stranded, read_lengths,
     prefix: str
             prefix for all output files
     stranded: str
-              {'yes', 'no', 'reverse'}
+              {'forward', 'no', 'reverse'}
               If None, the strandedness will be automatically inferred
     read_lengths: list[int]
                   read lengths to use
@@ -240,16 +241,26 @@ def detect_orfs(bam, ribocop_index, prefix, stranded, read_lengths,
                 Whether to output all ORFs' scores regardless of translation
                 status
     """
+    now = datetime.datetime.now()
+    print(now.strftime('%b %d %H:%M:%S ..... started RiboCop detect-orfs'))
 
+    ### parse the index file
+    now = datetime.datetime.now()
+    print(
+        now.strftime('%b %d %H:%M:%S ... started parsing RiboCop index file'))
     annotated, novel, refseq = parse_ribocop_index(ribocop_index)
-    if stranded is None:
-        stranded = infer_protocol(bam, refseq, prefix)
 
-    alignments, read_lengths = split_bam(bam, protocol, prefix)
-    plot_read_lengths(read_lengths, prefix)
-    metagenes = metagene_coverage(cds, alignments, read_lengths, prefix)
-    plot_metagene(metagenes, read_lengths, prefix)
-    psite_offsets = align_metagenes(metagenes, read_lengths, prefix)
-    merged_alignments = merge_read_lengths(alignments, psite_offsets)
+    if stranded is None:
+        now = datetime.datetime.now()
+        print('{} ... {}'.format(
+            now.strftime('%b %d %H:%M:%S'),
+            'started inferring experimental design'))
+        stranded = infer_protocol(bam, refseq, prefix)
+    alignments, read_length_counts = split_bam(bam, protocol, prefix)
+    plot_read_lengths(read_length_counts, prefix)
+    metagenes = metagene_coverage(cds, alignments, read_length_counts, prefix)
+    plot_metagene(metagenes, read_length_counts, prefix)
+    psite_offsets = align_metagenes(metagenes, read_length_counts, prefix)
+    merged_alignments = merge_read_length_counts(alignments, psite_offsets)
     export_wig(merged_alignments, prefix)
     export_orf_coverages(cds + uorfs + dorfs, merged_alignments, prefix)
