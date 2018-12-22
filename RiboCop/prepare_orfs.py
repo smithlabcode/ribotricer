@@ -10,6 +10,7 @@ from collections import Counter
 from collections import defaultdict
 
 import datetime
+import re
 from tqdm import *
 
 from .common import merge_intervals
@@ -163,26 +164,42 @@ def search_orfs(fasta, intervals, min_orf_length, start_codons, stop_codons):
     if strand == '-':
         merged_seq = fasta.reverse_complement(merged_seq)
         reverse = True
-    for sc in start_codons:
-        cur = 0
-        while cur < len(merged_seq):
-            start = merged_seq.find(sc, cur)
-            if start == -1:
-                break
-            cur = start + 1
-            for i in range(start, len(merged_seq), 3):
-                if merged_seq[i:i + 3] in stop_codons:
-                    ### found orf
-                    if i - start < min_orf_length:
-                        continue
-                    ivs = transcript_to_genome_iv(start, i - 1, intervals,
-                                                  reverse)
-                    seq = merged_seq[start:i]
-                    leader = merged_seq[:start]
-                    trailer = merged_seq[i + 3:]
-                    if ivs:
-                        orfs.append((ivs, seq, leader, trailer))
-                    break
+
+    # For each stop codon, use the most upstream start codon
+    # if ATG is present, always use ATG
+    start_stop_idx = []
+    if 'ATG' in start_codons:
+        start_stop_idx += [(m.start(0), 'ATG')
+                           for m in re.finditer('ATG', merged_seq)]
+    alternative_start_regx = re.compile('|'.join(start_codons - {'ATG'}))
+    start_stop_idx += [(m.start(0), 'start')
+                       for m in re.finditer(alternative_start_regx, merged_seq)
+                       ]
+    stop_regx = re.compile('|'.join(stop_codons))
+    start_stop_idx += [(m.start(0), 'stop')
+                       for m in re.finditer(stop_regx, merged_seq)]
+    start_stop_idx.sort(key=lambda x: x[0])
+    for frame in [0, 1, 2]:
+        inframe_codons = [x for x in start_stop_idx if x[0] % 3 == frame]
+        start = None
+        for idx, label in inframe_codons:
+            if start is None:
+                if label != 'stop':
+                    start = (idx, label)
+            else:
+                if label == 'stop':
+                    if idx - start[0] >= min_orf_length:
+                        ivs = transcript_to_genome_iv(start[0], idx - 1,
+                                                      intervals, reverse)
+                        seq = merged_seq[start[0]:idx]
+                        leader = merged_seq[:start[0]]
+                        trailer = merged_seq[idx + 3:]
+                        if ivs:
+                            orfs.append((ivs, seq, leader, trailer))
+                    start = None
+                elif label == 'ATG':
+                    if start[1] != 'ATG':
+                        start = (idx, label)
     return orfs
 
 
