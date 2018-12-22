@@ -171,10 +171,12 @@ def search_orfs(fasta, intervals, min_orf_length, start_codons, stop_codons):
     if 'ATG' in start_codons:
         start_stop_idx += [(m.start(0), 'ATG')
                            for m in re.finditer('ATG', merged_seq)]
-    alternative_start_regx = re.compile('|'.join(start_codons - {'ATG'}))
-    start_stop_idx += [(m.start(0), 'start')
-                       for m in re.finditer(alternative_start_regx, merged_seq)
-                       ]
+    if start_codons - {'ATG'}:
+        alternative_start_regx = re.compile('|'.join(start_codons - {'ATG'}))
+        start_stop_idx += [
+            (m.start(0), 'start')
+            for m in re.finditer(alternative_start_regx, merged_seq)
+        ]
     stop_regx = re.compile('|'.join(stop_codons))
     start_stop_idx += [(m.start(0), 'stop')
                        for m in re.finditer(stop_regx, merged_seq)]
