@@ -6,6 +6,7 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 import click
+import sys
 from click_help_colors import HelpColorsGroup
 from . import __version__
 from .detect_orfs import detect_orfs
@@ -100,11 +101,15 @@ def prepare_orfs_cmd(gtf, fasta, prefix, min_orf_length, start_codons,
 def detect_orfs_cmd(bam, ribocop_index, prefix, stranded, read_lengths,
                     psite_offsets, report_all):
     if read_lengths is not None:
-        read_lengths = [int(x.strip()) for x in read_lengths.strip().split(',')]
+        read_lengths = [
+            int(x.strip()) for x in read_lengths.strip().split(',')
+        ]
     if read_lengths is None and psite_offsets is not None:
         sys.exit('psite_offsets only allowed when read_lengths is provided')
     if read_lengths is not None and psite_offsets is not None:
-        psite_offsets = [int(x.strip()) for x in psite_offsets.strip().split(',')]
+        psite_offsets = [
+            int(x.strip()) for x in psite_offsets.strip().split(',')
+        ]
         psite_offsets = dict(zip(read_lengths, psite_offsets))
     if stranded == 'yes':
         stranded = 'forward'

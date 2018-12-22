@@ -10,6 +10,7 @@ import warnings
 from collections import Counter
 from collections import defaultdict
 
+import sys
 from .interval import Interval
 
 
@@ -64,7 +65,9 @@ class ORF:
             return None
         fields = line.split('\t')
         if len(fields) != 10:
-            print('unexpected number of columns found for annotation file')
+            sys.exit('{}\n{}'.format(
+                'Error: unexpected number of columns found for index file',
+                'please run RiboCop prepare-orfs to regenerate'))
             return None
         oid = fields[0]
         category = fields[1]
