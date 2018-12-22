@@ -172,21 +172,22 @@ def export_orf_coverages(orfs, merged_alignments, prefix, report_all=False):
     """
     # print('exporting coverages for all ORFs...')
     to_write = 'ORF_ID\tstatus\tphase_score\tread_count\tlength\tvalid_codons\tprofile\n'
-    for orf in tqdm(orfs):
-        oid = orf.oid
-        cov = orf_coverage(orf, merged_alignments)
-        cov = cov.astype(int)
-        cov = cov.tolist()
-        count = sum(cov)
-        length = len(cov)
-        coh, valid = coherence(cov)
-        status = 'translating' if coh >= CUTOFF else 'nontranslating'
-        if not report_all and coh < CUTOFF:  # skip those fail the cutoff
-            continue
-        to_write += '{}\t{}\t{}\t{}\t{}\t{}\t{}\n'.format(
-            oid, status, coh, count, length, valid, cov)
     with open('{}_translating_ORFs.tsv'.format(prefix), 'w') as output:
         output.write(to_write)
+        for orf in tqdm(orfs):
+            oid = orf.oid
+            cov = orf_coverage(orf, merged_alignments)
+            cov = cov.astype(int)
+            cov = cov.tolist()
+            count = sum(cov)
+            length = len(cov)
+            coh, valid = coherence(cov)
+            status = 'translating' if coh >= CUTOFF else 'nontranslating'
+            if not report_all and coh < CUTOFF:  # skip those fail the cutoff
+                continue
+            to_write = '{}\t{}\t{}\t{}\t{}\t{}\t{}\n'.format(
+                oid, status, coh, count, length, valid, cov)
+            output.write(to_write)
 
 
 def export_wig(merged_alignments, prefix):

@@ -70,9 +70,9 @@ def plot_metagene(metagenes, read_lengths, prefix, offset=200):
             ax.set_xlim((min_index, start_offset))
             ax.set_xlabel('Distance from start codon (nt)')
             ax.set_ylabel('Normalized mean reads')
-            ax.set_title((
-                '{} nt reads, proportion: {:.2%}\nphase_score: {:.2}'
-            ).format(length, ratio, coh))
+            ax.set_title(
+                ('{} nt reads, proportion: {:.2%}\nphase_score: {:.2}').format(
+                    length, ratio, coh))
 
             ### plot distance from stop codon
             min_index = min(metagene_cov_stop.index.tolist())
