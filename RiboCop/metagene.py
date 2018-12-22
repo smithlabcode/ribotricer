@@ -83,10 +83,9 @@ def orf_coverage_length(orf,
 
     for pos in next_genome_pos(orf.intervals, max_positions, offset_5p,
                                offset_3p, strand == '-'):
-        if (length in alignments and strand in alignments[length]
-                and (chrom, pos) in alignments[length][strand]):
+        try:
             coverage.append(alignments[length][strand][(chrom, pos)])
-        else:
+        except KeyError:
             coverage.append(0)
 
     if strand == '-':
