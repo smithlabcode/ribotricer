@@ -142,7 +142,7 @@ def metagene_coverage(cds,
                key is the length, value is (from_start, from_stop, coherence,
                pval)
     """
-    print('calculating metagene profiles...')
+    # print('calculating metagene profiles...')
     metagenes = {}
 
     ### remove read length whose read number is small
@@ -224,7 +224,7 @@ def align_metagenes(metagenes, read_lengths, prefix, remove_nonperiodic=False):
     psite_offsets: dict
                    key is the length, value is the offset
     """
-    print('aligning metagene profiles from different lengths...')
+    # print('aligning metagene profiles from different lengths...')
 
     ### discard non-periodic read lengths
     if remove_nonperiodic:
@@ -234,8 +234,7 @@ def align_metagenes(metagenes, read_lengths, prefix, remove_nonperiodic=False):
                 del metagenes[length]
 
     if len(read_lengths) == 0:
-        print('no periodic read length found...')
-        sys.exit(0)
+        sys.exit('Warning: no periodic read length found...')
 
     psite_offsets = {}
     base = n_reads = 0

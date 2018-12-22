@@ -18,7 +18,7 @@ def plot_read_lengths(read_lengths, prefix):
     prefix: str
             prefix for the output file
     """
-    print('plotting read length distribution...')
+    # print('plotting read length distribution...')
     fig, ax = plt.subplots()
     x = sorted(read_lengths.keys())
     y = [read_lengths[i] for i in x]
@@ -42,7 +42,7 @@ def plot_metagene(metagenes, read_lengths, prefix, offset=200):
     prefix: str
             prefix for the output file
     """
-    print('plotting metagene profiles...')
+    # print('plotting metagene profiles...')
     total_reads = sum(read_lengths.values())
     with PdfPages('{}_metagene_plots.pdf'.format(prefix)) as pdf:
         for length in sorted(metagenes):
