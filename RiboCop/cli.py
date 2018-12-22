@@ -121,17 +121,36 @@ def prepare_orfs_cmd(gtf, fasta, prefix, min_orf_length, start_codons,
     is_flag=True)
 def detect_orfs_cmd(bam, ribocop_index, prefix, stranded, read_lengths,
                     psite_offsets, report_all):
+    if not os.path.isfile(bam):
+        sys.exit('Error: BAM file is not found')
+
+    if not os.path.isfile(ribocop_index):
+        sys.exit('Error: RiboCop index file is not found')
+
     if read_lengths is not None:
-        read_lengths = [
-            int(x.strip()) for x in read_lengths.strip().split(',')
-        ]
+        try:
+            read_lengths = [
+                int(x.strip()) for x in read_lengths.strip().split(',')
+            ]
+        except:
+            sys.exit('Error: cannot convert read_lengths into integers')
+        if not all([x > 0 for x in read_lengths]):
+            sys.exit('Error: read length must be positive')
+
     if read_lengths is None and psite_offsets is not None:
         sys.exit(
             'Error: psite_offsets only allowed when read_lengths is provided')
     if read_lengths is not None and psite_offsets is not None:
-        psite_offsets = [
-            int(x.strip()) for x in psite_offsets.strip().split(',')
-        ]
+        try:
+            psite_offsets = [
+                int(x.strip()) for x in psite_offsets.strip().split(',')
+            ]
+        except:
+            sys.exit('Error: cannot convert psite_offsets into integers')
+        if len(read_lengths) != len(psite_offsets):
+            sys.exit('Error: psite_offsets must match read_lengths')
+        if not all(x > y for (x, y) in zip(read_lengths, psite_offsets)):
+            sys.exit('Error: P-site offset must be smaller than read length')
         psite_offsets = dict(zip(read_lengths, psite_offsets))
     if stranded == 'yes':
         stranded = 'forward'
