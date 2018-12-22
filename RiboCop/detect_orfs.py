@@ -233,7 +233,7 @@ def detect_orfs(bam, ribocop_index, prefix, stranded, read_lengths,
                   read lengths to use
                   If None, it will be automatically determined by assessing
                   the periodicity of metagene profile of this read length
-    psite_offsets: list[int]
+    psite_offsets: dict
                    Psite offsets for each read lengths
                    If None, the profiles from different read lengths will be
                    automatically aligned using cross-correlation
@@ -262,7 +262,7 @@ def detect_orfs(bam, ribocop_index, prefix, stranded, read_lengths,
     now = datetime.datetime.now()
     print(now.strftime('%b %d %H:%M:%S ... started reading bam file'))
     alignments, read_length_counts = split_bam(bam, protocol, prefix,
-                                               read_lengths, psite_offsets)
+                                               read_lengths)
 
     ### plot read length distribution
     now = datetime.datetime.now()
@@ -271,9 +271,27 @@ def detect_orfs(bam, ribocop_index, prefix, stranded, read_lengths,
         'started plotting read length distribution'))
     plot_read_lengths(read_length_counts, prefix)
 
+    ### calculate metagene profiles
+    now = datetime.datetime.now()
+    print('{} ... {}'.format(
+        now.strftime('%b %d %H:%M:%S'),
+        'started calculating metagene profiles'))
     metagenes = metagene_coverage(cds, alignments, read_length_counts, prefix)
+
+    ### plot metagene profiles
+    now = datetime.datetime.now()
+    print('{} ... {}'.format(
+        now.strftime('%b %d %H:%M:%S'), 'started plotting metagene profiles'))
     plot_metagene(metagenes, read_length_counts, prefix)
-    psite_offsets = align_metagenes(metagenes, read_length_counts, prefix)
+
+    ### align metagenes if psite_offsets not provided
+    if psite_offsets is None:
+        now = datetime.datetime.now()
+        print('{} ... {}'.format(
+            now.strftime('%b %d %H:%M:%S'),
+            'started inferring P-site offsets'))
+        psite_offsets = align_metagenes(metagenes, read_length_counts, prefix,
+                                        read_lengths is None)
     merged_alignments = merge_read_length_counts(alignments, psite_offsets)
     export_wig(merged_alignments, prefix)
     export_orf_coverages(cds + uorfs + dorfs, merged_alignments, prefix)

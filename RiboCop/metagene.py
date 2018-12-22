@@ -14,7 +14,7 @@ import pandas as pd
 import sys
 from tqdm import *
 
-from .const import CUTOFF
+from .const import CUTOFF, TYPICAL_OFFSET
 from .interval import Interval
 from .statistics import coherence
 
@@ -186,7 +186,7 @@ def metagene_coverage(cds,
 
         coh, valid = coherence(metagene_coverage_start.tolist())
         metagenes[length] = (metagene_coverage_start, metagene_coverage_stop,
-                             coh, pval, valid)
+                             coh, valid)
 
     to_write_5p = ''
     to_write_3p = ''
@@ -204,7 +204,7 @@ def metagene_coverage(cds,
     return metagenes
 
 
-def align_metagenes(metagenes, read_lengths, prefix):
+def align_metagenes(metagenes, read_lengths, prefix, remove_nonperiodic=False):
     """align metagene coverages to determine the lag of the psites, the
     non-periodic read length will be discarded in this step
 
@@ -216,6 +216,8 @@ def align_metagenes(metagenes, read_lengths, prefix):
                   key is the length, value is the number of reads
     prefix: str
             prefix for output files
+    remove_nonperiodic: bool
+                        Whether remove non-periodic read lengths
 
     Returns
     -------
@@ -225,10 +227,11 @@ def align_metagenes(metagenes, read_lengths, prefix):
     print('aligning metagene profiles from different lengths...')
 
     ### discard non-periodic read lengths
-    for length, (_, _, coh, _, _) in list(metagenes.items()):
-        if coh < CUTOFF:
-            del read_lengths[length]
-            del metagenes[length]
+    if remove_nonperiodic:
+        for length, (_, _, coh, _) in list(metagenes.items()):
+            if coh < CUTOFF:
+                del read_lengths[length]
+                del metagenes[length]
 
     if len(read_lengths) == 0:
         print('no periodic read length found...')
@@ -242,14 +245,14 @@ def align_metagenes(metagenes, read_lengths, prefix):
             n_reads = reads
     reference = metagenes[base][0].values
     to_write = 'relative lag to base: {}\n'.format(base)
-    for length, (meta, _, _, _, _) in metagenes.items():
+    for length, (meta, _, _, _) in metagenes.items():
         cov = meta.values
         xcorr = np.correlate(reference, cov, 'full')
         origin = len(xcorr) // 2
         bound = min(base, length)
         xcorr = xcorr[origin - bound:origin + bound]
         lag = np.argmax(xcorr) - len(xcorr) // 2
-        psite_offsets[length] = lag
+        psite_offsets[length] = lag + TYPICAL_OFFSET
         to_write += '\tlag of {}: {}\n'.format(length, lag)
     with open('{}_psite_offsets.txt'.format(prefix), 'w') as output:
         output.write(to_write)

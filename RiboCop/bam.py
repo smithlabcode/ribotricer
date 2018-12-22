@@ -17,7 +17,7 @@ from .const import TYPICAL_OFFSET
 from .common import is_read_uniq_mapping
 
 
-def split_bam(bam, protocol, prefix, read_lengths=None, psite_offsets=None):
+def split_bam(bam, protocol, prefix, read_lengths=None):
     """Split bam by read length and strand
 
     Parameters
@@ -32,10 +32,6 @@ def split_bam(bam, protocol, prefix, read_lengths=None, psite_offsets=None):
                   read lengths to use
                   If None, it will be automatically determined by assessing
                   the periodicity of metagene profile of this read length
-    psite_offsets: list[int]
-                   Psite offsets for each read lengths
-                   If None, the profiles from different read lengths will be
-                   automatically aligned using cross-correlation
 
     Returns
     -------
@@ -92,16 +88,6 @@ def split_bam(bam, protocol, prefix, read_lengths=None, psite_offsets=None):
             else:
                 strand = '+'
                 pos = ref_positions[0]
-        offset = 0
-        if (read_lengths is not None and psite_offsets is not None):
-            offset_idx = read_lengths.index(length)
-            offset = psite_offsets[offset_idx]
-        else:
-            offset = TYPICAL_OFFSET
-        if strand == '+':
-            pos += offset
-        else:
-            pos -= offset
 
         # convert bam coordinate to one-based
         alignments[length][strand][(chrom, pos + 1)] += 1
