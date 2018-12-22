@@ -46,7 +46,7 @@ def plot_metagene(metagenes, read_lengths, prefix, offset=200):
     total_reads = sum(read_lengths.values())
     with PdfPages('{}_metagene_plots.pdf'.format(prefix)) as pdf:
         for length in sorted(metagenes):
-            metagene_cov_start, metagene_cov_stop, coh, pval, valid = metagenes[
+            metagene_cov_start, metagene_cov_stop, coh, valid = metagenes[
                 length]
             if len(metagene_cov_start) == 0:
                 continue
@@ -71,8 +71,8 @@ def plot_metagene(metagenes, read_lengths, prefix, offset=200):
             ax.set_xlabel('Distance from start codon (nt)')
             ax.set_ylabel('Normalized mean reads')
             ax.set_title((
-                '{} nt reads, proportion: {:.2%}\nPeriodicity: {:.2}, pval: {:.6}'
-            ).format(length, ratio, coh, pval))
+                '{} nt reads, proportion: {:.2%}\nphase_score: {:.2}'
+            ).format(length, ratio, coh))
 
             ### plot distance from stop codon
             min_index = min(metagene_cov_stop.index.tolist())
