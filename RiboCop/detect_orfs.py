@@ -42,7 +42,7 @@ def merge_read_lengths(alignments, psite_offsets):
     merged_alignments: dict(dict)
                        alignments by merging all lengths
     """
-    print('merging different lengths...')
+    # print('merging different lengths...')
     merged_alignments = defaultdict(Counter)
 
     for length, offset in psite_offsets.items():
@@ -157,7 +157,7 @@ def orf_coverage(orf, alignments, offset_5p=20, offset_3p=0):
                             len(coverage) - offset_5p))
 
 
-def export_orf_coverages(orfs, merged_alignments, prefix, testRNA=False):
+def export_orf_coverages(orfs, merged_alignments, prefix, report_all=False):
     """
     Parameters
     ----------
@@ -167,11 +167,11 @@ def export_orf_coverages(orfs, merged_alignments, prefix, testRNA=False):
                        alignments by merging all lengths
     prefix: str
             prefix for output file
-    testRNA: bool
-             if True, all coverages will be exported
+    report_all: bool
+                if True, all coverages will be exported
     """
-    print('exporting coverages for all ORFs...')
-    to_write = 'ORF_ID\tcoverage\tcount\tlength\tnonzero\tperiodicity\tpval\n'
+    # print('exporting coverages for all ORFs...')
+    to_write = 'ORF_ID\tstatus\tphase_score\tread_count\tlength\tvalid_codons\tprofile\n'
     for orf in tqdm(orfs):
         oid = orf.oid
         cov = orf_coverage(orf, merged_alignments)
@@ -180,10 +180,11 @@ def export_orf_coverages(orfs, merged_alignments, prefix, testRNA=False):
         count = sum(cov)
         length = len(cov)
         coh, valid = coherence(cov)
-        # if not testRNA and coh < CUTOFF:  # skip those fail the cutoff
-        #     continue
+        status = 'translating' if coh >= CUTOFF else 'nontranslating'
+        if not report_all and coh < CUTOFF:  # skip those fail the cutoff
+            continue
         to_write += '{}\t{}\t{}\t{}\t{}\t{}\t{}\n'.format(
-            oid, cov, count, length, valid, coh, pval)
+            oid, status, coh, count, length, valid, cov)
     with open('{}_translating_ORFs.tsv'.format(prefix), 'w') as output:
         output.write(to_write)
 
@@ -197,7 +198,7 @@ def export_wig(merged_alignments, prefix):
     prefix: str
             prefix of output wig files
     """
-    print('exporting merged alignments to wig file...')
+    # print('exporting merged alignments to wig file...')
     for strand in merged_alignments:
         to_write = ''
         cur_chrom = ''
@@ -275,8 +276,9 @@ def detect_orfs(bam, ribocop_index, prefix, stranded, read_lengths,
     now = datetime.datetime.now()
     print('{} ... {}'.format(
         now.strftime('%b %d %H:%M:%S'),
-        'started calculating metagene profiles'))
-    metagenes = metagene_coverage(cds, alignments, read_length_counts, prefix)
+        'started calculating metagene profiles. This may take a long time...'))
+    metagenes = metagene_coverage(annotated, alignments, read_length_counts,
+                                  prefix)
 
     ### plot metagene profiles
     now = datetime.datetime.now()
@@ -292,6 +294,24 @@ def detect_orfs(bam, ribocop_index, prefix, stranded, read_lengths,
             'started inferring P-site offsets'))
         psite_offsets = align_metagenes(metagenes, read_length_counts, prefix,
                                         read_lengths is None)
-    merged_alignments = merge_read_length_counts(alignments, psite_offsets)
+
+    ### merge read lengths based on P-sites offsets
+    now = datetime.datetime.now()
+    print('{} ... {}'.format(
+        now.strftime('%b %d %H:%M:%S'),
+        'started shifting according to P-site offsets'))
+    merged_alignments = merge_read_lengths(alignments, psite_offsets)
+
+    ### export wig file
+    now = datetime.datetime.now()
+    print('{} ... {}'.format(
+        now.strftime('%b %d %H:%M:%S'),
+        'started exporting wig file of alignments after shifting'))
     export_wig(merged_alignments, prefix)
-    export_orf_coverages(cds + uorfs + dorfs, merged_alignments, prefix)
+
+    ### saving detecting results to disk
+    now = datetime.datetime.now()
+    print('{} ... {}'.format(
+        now.strftime('%b %d %H:%M:%S'), 'started saving results into disk'))
+    export_orf_coverages(annotated + novel, merged_alignments, prefix,
+                         report_all)
