@@ -149,6 +149,8 @@ def detect_orfs_cmd(bam, ribocop_index, prefix, stranded, read_lengths,
             sys.exit('Error: cannot convert psite_offsets into integers')
         if len(read_lengths) != len(psite_offsets):
             sys.exit('Error: psite_offsets must match read_lengths')
+        if not all(x > 0 for x in psite_offsets):
+            sys.exit('Error: P-site offset must be >= 0')
         if not all(x > y for (x, y) in zip(read_lengths, psite_offsets)):
             sys.exit('Error: P-site offset must be smaller than read length')
         psite_offsets = dict(zip(read_lengths, psite_offsets))

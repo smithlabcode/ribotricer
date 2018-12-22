@@ -93,7 +93,7 @@ def coherence(original_values):
            number of valid codons used for calculation
 
     """
-    coh, valid = 0.0, 1.0, -1
+    coh, valid = 0.0, -1
     for frame in [0, 1, 2]:
         values = original_values[frame:]
         normalized_values = []
