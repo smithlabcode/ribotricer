@@ -7,6 +7,7 @@ from __future__ import unicode_literals
 
 import click
 import sys
+import os
 from click_help_colors import HelpColorsGroup
 from . import __version__
 from .detect_orfs import detect_orfs
@@ -52,8 +53,28 @@ def cli():
     help='Comma separated list of stop codons')
 def prepare_orfs_cmd(gtf, fasta, prefix, min_orf_length, start_codons,
                      stop_codons):
-    start_codons = set([x for x in start_codons.strip().split(',')])
-    stop_codons = set([x for x in stop_codons.strip().split(',')])
+    if not os.path.isfile(gtf):
+        sys.exit('Error: GTF file is not found')
+
+    if not os.path.isfile(fasta):
+        sys.exit('Error: FASTA file is not found')
+
+    if min_orf_length <= 0:
+        sys.exit('Error: min ORF length at least to be 1')
+
+    start_codons = set(
+        [x.strip().upper() for x in start_codons.strip().split(',')])
+    if not all(
+        [len(x) == 3 and set(x) <= {'A', 'C', 'G', 'T'}
+         for x in start_codons]):
+        sys.exit('Error: invalid codon, only A, C, G, T allowed')
+
+    stop_codons = set(
+        [x.strip().upper() for x in stop_codons.strip().split(',')])
+    if not all(
+        [len(x) == 3 and set(x) <= {'A', 'C', 'G', 'T'} for x in stop_codons]):
+        sys.exit('Error: invalid codon, only A, C, G, T allowed')
+
     prepare_orfs(gtf, fasta, prefix, min_orf_length, start_codons, stop_codons)
 
 
@@ -105,7 +126,8 @@ def detect_orfs_cmd(bam, ribocop_index, prefix, stranded, read_lengths,
             int(x.strip()) for x in read_lengths.strip().split(',')
         ]
     if read_lengths is None and psite_offsets is not None:
-        sys.exit('psite_offsets only allowed when read_lengths is provided')
+        sys.exit(
+            'Error: psite_offsets only allowed when read_lengths is provided')
     if read_lengths is not None and psite_offsets is not None:
         psite_offsets = [
             int(x.strip()) for x in psite_offsets.strip().split(',')
