@@ -65,7 +65,7 @@ def plot_metagene(metagenes, read_lengths, prefix, offset=200):
                 ymin=np.zeros(len(x)),
                 ymax=metagene_cov_start,
                 colors=colors)
-            ax.tick_params(axis='x', which='both', top='off', direction='out')
+            ax.tick_params(axis='x', which='both', top=False, direction='out')
             ax.set_xticks(xticks)
             ax.set_xlim((min_index, start_offset))
             ax.set_xlabel('Distance from start codon (nt)')
@@ -88,7 +88,7 @@ def plot_metagene(metagenes, read_lengths, prefix, offset=200):
                 ymin=np.zeros(len(x)),
                 ymax=metagene_cov_stop,
                 colors=colors)
-            ax2.tick_params(axis='x', which='both', top='off', direction='out')
+            ax2.tick_params(axis='x', which='both', top=False, direction='out')
             ax2.set_xticks(xticks)
             ax2.set_xlim((stop_offset, max_index))
             ax2.set_xlabel('Distance from stop codon (nt)')

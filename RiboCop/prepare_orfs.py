@@ -324,3 +324,6 @@ def prepare_orfs(gtf, fasta, prefix, min_orf_length, start_codons,
                 orf.oid, orf.category, orf.tid, orf.ttype, orf.gid, orf.gname,
                 orf.gtype, orf.chrom, orf.strand, coordinate)
             output.write(to_write)
+
+    now = datetime.datetime.now()
+    print(now.strftime('%b %d %H:%M:%S ... finished RiboCop prepare-orfs'))

@@ -101,7 +101,7 @@ def parse_ribocop_index(ribocop_index):
     return (annotated, novel, refseq)
 
 
-def orf_coverage(orf, alignments, offset_5p=20, offset_3p=0):
+def orf_coverage(orf, alignments, offset_5p=0, offset_3p=0):
     """
     Parameters
     ----------
@@ -116,8 +116,8 @@ def orf_coverage(orf, alignments, offset_5p=20, offset_3p=0):
 
     Returns
     -------
-    coverage: Series
-              coverage for ORF for specific length
+    coverage: array
+              coverage for ORF
     """
     coverage = []
     chrom = orf.chrom
@@ -126,35 +126,45 @@ def orf_coverage(orf, alignments, offset_5p=20, offset_3p=0):
         offset_5p, offset_3p = offset_3p, offset_5p
     first, last = orf.intervals[0], orf.intervals[-1]
     for pos in range(first.start - offset_5p, first.start):
-        try:
-            coverage.append(alignments[strand][(chrom, pos)])
-        except KeyError:
-            coverage.append(0)
-
-    for iv in orf.intervals:
-        for pos in range(iv.start, iv.end + 1):
+        if orf.category == 'annotated':
             try:
                 coverage.append(alignments[strand][(chrom, pos)])
             except KeyError:
                 coverage.append(0)
+        else:
+            if strand in alignments and (chrom, pos) in alignments[strand]:
+                coverage.append(alignments[strand][(chrom, pos)])
+            else:
+                coverage.append(0)
+
+    for iv in orf.intervals:
+        for pos in range(iv.start, iv.end + 1):
+            if orf.category == 'annotated':
+                try:
+                    coverage.append(alignments[strand][(chrom, pos)])
+                except KeyError:
+                    coverage.append(0)
+            else:
+                if strand in alignments and (chrom, pos) in alignments[strand]:
+                    coverage.append(alignments[strand][(chrom, pos)])
+                else:
+                    coverage.append(0)
 
     for pos in range(last.end + 1, last.end + offset_3p + 1):
-        try:
-            coverage.append(alignments[strand][(chrom, pos)])
-        except KeyError:
-            coverage.append(0)
+        if orf.category == 'annotated':
+            try:
+                coverage.append(alignments[strand][(chrom, pos)])
+            except KeyError:
+                coverage.append(0)
+        else:
+            if strand in alignments and (chrom, pos) in alignments[strand]:
+                coverage.append(alignments[strand][(chrom, pos)])
+            else:
+                coverage.append(0)
 
     if strand == '-':
         coverage.reverse()
-        return pd.Series(
-            np.array(coverage),
-            index=np.arange(-offset_3p,
-                            len(coverage) - offset_3p))
-    else:
-        return pd.Series(
-            np.array(coverage),
-            index=np.arange(-offset_5p,
-                            len(coverage) - offset_5p))
+    return coverage
 
 
 def export_orf_coverages(orfs, merged_alignments, prefix, report_all=False):
@@ -177,11 +187,10 @@ def export_orf_coverages(orfs, merged_alignments, prefix, report_all=False):
         for orf in tqdm(orfs):
             oid = orf.oid
             cov = orf_coverage(orf, merged_alignments)
-            cov = cov.astype(int)
-            cov = cov.tolist()
             count = sum(cov)
             length = len(cov)
             coh, valid = coherence(cov)
+            # coh, valid = 0.5, 100
             status = 'translating' if coh >= CUTOFF else 'nontranslating'
             if not report_all and coh < CUTOFF:  # skip those fail the cutoff
                 continue
@@ -283,7 +292,7 @@ def detect_orfs(bam, ribocop_index, prefix, protocol, read_lengths,
 
     ### plot metagene profiles
     now = datetime.datetime.now()
-    print('{} ... {}'.format(
+    print('\n{} ... {}'.format(
         now.strftime('%b %d %H:%M:%S'), 'started plotting metagene profiles'))
     plot_metagene(metagenes, read_length_counts, prefix)
 
@@ -316,3 +325,6 @@ def detect_orfs(bam, ribocop_index, prefix, protocol, read_lengths,
         now.strftime('%b %d %H:%M:%S'), 'started saving results into disk'))
     export_orf_coverages(annotated + novel, merged_alignments, prefix,
                          report_all)
+    now = datetime.datetime.now()
+    print('{} ... {}'.format(
+        now.strftime('%b %d %H:%M:%S'), 'finished RiboCop detect-orfs'))

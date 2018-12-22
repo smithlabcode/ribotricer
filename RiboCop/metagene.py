@@ -83,9 +83,10 @@ def orf_coverage_length(orf,
 
     for pos in next_genome_pos(orf.intervals, max_positions, offset_5p,
                                offset_3p, strand == '-'):
-        try:
+        if (length in alignments and strand in alignments[length]
+                and (chrom, pos) in alignments[length][strand]):
             coverage.append(alignments[length][strand][(chrom, pos)])
-        except KeyError:
+        else:
             coverage.append(0)
 
     if strand == '-':
@@ -112,7 +113,7 @@ def metagene_coverage(cds,
                       alignments,
                       read_lengths,
                       prefix,
-                      max_positions=100,
+                      max_positions=60,
                       offset_5p=20,
                       offset_3p=0,
                       meta_min_reads=100000):
