@@ -41,8 +41,10 @@ class ORF:
         self.intervals = sorted(intervals, key=lambda x: x.start)
         start = self.intervals[0].start
         end = self.intervals[-1].end
+        self.oid = '{}_{}_{}_{}'.format(
+            transcript_id, start, end,
+            sum([x.end - x.start + 1 for x in self.intervals]))
         self.seq = seq
-        self.oid = '{}_{}_{}_{}'.format(transcript_id, start, end, len(seq))
         self.leader = leader
         self.trailer = trailer
 
