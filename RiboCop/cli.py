@@ -64,6 +64,8 @@ def prepare_orfs_cmd(gtf, fasta, prefix, min_orf_length, start_codons,
 
     start_codons = set(
         [x.strip().upper() for x in start_codons.strip().split(',')])
+    if not start_codons:
+        sys.exit('Error: start codons cannot be empty')
     if not all(
         [len(x) == 3 and set(x) <= {'A', 'C', 'G', 'T'}
          for x in start_codons]):
@@ -71,6 +73,8 @@ def prepare_orfs_cmd(gtf, fasta, prefix, min_orf_length, start_codons,
 
     stop_codons = set(
         [x.strip().upper() for x in stop_codons.strip().split(',')])
+    if not stop_codons:
+        sys.exit('Error: stop codons cannot be empty')
     if not all(
         [len(x) == 3 and set(x) <= {'A', 'C', 'G', 'T'} for x in stop_codons]):
         sys.exit('Error: invalid codon, only A, C, G, T allowed')
