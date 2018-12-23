@@ -112,7 +112,7 @@ def metagene_coverage(cds,
                       alignments,
                       read_lengths,
                       prefix,
-                      max_positions=60,
+                      max_positions=500,
                       offset_5p=20,
                       offset_3p=0,
                       meta_min_reads=100000):
