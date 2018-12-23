@@ -321,7 +321,7 @@ def prepare_orfs(gtf, fasta, prefix, min_orf_length, start_codons,
     for orf in tqdm(candidate_orfs):
         coordinate = ','.join(
             ['{}-{}'.format(iv.start, iv.end) for iv in orf.intervals])
-        to_write = formatter.format(orf.oid, orf.category, orf.tid, orf.ttype,
+        to_write += formatter.format(orf.oid, orf.category, orf.tid, orf.ttype,
                                     orf.gid, orf.gname, orf.gtype, orf.chrom,
                                     orf.strand, coordinate)
 
