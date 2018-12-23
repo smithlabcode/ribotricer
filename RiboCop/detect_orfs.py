@@ -181,22 +181,31 @@ def export_orf_coverages(orfs, merged_alignments, prefix, report_all=False):
                 if True, all coverages will be exported
     """
     # print('exporting coverages for all ORFs...')
-    to_write = 'ORF_ID\tstatus\tphase_score\tread_count\tlength\tvalid_codons\tprofile\n'
+    columns = [
+        'ORF_ID', 'ORF_type', 'status', 'phase_score', 'read_count', 'length',
+        'valid_codons', 'transcript_id', 'transcript_type', 'gene_id',
+        'gene_name', 'gene_type', 'chrom', 'strand', 'profile\n'
+    ]
+    to_write = '\t'.join(columns)
+    formatter = '{}\t' * (len(columns) - 1) + '{}\n'
+    for orf in tqdm(orfs):
+        cov = orf_coverage(orf, merged_alignments)
+        count = sum(cov)
+        length = len(cov)
+        coh, valid = coherence(cov)
+        status = 'translating' if coh >= CUTOFF else 'nontranslating'
+        if not report_all and coh < CUTOFF:  # skip those fail the cutoff
+            continue
+        to_write += formatter.format(orf.oid, orf.category, status, coh, count,
+                                     length, valid, orf.tid, orf.ttype,
+                                     orf.gid, orf.gname, orf.gtype, orf.chrom,
+                                     orf.strand, cov)
+
+    now = datetime.datetime.now()
+    print('{} ... {}'.format(
+        now.strftime('%b %d %H:%M:%S'), 'started saving results into disk'))
     with open('{}_translating_ORFs.tsv'.format(prefix), 'w') as output:
         output.write(to_write)
-        for orf in tqdm(orfs):
-            oid = orf.oid
-            cov = orf_coverage(orf, merged_alignments)
-            count = sum(cov)
-            length = len(cov)
-            coh, valid = coherence(cov)
-            # coh, valid = 0.5, 100
-            status = 'translating' if coh >= CUTOFF else 'nontranslating'
-            if not report_all and coh < CUTOFF:  # skip those fail the cutoff
-                continue
-            to_write = '{}\t{}\t{}\t{}\t{}\t{}\t{}\n'.format(
-                oid, status, coh, count, length, valid, cov)
-            output.write(to_write)
 
 
 def export_wig(merged_alignments, prefix):
@@ -322,7 +331,8 @@ def detect_orfs(bam, ribocop_index, prefix, protocol, read_lengths,
     ### saving detecting results to disk
     now = datetime.datetime.now()
     print('{} ... {}'.format(
-        now.strftime('%b %d %H:%M:%S'), 'started saving results into disk'))
+        now.strftime('%b %d %H:%M:%S'),
+        'started calculating phase scores for each ORF'))
     export_orf_coverages(annotated + novel, merged_alignments, prefix,
                          report_all)
     now = datetime.datetime.now()
