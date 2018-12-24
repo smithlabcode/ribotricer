@@ -17,6 +17,7 @@ import pandas as pd
 from .bam import split_bam
 from bx.intervals.intersection import IntervalTree
 from .const import CUTOFF
+from .const import MINIMUM_VALID_CODONS
 from .fasta import FastaReader
 from .gtf import GTFReader
 from .infer_protocol import infer_protocol
@@ -193,8 +194,11 @@ def export_orf_coverages(orfs, merged_alignments, prefix, report_all=False):
         count = sum(cov)
         length = len(cov)
         coh, valid = coherence(cov)
-        status = 'translating' if coh >= CUTOFF else 'nontranslating'
-        if not report_all and coh < CUTOFF:  # skip those fail the cutoff
+        status = 'translating' if (
+            coh >= CUTOFF
+            and valid >= MINIMUM_VALID_CODONS) else 'nontranslating'
+        # skip outputing nontranslating ones
+        if not report_all and status == 'nontranslating':
             continue
         to_write += formatter.format(orf.oid, orf.category, status, coh, count,
                                      length, valid, orf.tid, orf.ttype,
