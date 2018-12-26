@@ -279,8 +279,8 @@ def prepare_orfs(gtf, fasta, prefix, min_orf_length, start_codons,
     for gid in tqdm(gtf.cds):
         for tid in gtf.cds[gid]:
             tracks = gtf.cds[gid][tid]
-            seq = fetch_seq(fasta, tracks)
-            orf = ORF.from_tracks(tracks, 'annotated', seq=seq)
+            # seq = fetch_seq(fasta, tracks)
+            orf = ORF.from_tracks(tracks, 'annotated')
             if orf:
                 cds_orfs[gid][tid] = orf
                 candidate_orfs.append(orf)
