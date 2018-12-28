@@ -43,6 +43,9 @@ You can directly assign the strandedness by using option ```--stranded```, it ca
 experimental protocol by comparing the strand of reads to the reference.   
 Outputs:
     * _{PREFIX}\_protocol.txt_
+ 
+2. Split the bam file by strand and read length
+
 ------------------
 
 ## LICENSE
