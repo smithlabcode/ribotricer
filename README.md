@@ -46,7 +46,8 @@ Outputs:
 2. Split the bam file by strand and read length
 In this step, all mapped reads will be filtered to include only uniquely mapped reads. Reads
 will be split by strand and read length with respect to the strandedness provided or inferred
-from the last step.  
+from the last step. If you only want to include certain read lengths, they can be assigned with
+option ```--read_lengths```.
 Outputs:
     * _{PREFIX}\_bam\_summary.txt_ 
 3. Plot read length distribution
@@ -54,6 +55,20 @@ In this step, read length distribution will be plotted and serves as quality con
 Outputs:
     * _{PREFIX}\_reads\_plot.pdf_
 4. Calculate metagene profiles
+In this step, the metagene profile of all CDS transcripts for each read length is
+calculated by aligning with start codon or stop codon.  
+Outputs:
+    * _{PREFIX}\_metagene\_profiles.tsv_
+5. Plot metagene profiles
+In this step, metagene plots will be made to serve as quality control.  
+Outputs:
+    * _{PREFIX}\_metagene\_plot.pdf_
+6. Align metagene profiles
+7. Export wig file
+8. Export actively translating ORFs
+Outputs:
+    * _{PREFIX}\_translating\_ORFs.tsv_
+    
 
 ------------------
 
