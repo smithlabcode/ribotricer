@@ -43,8 +43,17 @@ You can directly assign the strandedness by using option ```--stranded```, it ca
 experimental protocol by comparing the strand of reads to the reference.   
 Outputs:
     * _{PREFIX}\_protocol.txt_
- 
 2. Split the bam file by strand and read length
+In this step, all mapped reads will be filtered to include only uniquely mapped reads. Reads
+will be split by strand and read length with respect to the strandedness provided or inferred
+from the last step.  
+Outputs:
+    * _{PREFIX}\_bam\_summary.txt_ 
+3. Plot read length distribution
+In this step, read length distribution will be plotted and serves as quality control  
+Outputs:
+    * _{PREFIX}\_reads\_plot.pdf_
+4. Calculate metagene profiles
 
 ------------------
 
