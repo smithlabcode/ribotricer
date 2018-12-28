@@ -37,35 +37,35 @@ of all candidate ORFs:
 RiboCop detect-orfs --bam {BAM} --ribocop_index {PREFIX}_candidate_ORFs.tsv --prefix {PREFIX}
 ```
 The ORF detection step consists of several small steps including:
-1. Infer the experimental protocol (strandedness of the reads)
+1. Infer the experimental protocol (strandedness of the reads)  
 You can directly assign the strandedness by using option ```--stranded```, it can be 'yes',
 'no', or 'reverse'. If this option is not provided, RiboCop will automatically infer the
 experimental protocol by comparing the strand of reads to the reference.   
 Outputs:
     * _{PREFIX}\_protocol.txt_
-2. Split the bam file by strand and read length
+2. Split the bam file by strand and read length  
 In this step, all mapped reads will be filtered to include only uniquely mapped reads. Reads
 will be split by strand and read length with respect to the strandedness provided or inferred
 from the last step. If you only want to include certain read lengths, they can be assigned with
 option ```--read_lengths```.
 Outputs:
     * _{PREFIX}\_bam\_summary.txt_ 
-3. Plot read length distribution
+3. Plot read length distribution  
 In this step, read length distribution will be plotted and serves as quality control  
 Outputs:
     * _{PREFIX}\_reads\_plot.pdf_
-4. Calculate metagene profiles
+4. Calculate metagene profiles  
 In this step, the metagene profile of all CDS transcripts for each read length is
 calculated by aligning with start codon or stop codon.  
 Outputs:
     * _{PREFIX}\_metagene\_profiles.tsv_
-5. Plot metagene profiles
+5. Plot metagene profiles  
 In this step, metagene plots will be made to serve as quality control.  
 Outputs:
     * _{PREFIX}\_metagene\_plot.pdf_
 6. Align metagene profiles
 7. Export wig file
-8. Export actively translating ORFs
+8. Export actively translating ORFs  
 Outputs:
     * _{PREFIX}\_translating\_ORFs.tsv_
     
