@@ -73,7 +73,30 @@ The periodicity of all ORF profiles are assessed and the translating ones are ou
 of the translation status with option ```--report_all```  
 Output: **{PREFIX}\_translating\_ORFs.tsv**
     
+------------------
 
+## Contacts and bug reports
+Andrew D. Smith
+andrewds@usc.edu
+
+Wenzheng Li
+wenzhenl@usc.edu
+
+Saket Choudhary
+skchoudh@usc.edu
+
+We are dedicated to make the best ORF detector for Ribo-seq data analysis.
+If you found a bug or mistake in this project, we would like to know about it.
+Before you send us the bug report though, please check the following:
+
+1. Are you using the latest version? The bug you found may already have been
+   fixed.
+2. Check that your input is in the correct format and you have selected the
+   correct options.
+3. Please reduce your input to the smallest possible size that still produces
+   the bug; we will need your input data to reproduce the problem, and the
+   smaller you can make it, the easier it will be.
+   
 ------------------
 
 ## LICENSE
