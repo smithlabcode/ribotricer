@@ -66,7 +66,7 @@ class ORF:
             print('annotation line cannot be empty')
             return None
         fields = line.split('\t')
-        if len(fields) != 10:
+        if len(fields) != 11:
             sys.exit('{}\n{}'.format(
                 'Error: unexpected number of columns found for index file',
                 'please run RiboCop prepare-orfs to regenerate'))
@@ -80,18 +80,28 @@ class ORF:
         gtype = fields[6]
         chrom = fields[7]
         strand = fields[8]
-        coordinate = fields[9]
+        start_codon = fields[9]
+        coordinate = fields[10]
         intervals = []
         for group in coordinate.split(','):
             start, end = group.split('-')
             start = int(start)
             end = int(end)
             intervals.append(Interval(chrom, start, end, strand))
-        # seq = fields[10]
-        # leader = fields[11]
-        # trailer = fields[12]
-        return cls(category, tid, ttype, gid, gname, gtype, chrom, strand,
-                   intervals)
+        # seq = fields[11]
+        # leader = fields[12]
+        # trailer = fields[13]
+        return cls(
+            category,
+            tid,
+            ttype,
+            gid,
+            gname,
+            gtype,
+            chrom,
+            strand,
+            intervals,
+            seq=start_codon)
 
     @classmethod
     def from_tracks(cls, tracks, category, seq='', leader='', trailer=''):

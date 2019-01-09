@@ -280,8 +280,8 @@ def prepare_orfs(gtf, fasta, prefix, min_orf_length, start_codons,
     for gid in tqdm(gtf.cds):
         for tid in gtf.cds[gid]:
             tracks = gtf.cds[gid][tid]
-            # seq = fetch_seq(fasta, tracks)
-            orf = ORF.from_tracks(tracks, 'annotated')
+            seq = fetch_seq(fasta, tracks)
+            orf = ORF.from_tracks(tracks, 'annotated', seq=seq)
             if orf:
                 cds_orfs[gid][tid] = orf
                 candidate_orfs.append(orf)
@@ -315,7 +315,8 @@ def prepare_orfs(gtf, fasta, prefix, min_orf_length, start_codons,
     print(now.strftime('%b %d %H:%M:%S ... saving candidate ORFs into disk'))
     columns = [
         'ORF_ID', 'ORF_type', 'transcript_id', 'transcript_type', 'gene_id',
-        'gene_name', 'gene_type', 'chrom', 'strand', 'coordinate\n'
+        'gene_name', 'gene_type', 'chrom', 'strand', 'start_codon',
+        'coordinate\n'
     ]
 
     to_write = '\t'.join(columns)
@@ -325,7 +326,7 @@ def prepare_orfs(gtf, fasta, prefix, min_orf_length, start_codons,
             ['{}-{}'.format(iv.start, iv.end) for iv in orf.intervals])
         to_write += formatter.format(orf.oid, orf.category, orf.tid, orf.ttype,
                                      orf.gid, orf.gname, orf.gtype, orf.chrom,
-                                     orf.strand, coordinate)
+                                     orf.strand, orf.start_codon, coordinate)
 
     with open('{}_candidate_orfs.tsv'.format(prefix), 'w') as output:
         output.write(to_write)

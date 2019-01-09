@@ -185,7 +185,7 @@ def export_orf_coverages(orfs, merged_alignments, prefix, report_all=False):
     columns = [
         'ORF_ID', 'ORF_type', 'status', 'phase_score', 'read_count', 'length',
         'valid_codons', 'transcript_id', 'transcript_type', 'gene_id',
-        'gene_name', 'gene_type', 'chrom', 'strand', 'profile\n'
+        'gene_name', 'gene_type', 'chrom', 'strand', 'start_codon', 'profile\n'
     ]
     to_write = '\t'.join(columns)
     formatter = '{}\t' * (len(columns) - 1) + '{}\n'
@@ -203,7 +203,7 @@ def export_orf_coverages(orfs, merged_alignments, prefix, report_all=False):
         to_write += formatter.format(orf.oid, orf.category, status, coh, count,
                                      length, valid, orf.tid, orf.ttype,
                                      orf.gid, orf.gname, orf.gtype, orf.chrom,
-                                     orf.strand, cov)
+                                     orf.strand, orf.start_codon, cov)
 
     now = datetime.datetime.now()
     print('{} ... {}'.format(
