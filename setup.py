@@ -5,6 +5,8 @@ import setuptools
 
 with open('README.md') as readme_file:
     readme = readme_file.read()
+with open('requirements.txt') as req_file:
+    requirements = req_file.read()
 
 setuptools.setup(
     name='RiboCop',
@@ -17,6 +19,7 @@ setuptools.setup(
     url='https://github.com/wenzhenl/ribocop',
     packages=setuptools.find_packages(),
     entry_points={'console_scripts': ['RiboCop=RiboCop.cli:cli']},
+    install_requires=requirements,
     classifiers=[
         'License :: OSI Approved :: GNU GPL 3',
         'Natural Language :: English',
