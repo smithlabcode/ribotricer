@@ -1,4 +1,4 @@
-# Robustly detecting actively translating ORFs from Ribo-seq data
+# Robust detection of actively translating ORFs from Ribo-seq data
 
 ## Installation
 We highly recommend that you install RiboCop via conda
