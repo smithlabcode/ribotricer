@@ -17,7 +17,7 @@ Ensembl annotation
 * **reference genome file** in FASTA format
 * **alignment file** in BAM format
 
-### Prepare candidate ORFs
+### Preparing candidate ORFs
 The first step of RiboCop is to take the GTF file and the FASTA file to find all
 candidate ORFs. In order to generate all candidate ORFs, please run
 ```bash
