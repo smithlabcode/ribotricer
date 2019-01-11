@@ -93,9 +93,9 @@ def parse_ribocop_index(ribocop_index):
                 orf = ORF.from_string(line)
                 if orf is None:
                     continue
-                refseq[orf.chrom].insert(orf.intervals[0].start,
-                                         orf.intervals[-1].end, orf.strand)
                 if orf.category == 'annotated':
+                    refseq[orf.chrom].insert(orf.intervals[0].start,
+                                             orf.intervals[-1].end, orf.strand)
                     annotated.append(orf)
                 else:
                     novel.append(orf)
@@ -281,6 +281,7 @@ def detect_orfs(bam, ribocop_index, prefix, protocol, read_lengths,
             now.strftime('%b %d %H:%M:%S'),
             'started inferring experimental design'))
         protocol = infer_protocol(bam, refseq, prefix)
+        del refseq
 
     ### split bam file into strand and read length
     now = datetime.datetime.now()
