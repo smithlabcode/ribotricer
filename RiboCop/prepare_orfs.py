@@ -184,13 +184,10 @@ def search_orfs(fasta, intervals, min_orf_length, start_codons, stop_codons):
     start_stop_idx.sort(key=lambda x: x[0])
     for frame in [0, 1, 2]:
         inframe_codons = [x for x in start_stop_idx if x[0] % 3 == frame]
-        start = None
+        starts = []
         for idx, label in inframe_codons:
-            if start is None:
-                if label != 'stop':
-                    start = (idx, label)
-            else:
-                if label == 'stop':
+            if label == 'stop':
+                for start in starts:
                     if idx - start[0] >= min_orf_length:
                         ivs = transcript_to_genome_iv(start[0], idx - 1,
                                                       intervals, reverse)
@@ -199,10 +196,10 @@ def search_orfs(fasta, intervals, min_orf_length, start_codons, stop_codons):
                         trailer = merged_seq[idx + 3:]
                         if ivs:
                             orfs.append((ivs, seq, leader, trailer))
-                    start = None
-                elif label == 'ATG':
-                    if start[1] != 'ATG':
-                        start = (idx, label)
+                starts = []
+            else:
+                start = (idx, label)
+                starts.append(start)
     return orfs
 
 
