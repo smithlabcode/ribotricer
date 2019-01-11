@@ -1,4 +1,4 @@
-# Robustly detecting actively translating ORFs from Ribo-seq data
+# Robust detection of actively translating ORFs from Ribo-seq data
 
 ## Installation
 We highly recommend that you install RiboCop via conda
@@ -17,7 +17,7 @@ Ensembl annotation
 * **reference genome file** in FASTA format
 * **alignment file** in BAM format
 
-### Prepare candidate ORFs
+### Preparing candidate ORFs
 The first step of RiboCop is to take the GTF file and the FASTA file to find all
 candidate ORFs. In order to generate all candidate ORFs, please run
 ```bash
@@ -41,37 +41,45 @@ You can directly assign the strandedness using option ```--stranded```, it can b
 'no', or 'reverse'. If this option is not provided, RiboCop will automatically infer the
 experimental protocol by comparing the strand of reads to the reference.   
 Output: {PREFIX}\_protocol.txt
+
 2. Split the bam file by strand and read length  
 In this step, all mapped reads will be filtered to include only uniquely mapped reads. Reads
 will be split by strand and read length with respect to the strandedness provided or inferred
 from the previous step. If you only want to include certain read lengths, they can be assigned with
-option ```--read_lengths```.
-Output: **{PREFIX}\_bam\_summary.txt**
+option ```--read_lengths```.  
+Output: {PREFIX}\_bam\_summary.txt
+
 3. Plot read length distribution  
 In this step, read length distribution will be plotted and serves as quality control  
-Output: **{PREFIX}\_read\_length\_dist.pdf**
+Output: {PREFIX}\_read\_length\_dist.pdf
+
 4. Calculate metagene profiles  
 In this step, the metagene profile of all CDS transcripts for each read length is
 calculated by aligning with start codon or stop codon.  
-Output: **{PREFIX}\_metagene\_profiles\_5p.tsv** is the metagene profile aligning with the
-start codon and **{PREFIX}\_metagene\_profiles\_3p.tsv** is the metagene profile aligning with
+Output: {PREFIX}\_metagene\_profiles\_5p.tsv is the metagene profile aligning with the
+start codon and {PREFIX}\_metagene\_profiles\_3p.tsv is the metagene profile aligning with
 the stop codon
+
 5. Plot metagene profiles  
 In this step, metagene plots will be made to serve as quality control.  
-Output: **{PREFIX}\_metagene\_plots.pdf**
+Output: {PREFIX}\_metagene\_plots.pdf
+
 6. Align metagene profiles
 If the P-site offsets are not provided, this step will use cross-correlation to find out the relative
 offsets between different read lengths  
-Output: **{PREFIX}\_psite\_offsets.txt**
+Output: {PREFIX}\_psite\_offsets.txt
+
 7. merge reads from different read lengths based on P-site offsets
-This step will integrate reads of different read lengths by shifting with the P-site offsets 
+This step will integrate reads of different read lengths by shifting with the P-site offsets
+
 8. Export wig file
 A WIG file is exported in this step to be used for visualization in Genome Browser  
-Output: **{PREFIX}\_pos.wig** for the positive strand and **{PREFIX}\_neg.wig** for the negative strand.
+Output: {PREFIX}\_pos.wig for the positive strand and {PREFIX}\_neg.wig for the negative strand.
+
 9. Export actively translating ORFs
 The periodicity of all ORF profiles are assessed and the translating ones are outputed. You can output all ORFs regardless
 of the translation status with option ```--report_all```  
-Output: **{PREFIX}\_translating\_ORFs.tsv**
+Output: {PREFIX}\_translating\_ORFs.tsv
     
 ------------------
 
