@@ -278,7 +278,7 @@ def prepare_orfs(gtf, fasta, prefix, min_orf_length, start_codons,
         for tid in gtf.cds[gid]:
             tracks = gtf.cds[gid][tid]
             seq = fetch_seq(fasta, tracks)
-            orf = ORF.from_tracks(tracks, 'annotated', seq=seq)
+            orf = ORF.from_tracks(tracks, 'annotated', seq=seq[:3])
             if orf:
                 cds_orfs[gid][tid] = orf
                 candidate_orfs.append(orf)
@@ -302,7 +302,7 @@ def prepare_orfs(gtf, fasta, prefix, min_orf_length, start_codons,
         for ivs, seq, leader, trailer in orfs:
             # otype = check_orf_type(gid, tid, ivs)
             orf = ORF('unknown', tid, ttype, gid, gname, gtype, chrom, strand,
-                      ivs, seq, leader, trailer)
+                    ivs, seq=seq[:3])
             orf.category = check_orf_type(orf, cds_orfs)
             if orf.category != 'annotated':
                 candidate_orfs.append(orf)
