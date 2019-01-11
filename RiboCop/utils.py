@@ -110,16 +110,25 @@ def test_periodicity(orf_file, prefix, method):
                     continue
                 fields = line.split('\t')
                 oid = fields[0]
-                cov = fields[1]
+                otype = fields[1]
+                status = fields[2]
+                phase_score = fields[3]
+                read_count = fields[4]
+                length = fields[5]
+                valid_codons = fields[6]
+                tid = fields[7]
+                ttype = fields[8]
+                gid = fields[9]
+                gname = fields[10]
+                gtype = fields[11]
+                chrom = fields[12]
+                strand = fields[13]
+                start_codon = fields[14]
+                cov = fields[15]
                 cov = cov[1:-1]
                 cov = [int(x) for x in cov.split(', ')]
-                count = sum(cov)
-                length = len(cov)
-                if len(cov) < 60:
-                    corr, pval, nonzero = (0, 1, 0)
-                else:
-                    corr, nonzero = coherence(cov)
-
+                if sum([sum(cov[i:i+3]) > 0 for i in range(0, 30, 3)]) < 5:
+                    status = 'nontranslating'
                 to_write += '{}\t{}\t{}\t{}\t{}\t{}\t{}\n'.format(
                     oid, cov, count, length, nonzero, corr, pval)
     with open('{}_translating_ORFs_{}.tsv'.format(prefix, method),
