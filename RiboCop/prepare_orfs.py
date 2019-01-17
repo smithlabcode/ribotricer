@@ -222,20 +222,17 @@ def check_orf_type(orf, cds_orfs):
     if orf.tid not in cds_orfs[orf.gid]:
         return 'novel'
     matched_cds = cds_orfs[orf.gid][orf.tid]
-    gene_cds = [cds_orfs[orf.gid][tid] for tid in cds_orfs[orf.gid]]
-    gene_start = min([gc.intervals[0].start for gc in gene_cds])
-    gene_end = max([gc.intervals[-1].end for gc in gene_cds])
     if orf.intervals == matched_cds.intervals:
         return 'annotated'
-    if orf.intervals[-1].end <= matched_cds.intervals[0].start:
-        if orf.intervals[-1].end <= gene_start:
+    if orf.intervals[0].start < matched_cds.intervals[0].start:
+        if orf.intervals[-1].end < matched_cds.intervals[0].start:
             return 'uORF' if orf.strand == '+' else 'dORF'
-        else:
+        if orf.intervals[-1].end < matched_cds.intervals[-1].end:
             return 'overlap_uORF' if orf.strand == '+' else 'overlap_dORF'
-    elif orf.intervals[0].start >= matched_cds.intervals[-1].end:
-        if orf.intervals[0].start >= gene_end:
+    if orf.intervals[-1].end > matched_cds.intervals[-1].end:
+        if orf.intervals[0].start > matched_cds.intervals[-1].end:
             return 'dORF' if orf.strand == '+' else 'uORF'
-        else:
+        if orf.intervals[0].start > matched_cds.intervals[0].start:
             return 'overlap_dORF' if orf.strand == '+' else 'overlap_uORF'
     return 'internal'
 
