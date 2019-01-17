@@ -51,8 +51,12 @@ def cli():
     default='TAG,TAA,TGA',
     show_default=True,
     help='Comma separated list of stop codons')
+@click.option(
+    '--longest',
+    help='Choose the most upstream start codon if multiple in frame ones exist',
+    is_flag=True)
 def prepare_orfs_cmd(gtf, fasta, prefix, min_orf_length, start_codons,
-                     stop_codons):
+                     stop_codons, longest):
     if not os.path.isfile(gtf):
         sys.exit('Error: GTF file is not found')
 
@@ -79,7 +83,8 @@ def prepare_orfs_cmd(gtf, fasta, prefix, min_orf_length, start_codons,
         [len(x) == 3 and set(x) <= {'A', 'C', 'G', 'T'} for x in stop_codons]):
         sys.exit('Error: invalid codon, only A, C, G, T allowed')
 
-    prepare_orfs(gtf, fasta, prefix, min_orf_length, start_codons, stop_codons)
+    prepare_orfs(gtf, fasta, prefix, min_orf_length, start_codons, stop_codons,
+                 longest)
 
 
 ###################### detect-orfs function #########################################

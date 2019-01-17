@@ -126,7 +126,8 @@ def fetch_seq(fasta, tracks):
     return merged_seq
 
 
-def search_orfs(fasta, intervals, min_orf_length, start_codons, stop_codons):
+def search_orfs(fasta, intervals, min_orf_length, start_codons, stop_codons,
+                longest):
     """
     Parameters
     ----------
@@ -140,6 +141,9 @@ def search_orfs(fasta, intervals, min_orf_length, start_codons, stop_codons):
                   set of start codons
     stop_codons: set
                  set of stop codons
+    longest: bool
+             whether to choose the most upstream start codon when multiple in
+             frame ones exist
 
     Returns
     -------
@@ -165,8 +169,6 @@ def search_orfs(fasta, intervals, min_orf_length, start_codons, stop_codons):
         merged_seq = fasta.reverse_complement(merged_seq)
         reverse = True
 
-    # For each stop codon, use the most upstream start codon
-    # if ATG is present, always use ATG
     start_stop_idx = []
     if 'ATG' in start_codons:
         start_stop_idx += [(m.start(0), 'ATG')
@@ -186,20 +188,21 @@ def search_orfs(fasta, intervals, min_orf_length, start_codons, stop_codons):
         inframe_codons = [x for x in start_stop_idx if x[0] % 3 == frame]
         starts = []
         for idx, label in inframe_codons:
-            if label == 'stop':
+            if label != 'stop':
+                starts.append(idx)
+            elif starts:
                 for start in starts:
-                    if idx - start[0] >= min_orf_length:
-                        ivs = transcript_to_genome_iv(start[0], idx - 1,
+                    if idx - start >= min_orf_length:
+                        ivs = transcript_to_genome_iv(start, idx - 1,
                                                       intervals, reverse)
-                        seq = merged_seq[start[0]:idx]
-                        leader = merged_seq[:start[0]]
+                        seq = merged_seq[start:idx]
+                        leader = merged_seq[:start]
                         trailer = merged_seq[idx + 3:]
                         if ivs:
                             orfs.append((ivs, seq, leader, trailer))
+                    if longest:
+                        break
                 starts = []
-            else:
-                start = (idx, label)
-                starts.append(start)
     return orfs
 
 
@@ -237,8 +240,8 @@ def check_orf_type(orf, cds_orfs):
     return 'internal'
 
 
-def prepare_orfs(gtf, fasta, prefix, min_orf_length, start_codons,
-                 stop_codons):
+def prepare_orfs(gtf, fasta, prefix, min_orf_length, start_codons, stop_codons,
+                 longest):
     """
     Parameters
     ----------
@@ -254,6 +257,9 @@ def prepare_orfs(gtf, fasta, prefix, min_orf_length, start_codons,
                   set of start codons
     stop_codons: set
                  set of stop codons
+    longest: bool
+             whether to choose the most upstream start codon when multiple in
+             frame ones exist
     """
 
     now = datetime.datetime.now()
@@ -295,7 +301,7 @@ def prepare_orfs(gtf, fasta, prefix, min_orf_length, start_codons,
         strand = tracks[0].strand
         ivs = tracks_to_ivs(tracks)
         orfs = search_orfs(fasta, ivs, min_orf_length, start_codons,
-                           stop_codons)
+                           stop_codons, longest)
         for ivs, seq, leader, trailer in orfs:
             # otype = check_orf_type(gid, tid, ivs)
             orf = ORF(
