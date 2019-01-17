@@ -301,8 +301,17 @@ def prepare_orfs(gtf, fasta, prefix, min_orf_length, start_codons,
                            stop_codons)
         for ivs, seq, leader, trailer in orfs:
             # otype = check_orf_type(gid, tid, ivs)
-            orf = ORF('unknown', tid, ttype, gid, gname, gtype, chrom, strand,
-                    ivs, seq=seq[:3])
+            orf = ORF(
+                'unknown',
+                tid,
+                ttype,
+                gid,
+                gname,
+                gtype,
+                chrom,
+                strand,
+                ivs,
+                seq=seq[:3])
             orf.category = check_orf_type(orf, cds_orfs)
             if orf.category != 'annotated':
                 candidate_orfs.append(orf)

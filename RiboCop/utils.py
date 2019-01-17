@@ -127,7 +127,7 @@ def test_periodicity(orf_file, prefix, method):
                 cov = fields[15]
                 cov = cov[1:-1]
                 cov = [int(x) for x in cov.split(', ')]
-                if sum([sum(cov[i:i+3]) > 0 for i in range(0, 30, 3)]) < 5:
+                if sum([sum(cov[i:i + 3]) > 0 for i in range(0, 30, 3)]) < 5:
                     status = 'nontranslating'
                 to_write += '{}\t{}\t{}\t{}\t{}\t{}\t{}\n'.format(
                     oid, cov, count, length, nonzero, corr, pval)
