@@ -8,6 +8,7 @@ import warnings
 
 from collections import Counter
 from collections import defaultdict
+from .orf import ORF
 
 
 def count_orf_reads(ribocop_index,
@@ -61,7 +62,7 @@ def count_orf_reads(ribocop_index,
             profile = map(int, profile.strip()[1:-1].split(', '))
             for pos, cov in zip(coor, profile):
                 if pos not in read_counts[gene_id, gene_name]:
-                    read_counts[gene_id, gene_name][pos] += cov
+                    read_counts[gene_id, gene_name][pos] = cov
 
     with open('{}_cnt.txt'.format(prefix), 'w') as fout:
         fout.write('gene_id\tcount\n')
