@@ -171,32 +171,49 @@ def count_orf_reads(ribocop_index,
     ]
     to_write = '\t'.join(columns)
     formatter = '{}\t' * (len(columns) - 1) + '{}\n'
-    with open(ribocop_index, 'r') as anno:
-        total_lines = len(['' for line in anno])
 
-    with open(ribocop_index, 'r') as anno, open(
-            '{}_translating_ORFs.tsv'.format(prefix), 'w') as output:
-        with tqdm(total=total_lines) as pbar:
-            header = True
-            for line in anno:
-                pbar.update()
-                if header:
-                    header = False
-                    output.write(to_write)
-                    continue
-                orf = ORF.from_string(line)
-                cov = orf_coverage(orf, merged_alignments)
-                count = sum(cov)
-                length = len(cov)
-                coh, valid = coherence(cov)
-                status = 'translating' if (
-                    coh >= CUTOFF
-                    and valid >= MINIMUM_VALID_CODONS) else 'nontranslating'
-                # skip outputing nontranslating ones
-                if not report_all and status == 'nontranslating':
-                    continue
-                to_write = formatter.format(
-                    orf.oid, orf.category, status, coh, count, length, valid,
-                    orf.tid, orf.ttype, orf.gid, orf.gname, orf.gtype,
-                    orf.chrom, orf.strand, orf.start_codon, cov)
-                output.write(to_write)
+    orf_index = {}
+    read_counts = defaultdict(dict)
+    with open(ribocop_index, 'r') as fin:
+        header = True
+        for line in fin:
+            if header:
+                header = False
+                continue
+            orf = ORF.from_string(line)
+            if orf.category in features:
+                orf_index[orf.oid] = orf
+    with open(detected_orfs, 'r') as fin:
+        header = True
+        for line in fin:
+            if header:
+                header = False
+                continue
+            fields = line.strip().split('\t')
+            oid, otype, status = fields[:3]
+            gene_id, gene_name, gene_type = fields[9:12]
+            chrom, strand, start_codon, profile = fields[12:]
+            if otype not in features:
+                continue
+            if status == 'nontranslating' and not report_all:
+                continue
+            intervals = orf_index[oid].intervals
+            coor = [x for iv in intervals for x in range(iv.start, iv.end + 1)]
+            if strand == '-':
+                coor = coor[::-1]
+            profile = map(int, profile.strip()[1:-1].split(', '))
+            for pos, cov in zip(coor, profile):
+                if pos not in read_counts[gene_id, gene_name]:
+                    read_counts[gene_id, gene_name][pos] += cov
+
+                # status = 'translating' if (
+                #     coh >= CUTOFF
+                #     and valid >= MINIMUM_VALID_CODONS) else 'nontranslating'
+                # # skip outputing nontranslating ones
+                # if not report_all and status == 'nontranslating':
+                #     continue
+                # to_write = formatter.format(
+                #     orf.oid, orf.category, status, coh, count, length, valid,
+                #     orf.tid, orf.ttype, orf.gid, orf.gname, orf.gtype,
+                #     orf.chrom, orf.strand, orf.start_codon, cov)
+                # output.write(to_write)
