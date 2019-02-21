@@ -185,7 +185,8 @@ def detect_orfs_cmd(bam, ribocop_index, prefix, stranded, read_lengths,
     help=('Path to the detected orfs file\n'
           'This file should be generated using RiboCop detect-orfs'),
     required=True)
-@click.option('--features', help='ORF types separated with comma')
+@click.option(
+    '--features', help='ORF types separated with comma', required=True)
 @click.option('--prefix', help='Prefix to output file', required=True)
 @click.option(
     '--report_all',
@@ -197,9 +198,9 @@ def count_orfs_cmd(ribocop_index, detected_orfs, features, prefix, report_all):
     if not os.path.isfile(ribocop_index):
         sys.exit('Error: RiboCop index file is not found')
 
-    if not os.path.isfile(detect_orfs):
+    if not os.path.isfile(detected_orfs):
         sys.exit('Error: detected orfs file is not found')
 
     features = set(x.strip() for x in features.strip().split(','))
 
-    count_orfs(ribocop_index, detect_orfs, features, prefix, report_all)
+    count_orfs(ribocop_index, detected_orfs, features, prefix, report_all)
