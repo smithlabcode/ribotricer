@@ -11,11 +11,11 @@ from collections import defaultdict
 from .orf import ORF
 
 
-def count_orf_reads(ribocop_index,
-                    detected_orfs,
-                    features,
-                    prefix,
-                    report_all=False):
+def count_orfs(ribocop_index,
+               detected_orfs,
+               features,
+               prefix,
+               report_all=False):
     """
     Parameters
     ----------
