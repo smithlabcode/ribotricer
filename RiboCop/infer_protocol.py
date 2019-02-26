@@ -1,8 +1,3 @@
-
-
-
-
-
 import pysam
 import numpy as np
 import sys

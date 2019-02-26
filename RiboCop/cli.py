@@ -1,10 +1,6 @@
 """Command line interface for RiboCop
 """
 
-
-
-
-
 import click
 import sys
 import os

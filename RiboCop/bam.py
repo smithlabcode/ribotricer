@@ -1,10 +1,5 @@
 """Utilities for spliting bam file"""
 
-
-
-
-
-
 import warnings
 
 from collections import Counter

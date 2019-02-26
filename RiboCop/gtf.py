@@ -1,10 +1,6 @@
 """Utilities for reading GTF file
 """
 
-
-
-
-
 from collections import defaultdict
 from tqdm import *
 

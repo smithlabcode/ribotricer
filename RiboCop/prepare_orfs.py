@@ -1,9 +1,5 @@
 """Functions for finding all candidate ORFs"""
 
-
-
-
-
 import warnings
 
 from collections import Counter

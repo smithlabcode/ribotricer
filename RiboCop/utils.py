@@ -1,10 +1,6 @@
 """Utilities for analysis
 """
 
-
-
-
-
 import warnings
 
 from collections import Counter

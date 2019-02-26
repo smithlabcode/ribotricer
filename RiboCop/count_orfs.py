@@ -1,9 +1,5 @@
 """Utilities for translating ORF detection"""
 
-
-
-
-
 import warnings
 
 from collections import Counter

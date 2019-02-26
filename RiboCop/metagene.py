@@ -1,9 +1,5 @@
 """Metagene profile related functions"""
 
-
-
-
-
 import warnings
 
 from collections import Counter
