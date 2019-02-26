@@ -1,9 +1,9 @@
 """Command line interface for RiboCop
 """
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
+
+
+
+
 
 import click
 import sys
@@ -163,7 +163,7 @@ def detect_orfs_cmd(bam, ribocop_index, prefix, stranded, read_lengths,
             sys.exit('Error: P-site offset must be >= 0')
         if not all(x > y for (x, y) in zip(read_lengths, psite_offsets)):
             sys.exit('Error: P-site offset must be smaller than read length')
-        psite_offsets = dict(zip(read_lengths, psite_offsets))
+        psite_offsets = dict(list(zip(read_lengths, psite_offsets)))
     if stranded == 'yes':
         stranded = 'forward'
     detect_orfs(bam, ribocop_index, prefix, stranded, read_lengths,

@@ -1,8 +1,8 @@
 """Metagene profile related functions"""
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
+
+
+
+
 
 import warnings
 
@@ -238,13 +238,13 @@ def align_metagenes(metagenes, read_lengths, prefix, remove_nonperiodic=False):
 
     psite_offsets = {}
     base = n_reads = 0
-    for length, reads in read_lengths.items():
+    for length, reads in list(read_lengths.items()):
         if reads > n_reads:
             base = length
             n_reads = reads
     reference = metagenes[base][0].values
     to_write = 'relative lag to base: {}\n'.format(base)
-    for length, (meta, _, _, _) in metagenes.items():
+    for length, (meta, _, _, _) in list(metagenes.items()):
         cov = meta.values
         xcorr = np.correlate(reference, cov, 'full')
         origin = len(xcorr) // 2

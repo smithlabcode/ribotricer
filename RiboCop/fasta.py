@@ -96,6 +96,6 @@ class FastaReader(object):
             .FastaReader
         """
         chroms = {}
-        for chrom in self.fasta.keys():
+        for chrom in list(self.fasta.keys()):
             chroms[chrom] = len(self.fasta[chrom])
         return chroms

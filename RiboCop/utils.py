@@ -1,9 +1,9 @@
 """Utilities for analysis
 """
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
+
+
+
+
 
 import warnings
 
@@ -324,7 +324,7 @@ def theta_rna(rna_file, prefix, cutoff=10):
                     rna[oid] = cov
 
     rna_angles = []
-    for ID in tqdm(rna.keys()):
+    for ID in tqdm(list(rna.keys())):
         rna_angles += angle(rna[ID], 0)
     with open('{}_raw_rna_angles.txt'.format(prefix), 'w') as output:
         output.write('\n'.join(map(str, rna_angles)))

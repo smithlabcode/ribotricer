@@ -1,8 +1,8 @@
 """Utilities for translating ORF detection"""
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
+
+
+
+
 
 import warnings
 
@@ -46,7 +46,7 @@ def merge_read_lengths(alignments, psite_offsets):
     # print('merging different lengths...')
     merged_alignments = defaultdict(Counter)
 
-    for length, offset in psite_offsets.items():
+    for length, offset in list(psite_offsets.items()):
         for strand in alignments[length]:
             for chrom, pos in alignments[length][strand]:
                 count = alignments[length][strand][(chrom, pos)]

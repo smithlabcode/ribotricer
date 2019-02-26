@@ -1,8 +1,8 @@
 """Utilities for translating ORF detection"""
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
+
+
+
+
 
 import warnings
 
@@ -59,7 +59,7 @@ def count_orfs(ribocop_index,
             coor = [x for iv in intervals for x in range(iv.start, iv.end + 1)]
             if strand == '-':
                 coor = coor[::-1]
-            profile = map(int, profile.strip()[1:-1].split(', '))
+            profile = list(map(int, profile.strip()[1:-1].split(', ')))
             for pos, cov in zip(coor, profile):
                 if pos not in read_counts[gene_id, gene_name]:
                     read_counts[gene_id, gene_name][pos] = cov
