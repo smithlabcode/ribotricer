@@ -227,6 +227,13 @@ def check_orf_type(orf, cds_orfs):
     matched_cds = cds_orfs[orf.gid][orf.tid]
     if orf.intervals == matched_cds.intervals:
         return 'annotated'
+    gene_cds = [cds_orfs[orf.gid][tid] for tid in cds_orfs[orf.gid]]
+    gene_start = min([gc.intervals[0].start for gc in gene_cds])
+    gene_end = max([gc.intervals[-1].end for gc in gene_cds])
+    if orf.intervals[-1].end < gene_start:
+        return 'super_uORF' if orf.strand == '+' else 'super_dORF'
+    if orf.intervals[0].start > gene_end:
+        return 'super_dORF' if orf.strand == '+' else 'super_uORF'
     if orf.intervals[0].start < matched_cds.intervals[0].start:
         if orf.intervals[-1].end < matched_cds.intervals[0].start:
             return 'uORF' if orf.strand == '+' else 'dORF'
