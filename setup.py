@@ -11,14 +11,15 @@ with open('requirements.txt') as req_file:
 setuptools.setup(
     name='RiboCop',
     version='0.2.7',
-    author='Wenzheng Li',
+    author='Wenzheng Li, Saket Choudhary',
     author_email='wenzhenl@usc.edu',
     description="Python package to detect translating ORF from Ribo-seq data",
     long_description=readme,
     long_description_content_type='text/markdown',
-    url='https://github.com/wenzhenl/ribocop',
+    url='https://github.com/smithlabcode/RiboCop',
     packages=setuptools.find_packages(),
     entry_points={'console_scripts': ['RiboCop=RiboCop.cli:cli']},
+    python_requires='>=3',
     install_requires=requirements,
     classifiers=[
         'License :: OSI Approved :: GNU GPL 3',
