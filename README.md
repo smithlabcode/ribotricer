@@ -64,19 +64,19 @@ the stop codon
 In this step, metagene plots will be made to serve as quality control.  
 Output: {PREFIX}\_metagene\_plots.pdf
 
-6. Align metagene profiles
+6. Align metagene profiles  
 If the P-site offsets are not provided, this step will use cross-correlation to find out the relative
 offsets between different read lengths  
 Output: {PREFIX}\_psite\_offsets.txt
 
-7. merge reads from different read lengths based on P-site offsets
+7. merge reads from different read lengths based on P-site offsets  
 This step will integrate reads of different read lengths by shifting with the P-site offsets
 
-8. Export wig file
+8. Export wig file  
 A WIG file is exported in this step to be used for visualization in Genome Browser  
 Output: {PREFIX}\_pos.wig for the positive strand and {PREFIX}\_neg.wig for the negative strand.
 
-9. Export actively translating ORFs
+9. Export actively translating ORFs  
 The periodicity of all ORF profiles are assessed and the translating ones are outputed. You can output all ORFs regardless
 of the translation status with option ```--report_all```  
 Output: {PREFIX}\_translating\_ORFs.tsv
