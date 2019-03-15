@@ -1,4 +1,4 @@
-"""Command line interface for RiboCop
+"""Command line interface for ribotricer
 """
 
 import click
@@ -20,7 +20,7 @@ CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
     help_options_color='green')
 @click.version_option(version=__version__)
 def cli():
-    """RiboCop: Tool for detecting translating ORF from Ribo-seq data"""
+    """ribotricer: Tool for detecting translating ORF from Ribo-seq data"""
     pass
 
 
@@ -91,9 +91,9 @@ def prepare_orfs_cmd(gtf, fasta, prefix, min_orf_length, start_codons,
     help='Detect translating ORFs from BAM file')
 @click.option('--bam', help='Path to BAM file', required=True)
 @click.option(
-    '--ribocop_index',
-    help=('Path to the index file of RiboCop\n'
-          'This file should be generated using RiboCop prepare-orfs'),
+    '--ribotricer_index',
+    help=('Path to the index file of ribotricer\n'
+          'This file should be generated using ribotricer prepare-orfs'),
     required=True)
 @click.option('--prefix', help='Prefix to output file', required=True)
 @click.option(
@@ -125,13 +125,13 @@ def prepare_orfs_cmd(gtf, fasta, prefix, min_orf_length, start_codons,
     help=('Whether output all ORFs including those '
           'non-translating ones'),
     is_flag=True)
-def detect_orfs_cmd(bam, ribocop_index, prefix, stranded, read_lengths,
+def detect_orfs_cmd(bam, ribotricer_index, prefix, stranded, read_lengths,
                     psite_offsets, report_all):
     if not os.path.isfile(bam):
         sys.exit('Error: BAM file is not found')
 
-    if not os.path.isfile(ribocop_index):
-        sys.exit('Error: RiboCop index file is not found')
+    if not os.path.isfile(ribotricer_index):
+        sys.exit('Error: ribotricer index file is not found')
 
     if read_lengths is not None:
         try:
@@ -162,7 +162,7 @@ def detect_orfs_cmd(bam, ribocop_index, prefix, stranded, read_lengths,
         psite_offsets = dict(list(zip(read_lengths, psite_offsets)))
     if stranded == 'yes':
         stranded = 'forward'
-    detect_orfs(bam, ribocop_index, prefix, stranded, read_lengths,
+    detect_orfs(bam, ribotricer_index, prefix, stranded, read_lengths,
                 psite_offsets, report_all)
 
 
@@ -172,14 +172,14 @@ def detect_orfs_cmd(bam, ribocop_index, prefix, stranded, read_lengths,
     context_settings=CONTEXT_SETTINGS,
     help='Count reads for detected ORFs')
 @click.option(
-    '--ribocop_index',
-    help=('Path to the index file of RiboCop\n'
-          'This file should be generated using RiboCop prepare-orfs'),
+    '--ribotricer_index',
+    help=('Path to the index file of ribotricer\n'
+          'This file should be generated using ribotricer prepare-orfs'),
     required=True)
 @click.option(
     '--detected_orfs',
     help=('Path to the detected orfs file\n'
-          'This file should be generated using RiboCop detect-orfs'),
+          'This file should be generated using ribotricer detect-orfs'),
     required=True)
 @click.option(
     '--features', help='ORF types separated with comma', required=True)
@@ -189,14 +189,14 @@ def detect_orfs_cmd(bam, ribocop_index, prefix, stranded, read_lengths,
     help=('Whether output all ORFs including those '
           'non-translating ones'),
     is_flag=True)
-def count_orfs_cmd(ribocop_index, detected_orfs, features, prefix, report_all):
+def count_orfs_cmd(ribotricer_index, detected_orfs, features, prefix, report_all):
 
-    if not os.path.isfile(ribocop_index):
-        sys.exit('Error: RiboCop index file is not found')
+    if not os.path.isfile(ribotricer_index):
+        sys.exit('Error: ribotricer index file is not found')
 
     if not os.path.isfile(detected_orfs):
         sys.exit('Error: detected orfs file is not found')
 
     features = set(x.strip() for x in features.strip().split(','))
 
-    count_orfs(ribocop_index, detected_orfs, features, prefix, report_all)
+    count_orfs(ribotricer_index, detected_orfs, features, prefix, report_all)

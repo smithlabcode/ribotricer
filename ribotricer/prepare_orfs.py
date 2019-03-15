@@ -266,7 +266,7 @@ def prepare_orfs(gtf, fasta, prefix, min_orf_length, start_codons, stop_codons,
     """
 
     now = datetime.datetime.now()
-    print(now.strftime('%b %d %H:%M:%S ..... started RiboCop prepare-orfs'))
+    print(now.strftime('%b %d %H:%M:%S ..... started ribotricer prepare-orfs'))
     now = datetime.datetime.now()
     print(now.strftime('%b %d %H:%M:%S ... starting to parse GTF file'))
     candidate_orfs = []
@@ -342,4 +342,4 @@ def prepare_orfs(gtf, fasta, prefix, min_orf_length, start_codons, stop_codons,
     with open('{}_candidate_orfs.tsv'.format(prefix), 'w') as output:
         output.write(to_write)
     now = datetime.datetime.now()
-    print(now.strftime('%b %d %H:%M:%S ... finished RiboCop prepare-orfs'))
+    print(now.strftime('%b %d %H:%M:%S ... finished ribotricer prepare-orfs'))

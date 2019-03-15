@@ -9,16 +9,16 @@ with open('requirements.txt') as req_file:
     requirements = req_file.read()
 
 setuptools.setup(
-    name='RiboCop',
+    name='ribotricer',
     version='0.2.7',
     author='Wenzheng Li, Saket Choudhary',
     author_email='wenzhenl@usc.edu',
     description="Python package to detect translating ORF from Ribo-seq data",
     long_description=readme,
     long_description_content_type='text/markdown',
-    url='https://github.com/smithlabcode/RiboCop',
+    url='https://github.com/smithlabcode/ribotricer',
     packages=setuptools.find_packages(),
-    entry_points={'console_scripts': ['RiboCop=RiboCop.cli:cli']},
+    entry_points={'console_scripts': ['ribotricer=ribotricer.cli:cli']},
     python_requires='>=3',
     install_requires=requirements,
     classifiers=[
