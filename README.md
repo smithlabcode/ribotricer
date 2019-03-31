@@ -108,7 +108,7 @@ Before you send us the bug report though, please check the following:
 ------------------
 
 ## LICENSE
-ribotricer for detecting actively translating ORFs from Ribo-seq data
+Ribotricer for detecting actively translating ORFs from Ribo-seq data
 Copyright (C) 2018 Andrew D Smith, Wenzheng Li, Saket Choudhary and
 the University of Southern California
 
