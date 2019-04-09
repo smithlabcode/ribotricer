@@ -6,6 +6,12 @@ We highly recommend that you install ribotricer via conda
 conda install -c bioconda ribotricer
 ```
 
+To install locally, you can either download the source code from release or clone the latest version by using ```git clone```.
+After you get a copy of the source code, please change into the directory where the source code locates, and type
+```bash
+python setup.py install
+```
+
 ------------------
 
 ## Workflow of ribotricer
