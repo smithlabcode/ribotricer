@@ -13,24 +13,21 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 
-import warnings
-
 from collections import Counter
 from collections import defaultdict
 
 import pysam
-from tqdm import *
+from tqdm import tqdm
 
-from .const import TYPICAL_OFFSET
 from .common import is_read_uniq_mapping
 
 
-def split_bam(bam, protocol, prefix, read_lengths=None):
+def split_bam(bam_path, protocol, prefix, read_lengths=None):
     """Split bam by read length and strand
 
     Parameters
     ----------
-    bam : str
+    bam_path : str
           Path to bam file
     protocol: str
           Experiment protocol [forward, reverse]
@@ -52,57 +49,64 @@ def split_bam(bam, protocol, prefix, read_lengths=None):
     read_length_counts = defaultdict(int)
     total_count = qcfail = duplicate = secondary = unmapped = multi = valid = 0
     # print('reading bam file...')
-    bam = pysam.AlignmentFile(bam, 'rb')
-    for r in tqdm(bam.fetch(until_eof=True)):
+    # Generate bam index if not already present
+    bam = pysam.AlignmentFile(bam_path, 'rb')
+    total_reads = bam.count(until_eof=True)
+    bam.close()
+    with tqdm(total=total_reads) as pbar:
+        bam = pysam.AlignmentFile(bam_path, 'rb')
+        for read in bam.fetch(until_eof=True):
+            pbar.update()
+            is_usable = True
+            total_count += 1
 
-        total_count += 1
+            if read.is_qcfail:
+                qcfail += 1
+                is_usable = False
+            elif read.is_duplicate:
+                duplicate += 1
+                is_usable = False
+            elif read.is_secondary:
+                secondary += 1
+                is_usable = False
+            elif read.is_unmapped:
+                unmapped += 1
+                is_usable = False
+            elif not is_read_uniq_mapping(read):
+                multi += 1
+                is_usable = False
 
-        if r.is_qcfail:
-            qcfail += 1
-            continue
-        if r.is_duplicate:
-            duplicate += 1
-            continue
-        if r.is_secondary:
-            secondary += 1
-            continue
-        if r.is_unmapped:
-            unmapped += 1
-            continue
-        if not is_read_uniq_mapping(r):
-            multi += 1
-            continue
+            if is_usable:
+                map_strand = '-' if read.is_reverse else '+'
+                ref_positions = read.get_reference_positions()
+                strand = None
+                pos = None
+                chrom = read.reference_name
+                length = len(ref_positions)
+                if read_lengths is not None and length not in read_lengths:
+                    # Do nothing
+                    pass
+                else:
+                    if protocol == 'forward':
+                        if map_strand == '+':
+                            strand = '+'
+                            pos = ref_positions[0]
+                        else:
+                            strand = '-'
+                            pos = ref_positions[-1]
+                    elif protocol == 'reverse':
+                        if map_strand == '+':
+                            strand = '-'
+                            pos = ref_positions[-1]
+                        else:
+                            strand = '+'
+                            pos = ref_positions[0]
 
-        map_strand = '-' if r.is_reverse else '+'
-        ref_positions = r.get_reference_positions()
-        strand = None
-        pos = None
-        chrom = r.reference_name
-        # length = r.query_length
-        length = len(ref_positions)
-        if read_lengths is not None and length not in read_lengths:
-            continue
-        if protocol == 'forward':
-            if map_strand == '+':
-                strand = '+'
-                pos = ref_positions[0]
-            else:
-                strand = '-'
-                pos = ref_positions[-1]
-        elif protocol == 'reverse':
-            if map_strand == '+':
-                strand = '-'
-                pos = ref_positions[-1]
-            else:
-                strand = '+'
-                pos = ref_positions[0]
-
-        # convert bam coordinate to one-based
-        alignments[length][strand][(chrom, pos + 1)] += 1
-        read_length_counts[length] += 1
-
-        valid += 1
-
+                    # convert bam coordinate to one-based
+                    alignments[length][strand][(chrom, pos + 1)] += 1
+                    read_length_counts[length] += 1
+                    valid += 1
+    bam.close()
     summary = ('summary:\n\ttotal_reads: {}\n\tunique_mapped: {}\n'
                '\tqcfail: {}\n\tduplicate: {}\n\tsecondary: {}\n'
                '\tunmapped:{}\n\tmulti:{}\n\nlength dist:\n').format(

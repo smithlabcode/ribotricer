@@ -13,11 +13,8 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 
-import pysam
-import numpy as np
-import sys
 from collections import Counter
-from .gtf import GTFReader
+import pysam
 from .common import is_read_uniq_mapping
 
 
@@ -44,26 +41,27 @@ def infer_protocol(bam, refseq, prefix, n_reads=20000):
     bam = pysam.AlignmentFile(bam, 'rb')
     strandedness = Counter()
     for read in bam.fetch(until_eof=True):
-        if not is_read_uniq_mapping(read):
-            continue
-        if read.is_reverse:
-            mapped_strand = '-'
-        else:
-            mapped_strand = '+'
-        mapped_start = read.reference_start
-        mapped_end = read.reference_end
-        chrom = read.reference_name
-        gene_strand = list(set(refseq[chrom].find(mapped_start, mapped_end)))
-        if len(gene_strand) != 1:
-            # Filter out genes with ambiguous strand info
-            # (those) that have a tx_start on opposite strands
-            continue
-        gene_strand = gene_strand[0]
-        strandedness['{}{}'.format(mapped_strand, gene_strand)] += 1
-        iteration += 1
-        if iteration >= n_reads:
-            break
-    ## Add pseudocounts
+        if iteration <= n_reads:
+            if is_read_uniq_mapping(read):
+                if read.is_reverse:
+                    mapped_strand = '-'
+                else:
+                    mapped_strand = '+'
+                mapped_start = read.reference_start
+                mapped_end = read.reference_end
+                chrom = read.reference_name
+                # get corresponding gene's strand
+                gene_strand = list(
+                    set(refseq[chrom].find(mapped_start, mapped_end)))
+                if len(gene_strand) == 1:
+                    # Filter out genes with ambiguous strand info
+                    # (those) that have a tx_start on opposite strands
+                    gene_strand = gene_strand[0]
+                    # count table for mapped strand vs gene strand
+                    strandedness['{}{}'.format(mapped_strand,
+                                               gene_strand)] += 1
+                    iteration += 1
+    # Add pseudocounts
     strandedness['++'] += 1
     strandedness['--'] += 1
     strandedness['+-'] += 1

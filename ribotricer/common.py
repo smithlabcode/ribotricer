@@ -15,6 +15,9 @@
 
 from .interval import Interval
 
+# Source: https://broadinstitute.github.io/picard/explain-flags.html
+__SAM_NOT_UNIQ_FLAGS__ = [4, 20, 256, 272, 2048]
+
 
 def is_read_uniq_mapping(read):
     """Check if read is uniquely mappable.
@@ -27,25 +30,26 @@ def is_read_uniq_mapping(read):
     Most reliable: ['NH'] tag
     """
     # Filter out secondary alignments
+    is_uniq = None
     if read.is_secondary:
-        return False
+        is_uniq = False
     tags = dict(read.get_tags())
     try:
         nh_count = tags['NH']
     except KeyError:
         # Reliable in case of STAR
         if read.mapping_quality == 255:
-            return True
-        if read.mapping_quality < 1:
-            return False
+            is_uniq = True
+        elif read.mapping_quality < 1:
+            is_uniq = False
         # NH tag not set so rely on flags
-        if read.flag in __SAM_NOT_UNIQ_FLAGS__:
-            return False
+        elif read.flag in __SAM_NOT_UNIQ_FLAGS__:
+            is_uniq = False
         else:
             raise RuntimeError('Malformed BAM?')
     if nh_count == 1:
-        return True
-    return False
+        is_uniq = True
+    return is_uniq
 
 
 def merge_intervals(intervals):
