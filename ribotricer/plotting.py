@@ -74,11 +74,10 @@ def plot_metagene(metagenes, read_lengths, prefix, offset=200):
             xticks = np.arange(min_index, start_offset, 20)
             ratio = read_lengths[length] / total_reads
             fig, (ax, ax2) = plt.subplots(nrows=2, ncols=1)
-            ax.vlines(
-                x,
-                ymin=np.zeros(len(x)),
-                ymax=metagene_cov_start,
-                colors=colors)
+            ax.vlines(x,
+                      ymin=np.zeros(len(x)),
+                      ymax=metagene_cov_start,
+                      colors=colors)
             ax.tick_params(axis='x', which='both', top=False, direction='out')
             ax.set_xticks(xticks)
             ax.set_xlim((min_index, start_offset))
@@ -97,11 +96,10 @@ def plot_metagene(metagenes, read_lengths, prefix, offset=200):
             x = np.arange(stop_offset, max_index)
             colors = np.tile(['r', 'g', 'b'], len(x) // 3 + 1)
             xticks = np.arange(stop_offset, max_index, 20)
-            ax2.vlines(
-                x,
-                ymin=np.zeros(len(x)),
-                ymax=metagene_cov_stop,
-                colors=colors)
+            ax2.vlines(x,
+                       ymin=np.zeros(len(x)),
+                       ymax=metagene_cov_stop,
+                       colors=colors)
             ax2.tick_params(axis='x', which='both', top=False, direction='out')
             ax2.set_xticks(xticks)
             ax2.set_xlim((stop_offset, max_index))

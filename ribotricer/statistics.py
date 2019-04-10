@@ -14,10 +14,10 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 
+from math import sin, cos, pi, sqrt
 import numpy as np
 from scipy import stats
 from scipy import signal
-from math import sin, cos, pi, sqrt
 
 
 def phasescore(profile):
@@ -42,22 +42,20 @@ def phasescore(profile):
         x = y = 0.0
         valid = 0
         i = 0
-        while i + 2 < len(values):
-            if values[i] == values[i + 1] == values[i + 2] == 0:
+        while i+2 < len(values):
+            if values[i] == values[i+1] == values[i+2] == 0:
                 i += 3
                 continue
             valid += 1
-            cur_x = values[i] * 1 + values[i + 1] * cos(
-                -2 * pi / 3) + values[i + 2] * cos(-4 * pi / 3)
-            cur_y = values[i] * 0 + values[i + 1] * sin(
-                -2 * pi / 3) + values[i + 2] * sin(-4 * pi / 3)
+            cur_x = values[i] * 1 + values[i+1] * cos(-2*pi/3) + values[i+2] * cos(-4*pi/3)
+            cur_y = values[i] * 0 + values[i+1] * sin(-2*pi/3) + values[i+2] * sin(-4*pi/3)
             norm = sqrt(cur_x * cur_x + cur_y * cur_y)
             if norm > 0:
-                x += cur_x / norm
-                y += cur_y / norm
+                x += cur_x/norm
+                y += cur_y/norm
             i += 3
         if valid > 0:
-            cur_phase_score = sqrt(x * x + y * y) / valid
+            cur_phase_score = sqrt(x * x + y * y)/valid
         if nonempty == -1:
             nonempty = valid
         if cur_phase_score > phase_score:
@@ -81,8 +79,8 @@ def pvalue(x, N):
     pval: double
           p-value for the coherence score
     """
-    df, nc = 2, 2.0 / (N - 1)
-    x = 2 * N**2 * x / (N - 1)
+    df, nc = 2, 2.0/(N-1)
+    x = 2 * N**2 * x/(N-1)
     return stats.ncx2.sf(x, df, nc)
 
 
@@ -112,40 +110,35 @@ def coherence(original_values):
         values = original_values[frame:]
         normalized_values = []
         i = 0
-        while i + 2 < len(values):
-            if values[i] == values[i + 1] == values[i + 2] == 0:
+        while i+2 < len(values):
+            if values[i] == values[i+1] == values[i+2] == 0:
                 i += 3
                 continue
-            real = values[i] + values[i + 1] * cos(
-                2 * pi / 3) + values[i + 2] * cos(4 * pi / 3)
-            image = values[i + 1] * sin(2 * pi / 3) + values[i + 2] * sin(
-                4 * pi / 3)
+            real = values[i] + values[i+1] * cos(2*pi/3) + values[i+2] * cos(4*pi/3)
+            image = values[i+1] * sin(2*pi/3)+values[i+2] * sin(4*pi/3)
             norm = sqrt(real**2 + image**2)
             if norm == 0:
                 norm = 1
-            normalized_values += [
-                values[i] / norm, values[i + 1] / norm, values[i + 2] / norm
-            ]
+            normalized_values += [values[i]/norm,
+                                  values[i+1]/norm,
+                                  values[i+2]/norm
+                                  ]
             i += 3
 
-        length = len(normalized_values) // 3 * 3
+        length = len(normalized_values)//3*3
         if length == 0:
             return (0.0, 0)
         normalized_values = normalized_values[:length]
-        uniform_signal = [1, 0, 0] * (len(normalized_values) // 3)
-        f, Cxy = signal.coherence(
-            normalized_values,
-            uniform_signal,
-            window=[1.0, 1.0, 1.0],
-            nperseg=3,
-            noverlap=0)
-        try:
-            periodicity_score = Cxy[np.argwhere(np.isclose(f, 1 / 3.0))[0]][0]
-        except:
-            periodicity_score = 0.0
+        uniform_signal = [1, 0, 0] * (len(normalized_values)//3)
+        f, Cxy = signal.coherence(normalized_values,
+                                  uniform_signal,
+                                  window=[1.0, 1.0, 1.0],
+                                  nperseg=3,
+                                  noverlap=0)
+        periodicity_score = Cxy[np.argwhere(np.isclose(f, 1/3.0))[0]][0]
         if periodicity_score > coh:
             coh = periodicity_score
-            valid = length // 3
+            valid = length//3
         if valid == -1:
-            valid = length // 3
+            valid = length//3
     return np.sqrt(coh), valid

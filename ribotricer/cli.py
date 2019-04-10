@@ -27,10 +27,9 @@ click.disable_unicode_literals_warning = True
 CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
 
 
-@click.group(
-    cls=HelpColorsGroup,
-    help_headers_color='yellow',
-    help_options_color='green')
+@click.group(cls=HelpColorsGroup,
+             help_headers_color='yellow',
+             help_options_color='green')
 @click.version_option(version=__version__)
 def cli():
     """ribotricer: Tool for detecting translating ORF from Ribo-seq data"""
@@ -38,29 +37,25 @@ def cli():
 
 
 ###################### prepare-orfs function #########################################
-@cli.command(
-    'prepare-orfs',
-    context_settings=CONTEXT_SETTINGS,
-    help='Extract candidate ORFS based on GTF and FASTA files')
+@cli.command('prepare-orfs',
+             context_settings=CONTEXT_SETTINGS,
+             help='Extract candidate ORFS based on GTF and FASTA files')
 @click.option('--gtf', help='Path to GTF file', required=True)
 @click.option('--fasta', help='Path to FASTA file', required=True)
 @click.option('--prefix', help='Prefix to output file', required=True)
-@click.option(
-    '--min_orf_length',
-    type=int,
-    default=60,
-    show_default=True,
-    help='The minimum length (nts) of ORF to include')
-@click.option(
-    '--start_codons',
-    default='ATG',
-    show_default=True,
-    help='Comma separated list of start codons')
-@click.option(
-    '--stop_codons',
-    default='TAG,TAA,TGA',
-    show_default=True,
-    help='Comma separated list of stop codons')
+@click.option('--min_orf_length',
+              type=int,
+              default=60,
+              show_default=True,
+              help='The minimum length (nts) of ORF to include')
+@click.option('--start_codons',
+              default='ATG',
+              show_default=True,
+              help='Comma separated list of start codons')
+@click.option('--stop_codons',
+              default='TAG,TAA,TGA',
+              show_default=True,
+              help='Comma separated list of stop codons')
 @click.option(
     '--longest',
     help='Choose the most upstream start codon if multiple in frame ones exist',
@@ -98,10 +93,9 @@ def prepare_orfs_cmd(gtf, fasta, prefix, min_orf_length, start_codons,
 
 
 ###################### detect-orfs function #########################################
-@cli.command(
-    'detect-orfs',
-    context_settings=CONTEXT_SETTINGS,
-    help='Detect translating ORFs from BAM file')
+@cli.command('detect-orfs',
+             context_settings=CONTEXT_SETTINGS,
+             help='Detect translating ORFs from BAM file')
 @click.option('--bam', help='Path to BAM file', required=True)
 @click.option(
     '--ribotricer_index',
@@ -133,11 +127,10 @@ def prepare_orfs_cmd(gtf, fasta, prefix, min_orf_length, start_codons,
           'matching the read lengths provided.\n'
           'If not provided, reads from different read lengths will be '
           'automatically aligned using cross-correlation'))
-@click.option(
-    '--report_all',
-    help=('Whether output all ORFs including those '
-          'non-translating ones'),
-    is_flag=True)
+@click.option('--report_all',
+              help=('Whether output all ORFs including those '
+                    'non-translating ones'),
+              is_flag=True)
 def detect_orfs_cmd(bam, ribotricer_index, prefix, stranded, read_lengths,
                     psite_offsets, report_all):
     if not os.path.isfile(bam):
@@ -180,10 +173,9 @@ def detect_orfs_cmd(bam, ribotricer_index, prefix, stranded, read_lengths,
 
 
 ###################### count-orfs function #########################################
-@cli.command(
-    'count-orfs',
-    context_settings=CONTEXT_SETTINGS,
-    help='Count reads for detected ORFs')
+@cli.command('count-orfs',
+             context_settings=CONTEXT_SETTINGS,
+             help='Count reads for detected ORFs')
 @click.option(
     '--ribotricer_index',
     help=('Path to the index file of ribotricer\n'
@@ -194,15 +186,16 @@ def detect_orfs_cmd(bam, ribotricer_index, prefix, stranded, read_lengths,
     help=('Path to the detected orfs file\n'
           'This file should be generated using ribotricer detect-orfs'),
     required=True)
-@click.option(
-    '--features', help='ORF types separated with comma', required=True)
+@click.option('--features',
+              help='ORF types separated with comma',
+              required=True)
 @click.option('--prefix', help='Prefix to output file', required=True)
-@click.option(
-    '--report_all',
-    help=('Whether output all ORFs including those '
-          'non-translating ones'),
-    is_flag=True)
-def count_orfs_cmd(ribotricer_index, detected_orfs, features, prefix, report_all):
+@click.option('--report_all',
+              help=('Whether output all ORFs including those '
+                    'non-translating ones'),
+              is_flag=True)
+def count_orfs_cmd(ribotricer_index, detected_orfs, features, prefix,
+                   report_all):
 
     if not os.path.isfile(ribotricer_index):
         sys.exit('Error: ribotricer index file is not found')

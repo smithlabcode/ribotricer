@@ -32,8 +32,9 @@ class FastaReader(object):
         """
         self.fasta_location = fasta_location
         try:
-            self.fasta = Fasta(
-                fasta_location, as_raw=True, sequence_always_upper=True)
+            self.fasta = Fasta(fasta_location,
+                               as_raw=True,
+                               sequence_always_upper=True)
         except Exception as e:
             raise Exception('Error reading fasta file {} : {}'.format(
                 os.path.abspath(self.fasta_location), e))

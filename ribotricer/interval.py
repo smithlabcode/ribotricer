@@ -12,6 +12,7 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 
+
 class Interval:
     """Class for interval
        All the intervals used in this project is 1-based and closed

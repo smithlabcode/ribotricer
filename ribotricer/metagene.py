@@ -98,21 +98,19 @@ def orf_coverage_length(orf,
             coverage.append(0)
 
     if strand == '-':
-        from_start = pd.Series(
-            np.array(coverage),
-            index=np.arange(-offset_3p,
-                            len(coverage) - offset_3p))
-        from_stop = pd.Series(
-            np.array(coverage),
-            index=np.arange(offset_5p - len(coverage) + 1, offset_5p + 1))
+        from_start = pd.Series(np.array(coverage),
+                               index=np.arange(-offset_3p,
+                                               len(coverage) - offset_3p))
+        from_stop = pd.Series(np.array(coverage),
+                              index=np.arange(offset_5p - len(coverage) + 1,
+                                              offset_5p + 1))
     else:
-        from_start = pd.Series(
-            np.array(coverage),
-            index=np.arange(-offset_5p,
-                            len(coverage) - offset_5p))
-        from_stop = pd.Series(
-            np.array(coverage),
-            index=np.arange(offset_3p - len(coverage) + 1, offset_3p + 1))
+        from_start = pd.Series(np.array(coverage),
+                               index=np.arange(-offset_5p,
+                                               len(coverage) - offset_5p))
+        from_stop = pd.Series(np.array(coverage),
+                              index=np.arange(offset_3p - len(coverage) + 1,
+                                              offset_3p + 1))
 
     return (from_start, from_stop)
 

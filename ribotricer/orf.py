@@ -100,17 +100,16 @@ class ORF:
         # seq = fields[11]
         # leader = fields[12]
         # trailer = fields[13]
-        return cls(
-            category,
-            tid,
-            ttype,
-            gid,
-            gname,
-            gtype,
-            chrom,
-            strand,
-            intervals,
-            seq=start_codon)
+        return cls(category,
+                   tid,
+                   ttype,
+                   gid,
+                   gname,
+                   gtype,
+                   chrom,
+                   strand,
+                   intervals,
+                   seq=start_codon)
 
     @classmethod
     def from_tracks(cls, tracks, category, seq='', leader='', trailer=''):

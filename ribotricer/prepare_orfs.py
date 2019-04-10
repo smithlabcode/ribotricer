@@ -319,17 +319,16 @@ def prepare_orfs(gtf, fasta, prefix, min_orf_length, start_codons, stop_codons,
         orfs = search_orfs(fasta, ivs, min_orf_length, start_codons,
                            stop_codons, longest)
         for ivs, seq, leader, trailer in orfs:
-            orf = ORF(
-                'unknown',
-                tid,
-                ttype,
-                gid,
-                gname,
-                gtype,
-                chrom,
-                strand,
-                ivs,
-                seq=seq[:3])
+            orf = ORF('unknown',
+                      tid,
+                      ttype,
+                      gid,
+                      gname,
+                      gtype,
+                      chrom,
+                      strand,
+                      ivs,
+                      seq=seq[:3])
             orf.category = check_orf_type(orf, cds_orfs)
             if orf.category != 'annotated' and orf.category != 'internal':
                 candidate_orfs.append(orf)
