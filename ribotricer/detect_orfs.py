@@ -206,7 +206,7 @@ def export_orf_coverages(ribotricer_index,
         output.write(to_write)
         with tqdm(total=total_lines) as pbar:
             # Skip header
-            anno.readlin()
+            anno.readline()
             for line in anno:
                 pbar.update()
                 orf = ORF.from_string(line)
