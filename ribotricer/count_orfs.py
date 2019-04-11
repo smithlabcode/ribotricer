@@ -13,9 +13,7 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 
-import warnings
 
-from collections import Counter
 from collections import defaultdict
 from .orf import ORF
 
@@ -42,36 +40,30 @@ def count_orfs(ribotricer_index,
     orf_index = {}
     read_counts = defaultdict(dict)
     with open(ribotricer_index, 'r') as fin:
-        header = True
+        # Skip header
+        fin.readline()
         for line in fin:
-            if header:
-                header = False
-                continue
             orf = ORF.from_string(line)
             if orf.category in features:
                 orf_index[orf.oid] = orf
     with open(detected_orfs, 'r') as fin:
-        header = True
+        # Skip header
+        fin.readline()
         for line in fin:
-            if header:
-                header = False
-                continue
             fields = line.strip().split('\t')
             oid, otype, status = fields[:3]
             gene_id, gene_name, gene_type = fields[9:12]
             chrom, strand, start_codon, profile = fields[12:]
-            if otype not in features:
-                continue
-            if status == 'nontranslating' and not report_all:
-                continue
-            intervals = orf_index[oid].intervals
-            coor = [x for iv in intervals for x in range(iv.start, iv.end + 1)]
-            if strand == '-':
-                coor = coor[::-1]
-            profile = list(map(int, profile.strip()[1:-1].split(', ')))
-            for pos, cov in zip(coor, profile):
-                if pos not in read_counts[gene_id, gene_name]:
-                    read_counts[gene_id, gene_name][pos] = cov
+            if otype in features:
+                if status != 'nontranslating' or report_all:
+                    intervals = orf_index[oid].intervals
+                    coor = [x for iv in intervals for x in range(iv.start, iv.end + 1)]
+                    if strand == '-':
+                        coor = coor[::-1]
+                    profile = list(map(int, profile.strip()[1:-1].split(', ')))
+                    for pos, cov in zip(coor, profile):
+                        if pos not in read_counts[gene_id, gene_name]:
+                            read_counts[gene_id, gene_name][pos] = cov
 
     with open('{}_cnt.txt'.format(prefix), 'w') as fout:
         fout.write('gene_id\tcount\n')

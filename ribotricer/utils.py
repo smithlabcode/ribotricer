@@ -14,17 +14,16 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 
-import warnings
-
-from collections import Counter
 from collections import defaultdict
 import numpy as np
-from tqdm import *
+from tqdm import tqdm
 from .statistics import coherence
 
 
 def parse_ccds(annotation, orfs, saveto):
     """
+    Parameters
+    ----------
     annotation: str
                 Path for annotation files of candidate ORFs
     orfs: str
@@ -39,21 +38,17 @@ def parse_ccds(annotation, orfs, saveto):
         total_lines = len(['' for line in anno])
     with open(annotation, 'r') as anno:
         with tqdm(total=total_lines) as pbar:
-            header = True
+            # Skip header
+            anno.readline()
             for line in anno:
                 pbar.update()
-                if header:
-                    header = False
-                    continue
                 if not line:
-                    print('annotation line cannot be empty')
-                    return None
+                    raise RuntimeError('annotation line cannot be empty')
                 fields = line.split('\t')
                 if len(fields) != 13:
-                    print(
+                    raise RuntimeError(
                         'unexpected number of columns found for annotation file'
                     )
-                    return None
                 oid = fields[0]
                 gid = fields[4]
                 ccds[gid].append(oid)
@@ -64,19 +59,16 @@ def parse_ccds(annotation, orfs, saveto):
         total_lines = len(['' for line in orf])
     with open(orfs, 'r') as orf:
         with tqdm(total=total_lines) as pbar:
-            header = True
+            # Skip header
+            orf.readline()
             for line in orf:
                 pbar.update()
-                if header:
-                    header = False
-                    continue
                 if not line:
-                    print('orf line cannot be empty')
-                    return None
+                    raise RuntimeError('orf line cannot be empty')
                 fields = line.split('\t')
                 if len(fields) != 5:
-                    print('unexpected number of columns found for orf file')
-                    return None
+                    raise RuntimeError(
+                        'unexpected number of columns found for orf file')
                 oid = fields[0]
                 count = int(fields[2])
                 corr = float(fields[3])
@@ -96,52 +88,8 @@ def parse_ccds(annotation, orfs, saveto):
             if t_corr >= corr:
                 count, corr, pval = (t_cnt, t_corr, t_pval)
         to_write += '{}\t{}\t{}\t{}\n'.format(gid, count, corr, pval)
-    print(n_genes)
 
     with open(saveto, 'w') as output:
-        output.write(to_write)
-
-
-def test_periodicity(orf_file, prefix, method):
-
-    print('testing method: {}'.format(method))
-    print('exporting coverages for all ORFs...')
-    to_write = 'ORF_ID\tcoverage\tcount\tlength\tnonzero\tperiodicity\tpval\n'
-    with open(orf_file, 'r') as orf:
-        total_lines = len(['' for line in orf])
-    with open(orf_file, 'r') as orf:
-        header = True
-        with tqdm(total=total_lines) as pbar:
-            for line in orf:
-                pbar.update()
-                if header:
-                    header = False
-                    continue
-                fields = line.split('\t')
-                oid = fields[0]
-                otype = fields[1]
-                status = fields[2]
-                phase_score = fields[3]
-                read_count = fields[4]
-                length = fields[5]
-                valid_codons = fields[6]
-                tid = fields[7]
-                ttype = fields[8]
-                gid = fields[9]
-                gname = fields[10]
-                gtype = fields[11]
-                chrom = fields[12]
-                strand = fields[13]
-                start_codon = fields[14]
-                cov = fields[15]
-                cov = cov[1:-1]
-                cov = [int(x) for x in cov.split(', ')]
-                if sum([sum(cov[i:i + 3]) > 0 for i in range(0, 30, 3)]) < 5:
-                    status = 'nontranslating'
-                to_write += '{}\t{}\t{}\t{}\t{}\t{}\t{}\n'.format(
-                    oid, cov, count, length, nonzero, corr, pval)
-    with open('{}_translating_ORFs_{}.tsv'.format(prefix, method),
-              'w') as output:
         output.write(to_write)
 
 
@@ -183,17 +131,15 @@ def benchmark(rna_file, ribo_file, prefix, cutoff=5):
     to_write = 'ID\tribo_coh\trna_coh\tribo_cov\trna_cov\n'
     common_ids = set(ribo.keys()) & set(rna.keys())
     for ID in tqdm(common_ids):
-        if sum(rna[ID]) < cutoff or sum(ribo[ID]) < cutoff:
-            continue
-        if len(ribo[ID]) < 10:
-            continue
-        rna_coh, rna_valid = coherence(rna[ID])
-        rna_cov = rna_valid / len(rna[ID])
-        ribo_coh, ribo_valid = coherence(ribo[ID])
-        ribo_cov = ribo_valid / len(ribo[ID])
+        if sum(rna[ID]) >= cutoff and sum(ribo[ID]) >= cutoff and len(
+                ribo[ID]) >= 10:
+            rna_coh, rna_valid = coherence(rna[ID])
+            rna_cov = rna_valid / len(rna[ID])
+            ribo_coh, ribo_valid = coherence(ribo[ID])
+            ribo_cov = ribo_valid / len(ribo[ID])
 
-        to_write += '{}\t{}\t{}\t{}\t{}\n'.format(ID, ribo_coh, rna_coh,
-                                                  ribo_cov, rna_cov)
+            to_write += '{}\t{}\t{}\t{}\t{}\n'.format(ID, ribo_coh, rna_coh,
+                                                      ribo_cov, rna_cov)
     with open('{}_results.txt'.format(prefix), 'w') as output:
         output.write(to_write)
 
@@ -207,14 +153,14 @@ def angle(cov, frame):
         if cov[i] == cov[i + 1] == cov[i + 2] == 0:
             i += 3
             nzeros += 1
-            continue
-        real = cov[i] - 0.5 * (cov[i + 1] + cov[i + 2])
-        img = np.sqrt(3) / 2 * (cov[i + 1] - cov[i + 2])
-        if real == img == 0:
-            i += 3
-            continue
-        ans.append(np.arctan2(img, real))
-        i += 3
+        else:
+            real = cov[i] - 0.5 * (cov[i + 1] + cov[i + 2])
+            img = np.sqrt(3) / 2 * (cov[i + 1] - cov[i + 2])
+            if real == img == 0:
+                i += 3
+            else:
+                ans.append(np.arctan2(img, real))
+                i += 3
     return ans, nzeros
 
 
@@ -273,21 +219,19 @@ def theta_dist(rna_file, ribo_file, frame_file, prefix, cutoff=5):
     common_ids = set(ribo.keys()) & set(rna.keys())
     print('calculating angles')
     for ID in tqdm(common_ids):
-        if sum(rna[ID]) < cutoff or sum(ribo[ID]) < cutoff:
-            continue
-        if len(ribo[ID]) < 10:
-            continue
-        cur_rna_angles, cur_rna_zeros = angle(rna[ID], frame[ID])
-        rna_angles += cur_rna_angles
-        rna_zeros += cur_rna_zeros
-        cur_ribo_angles, cur_ribo_zeros = angle(ribo[ID], frame[ID])
-        ribo_angles += cur_ribo_angles
-        ribo_zeros += cur_ribo_zeros
-        total_reads += sum(rna[ID])
-        total_length += len(rna[ID])
-        total_ribo_reads += sum(ribo[ID])
-        total_ribo_length += len(ribo[ID])
-    ### generate theoretical theta dist from Poisson
+        if sum(rna[ID]) >= cutoff and sum(ribo[ID]) >= cutoff and len(
+                ribo[ID]) >= 10:
+            cur_rna_angles, cur_rna_zeros = angle(rna[ID], frame[ID])
+            rna_angles += cur_rna_angles
+            rna_zeros += cur_rna_zeros
+            cur_ribo_angles, cur_ribo_zeros = angle(ribo[ID], frame[ID])
+            ribo_angles += cur_ribo_angles
+            ribo_zeros += cur_ribo_zeros
+            total_reads += sum(rna[ID])
+            total_length += len(rna[ID])
+            total_ribo_reads += sum(ribo[ID])
+            total_ribo_length += len(ribo[ID])
+    # generate theoretical theta dist from Poisson
     print('generating theoretical theta dist from Poisson')
     mean = total_reads / total_length
     poisson_cov = np.random.poisson(mean, total_length)
@@ -318,12 +262,10 @@ def theta_rna(rna_file, prefix, cutoff=10):
         total_lines = len(['' for line in orf])
     with open(rna_file, 'r') as orf:
         with tqdm(total=total_lines) as pbar:
-            header = True
+            # Skip header
+            orf.readline()
             for line in orf:
                 pbar.update()
-                if header:
-                    header = False
-                    continue
                 fields = line.split('\t')
                 oid = fields[0]
                 cov = fields[1]

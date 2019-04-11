@@ -13,15 +13,12 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 
-import warnings
-
+import sys
 from collections import Counter
-from collections import defaultdict
 
 import numpy as np
 import pandas as pd
-import sys
-from tqdm import *
+from tqdm import tqdm
 
 from .const import CUTOFF, TYPICAL_OFFSET
 from .interval import Interval
@@ -40,19 +37,17 @@ def next_genome_pos(ivs, max_positions, leader, trailer, reverse=False):
 
     cnt = 0
     if not reverse:
-        for iv in combined_ivs:
-            for pos in range(iv.start, iv.end + 1):
+        for interval in combined_ivs:
+            for pos in range(interval.start, interval.end + 1):
                 cnt += 1
-                if cnt > max_positions:
-                    break
-                yield pos
+                if cnt <= max_positions:
+                    yield pos
     else:
-        for iv in reversed(combined_ivs):
-            for pos in range(iv.end, iv.start - 1, -1):
+        for interval in reversed(combined_ivs):
+            for pos in range(interval.end, interval.start - 1, -1):
                 cnt += 1
-                if cnt > max_positions:
-                    break
-                yield pos
+                if cnt <= max_positions:
+                    yield pos
 
 
 def orf_coverage_length(orf,
@@ -152,7 +147,7 @@ def metagene_coverage(cds,
     # print('calculating metagene profiles...')
     metagenes = {}
 
-    ### remove read length whose read number is small
+    # remove read length whose read number is small
     for length, reads in list(read_lengths.items()):
         if reads < meta_min_reads:
             del read_lengths[length]
@@ -233,7 +228,7 @@ def align_metagenes(metagenes, read_lengths, prefix, remove_nonperiodic=False):
     """
     # print('aligning metagene profiles from different lengths...')
 
-    ### discard non-periodic read lengths
+    # discard non-periodic read lengths
     if remove_nonperiodic:
         for length, (_, _, coh, _) in list(metagenes.items()):
             if coh < CUTOFF:

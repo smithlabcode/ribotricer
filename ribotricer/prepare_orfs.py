@@ -13,14 +13,11 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 
-import warnings
-
-from collections import Counter
 from collections import defaultdict
-
 import datetime
 import re
-from tqdm import *
+
+from tqdm import tqdm
 
 from .common import merge_intervals
 from .fasta import FastaReader
@@ -45,13 +42,14 @@ def tracks_to_ivs(tracks):
     strand = {track.strand for track in tracks}
     if len(chrom) != 1 or len(strand) != 1:
         print('fail to fetch seq: inconsistent chrom or strand')
-        return None
-    chrom = list(chrom)[0]
-    strand = list(strand)[0]
-    intervals = [
-        Interval(chrom, track.start, track.end, strand) for track in tracks
-    ]
-    intervals = merge_intervals(intervals)
+        intervals = [] 
+    else:
+        chrom = list(chrom)[0]
+        strand = list(strand)[0]
+        intervals = [
+            Interval(chrom, track.start, track.end, strand) for track in tracks
+        ]
+        intervals = merge_intervals(intervals)
     return intervals
 
 
@@ -83,7 +81,7 @@ def transcript_to_genome_iv(start, end, intervals, reverse=False):
     start_genome = None
     end_genome = None
 
-    ### find start in genome
+    # find start in genome
     cur = 0
     for i in intervals:
         i_len = i.end - i.start + 1
@@ -92,7 +90,7 @@ def transcript_to_genome_iv(start, end, intervals, reverse=False):
             break
         cur += i_len
 
-    ### find end in genome
+    # find end in genome
     cur = 0
     for i in intervals:
         i_len = i.end - i.start + 1
@@ -101,7 +99,7 @@ def transcript_to_genome_iv(start, end, intervals, reverse=False):
             break
         cur += i_len
 
-    ### find overlap with (start_genome, end_genome)
+    # find overlap with (start_genome, end_genome)
     for i in intervals:
         s = max(i.start, start_genome)
         e = min(i.end, end_genome)
@@ -131,7 +129,7 @@ def fetch_seq(fasta, tracks):
     merged_seq = ''.join(sequences)
     strand = tracks[0].strand
     if strand == '-':
-        return fasta.reverse_complement(merged_seq)
+        merged_seq = fasta.reverse_complement(merged_seq)
     return merged_seq
 
 
@@ -288,7 +286,7 @@ def prepare_orfs(gtf, fasta, prefix, min_orf_length, start_codons, stop_codons,
     if not isinstance(fasta, FastaReader):
         fasta = FastaReader(fasta)
 
-    ### process CDS gtf
+    # process CDS gtf
     now = datetime.datetime.now()
     print(
         now.strftime('%b %d %H:%M:%S ... starting extracting annotated ORFs'))
@@ -333,7 +331,7 @@ def prepare_orfs(gtf, fasta, prefix, min_orf_length, start_codons, stop_codons,
             if orf.category != 'annotated' and orf.category != 'internal':
                 candidate_orfs.append(orf)
 
-    ### save to file
+    # save to file
     now = datetime.datetime.now()
     print(now.strftime('%b %d %H:%M:%S ... saving candidate ORFs into disk'))
     columns = [

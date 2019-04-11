@@ -66,19 +66,18 @@ class FastaReader(object):
                 warnings.warn(
                     'Chromosome {} does not appear in the fasta'.format(
                         i.chrom), UserWarning)
-                continue
-
-            chrom_length = chrom_lengths[i.chrom]
-            if i.start > chrom_length:
-                raise Exception(
-                    'Chromsome start point exceeds chromosome length: {}>{}'.
-                    format(i.start, chrom_length))
-            elif i.end > chrom_length:
-                raise Exception(
-                    'Chromsome end point exceeds chromosome length: {}>{}'.
-                    format(i.end, chrom_length))
-            seq = self.fasta.get_seq(i.chrom, i.start, i.end)
-            sequences.append(seq)
+            else:
+                chrom_length = chrom_lengths[i.chrom]
+                if i.start > chrom_length:
+                    raise Exception(
+                        'Chromsome start point exceeds chromosome length: {}>{}'
+                        .format(i.start, chrom_length))
+                elif i.end > chrom_length:
+                    raise Exception(
+                        'Chromsome end point exceeds chromosome length: {}>{}'.
+                        format(i.end, chrom_length))
+                seq = self.fasta.get_seq(i.chrom, i.start, i.end)
+                sequences.append(seq)
         return sequences
 
     def complement(self, seq):

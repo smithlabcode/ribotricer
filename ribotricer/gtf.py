@@ -15,10 +15,10 @@
 # GNU General Public License for more details.
 
 from collections import defaultdict
-from tqdm import *
+from tqdm import tqdm
 
 
-class GTFTrack:
+class GTFTrack(object):
     """Class for feature in GTF file."""
 
     standards = {
@@ -84,7 +84,7 @@ class GTFTrack:
         return str(self.__dict__)
 
 
-class GTFReader:
+class GTFReader(object):
     """Class for reading and parseing gtf file."""
 
     def __init__(self, gtf_location):
@@ -105,17 +105,15 @@ class GTFReader:
                 for line in gtf:
                     pbar.update()
                     track = GTFTrack.from_string(line)
-                    if track is None:
-                        continue
-                    try:
-                        gid = track.gene_id
-                        tid = track.transcript_id
-                    except AttributeError:
-                        print('missing gene or transcript id {}:{}-{}'.format(
-                            track.chrom, track.start, track.end))
-                        continue
-
-                    if track.feature == 'exon':
-                        self.transcript[tid].append(track)
-                    elif track.feature == 'cds':
-                        self.cds[gid][tid].append(track)
+                    if track is not None:
+                        try:
+                            gid = track.gene_id
+                            tid = track.transcript_id
+                        except AttributeError:
+                            print('missing gene or transcript id {}:{}-{}'.format(
+                                track.chrom, track.start, track.end))
+                        else:
+                            if track.feature == 'exon':
+                                self.transcript[tid].append(track)
+                            elif track.feature == 'cds':
+                                self.cds[gid][tid].append(track)
