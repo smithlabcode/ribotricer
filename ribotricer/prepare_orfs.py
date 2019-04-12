@@ -42,7 +42,7 @@ def tracks_to_ivs(tracks):
     strand = {track.strand for track in tracks}
     if len(chrom) != 1 or len(strand) != 1:
         print('fail to fetch seq: inconsistent chrom or strand')
-        intervals = [] 
+        intervals = []
     else:
         chrom = list(chrom)[0]
         strand = list(strand)[0]
@@ -226,6 +226,9 @@ def check_orf_type(orf, cds_orfs):
     -------
     otype: str
            Type of the candidate ORF
+
+    This method uses a fail-sast strategy 
+    and hence multiple returns. 
     """
     if orf.gid not in cds_orfs:
         return 'novel'

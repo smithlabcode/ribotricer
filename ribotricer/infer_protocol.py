@@ -36,6 +36,18 @@ def infer_protocol(bam, refseq, prefix, n_reads=20000):
     -------
     protocol: string
               forward/reverse
+    
+    The strategy to do this is simple: keep a track
+    of mapped reads and their strand and then tally 
+    if the location of their mapping has a gene defined
+    on the positive strand or the negative strand.
+
+    If the first and second characters denote the mapping and
+    gene strand respectively:
+    Higher proportion of (++, --) implies forward protocol
+    Higher proportion of (+-, -+) implies reverse protocol
+    Equal proportion of the above two scenairos implies unstranded protocol.
+    
     """
     iteration = 0
     bam = pysam.AlignmentFile(bam, 'rb')

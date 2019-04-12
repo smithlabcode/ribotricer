@@ -55,6 +55,10 @@ class GTFTrack(object):
         ----------
         line: string
               one line in gtf file
+
+        This method follows the fails-fast strategy and
+        hence uses multiple returns, ultimately returning
+        a line from the GTF parsed into a feature (chrom, start end etc.)
         """
         if line.startswith('#'):
             return None
@@ -110,8 +114,8 @@ class GTFReader(object):
                             gid = track.gene_id
                             tid = track.transcript_id
                         except AttributeError:
-                            print('missing gene or transcript id {}:{}-{}'.format(
-                                track.chrom, track.start, track.end))
+                            print('missing gene or transcript id {}:{}-{}'.
+                                  format(track.chrom, track.start, track.end))
                         else:
                             if track.feature == 'exon':
                                 self.transcript[tid].append(track)

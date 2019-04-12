@@ -15,8 +15,8 @@
 
 from collections import Counter
 from collections import defaultdict
-
 import datetime
+
 from tqdm import tqdm
 from bx.intervals.intersection import IntervalTree
 
@@ -34,6 +34,9 @@ from .statistics import coherence
 
 def merge_read_lengths(alignments, psite_offsets):
     """
+    Merge read counts for different read lengths after
+    applying appropriate offset(s).
+
     Parameters
     ----------
     alignments: dict(dict(Counter))
@@ -62,6 +65,9 @@ def merge_read_lengths(alignments, psite_offsets):
 
 def parse_ribotricer_index(ribotricer_index):
     """
+    Parse ribotricer index to get only 'annotated'
+    features.
+
     Parameters
     ----------
     ribotricer_index: str

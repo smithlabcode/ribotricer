@@ -127,18 +127,19 @@ def coherence(original_values):
 
         length = len(normalized_values)//3*3
         if length == 0:
-            return (0.0, 0)
-        normalized_values = normalized_values[:length]
-        uniform_signal = [1, 0, 0] * (len(normalized_values)//3)
-        f, Cxy = signal.coherence(normalized_values,
-                                  uniform_signal,
-                                  window=[1.0, 1.0, 1.0],
-                                  nperseg=3,
-                                  noverlap=0)
-        periodicity_score = Cxy[np.argwhere(np.isclose(f, 1/3.0))[0]][0]
-        if periodicity_score > coh:
-            coh = periodicity_score
-            valid = length//3
-        if valid == -1:
-            valid = length//3
+            coh, valid = (0.0, 0)
+        else:
+            normalized_values = normalized_values[:length]
+            uniform_signal = [1, 0, 0] * (len(normalized_values)//3)
+            f, Cxy = signal.coherence(normalized_values,
+                                      uniform_signal,
+                                      window=[1.0, 1.0, 1.0],
+                                      nperseg=3,
+                                      noverlap=0)
+            periodicity_score = Cxy[np.argwhere(np.isclose(f, 1/3.0))[0]][0]
+            if periodicity_score > coh:
+                coh = periodicity_score
+                valid = length//3
+            if valid == -1:
+                valid = length//3
     return np.sqrt(coh), valid

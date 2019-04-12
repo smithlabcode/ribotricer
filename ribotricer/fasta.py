@@ -19,7 +19,7 @@ import warnings
 from pyfaidx import Fasta
 
 
-class FastaReader(object):
+class FastaReader:
     """Class for reading and querying fasta file."""
 
     def __init__(self, fasta_location):
@@ -44,7 +44,7 @@ class FastaReader(object):
 
         Parameters
         ----------
-        intervals: list of Interval 
+        intervals: list of Interval
                    The intervals for fasta is one-based and full-closed
 
         Returns
@@ -81,17 +81,43 @@ class FastaReader(object):
         return sequences
 
     def complement(self, seq):
+        """Complement a FASTA sequence.
+
+        Parameters
+        ----------
+        seq: str
+            String fasta sequence
+
+
+        Returns
+        -------
+        complement_seq: str
+                        complemenet of input fasta
+        """
         complement_letters = {'A': 'T', 'C': 'G', 'T': 'A', 'G': 'C'}
         seq = seq.upper()
         comp = []
-        for c in seq:
-            if c in complement_letters:
-                comp.append(complement_letters[c])
+        for nuc in seq:
+            if nuc in complement_letters:
+                comp.append(complement_letters[nuc])
             else:
-                comp.append(c)
+                comp.append(nuc)
         return ''.join(comp)
 
     def reverse_complement(self, seq):
+        """Reverse-complment a FASTA sequence.
+
+        Parameters
+        ----------
+        seq: str
+            String fasta sequence
+
+
+        Returns
+        -------
+        complement_seq: str
+                        complemenet of input fasta
+        """
         seq = seq.upper()
         return self.complement(seq)[::-1]
 

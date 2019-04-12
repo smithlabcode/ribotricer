@@ -13,6 +13,10 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 
+# ribotricer default cutoff for lavbeling ORFs 'translating'
 CUTOFF = 0.428571428571
+# p-site offset
 TYPICAL_OFFSET = 12
+# minimum number of valid codons required in an ORF to label
+# it 'translating'
 MINIMUM_VALID_CODONS = 5

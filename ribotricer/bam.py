@@ -49,7 +49,8 @@ def split_bam(bam_path, protocol, prefix, read_lengths=None):
     read_length_counts = defaultdict(int)
     total_count = qcfail = duplicate = secondary = unmapped = multi = valid = 0
     # print('reading bam file...')
-    # Generate bam index if not already present
+    # First pass just counts the reads
+    # this is required to display a progress bar
     bam = pysam.AlignmentFile(bam_path, 'rb')
     total_reads = bam.count(until_eof=True)
     bam.close()
@@ -57,6 +58,7 @@ def split_bam(bam_path, protocol, prefix, read_lengths=None):
         bam = pysam.AlignmentFile(bam_path, 'rb')
         for read in bam.fetch(until_eof=True):
             pbar.update()
+            # Track if the current read is usable
             is_usable = True
             total_count += 1
 
@@ -88,18 +90,31 @@ def split_bam(bam_path, protocol, prefix, read_lengths=None):
                     pass
                 else:
                     if protocol == 'forward':
+                        # Library preparation was forward-stranded:
+                        # Genes defined on + strand should have
+                        # reads mapping only on the positive strand
                         if map_strand == '+':
                             strand = '+'
+                            # Track the 5'end
                             pos = ref_positions[0]
                         else:
                             strand = '-'
+                            # For negative strand of forward protocol read the
+                            # the 5'end of the read is the last element
                             pos = ref_positions[-1]
                     elif protocol == 'reverse':
+                        # Library preparation was reverse-stranded
+                        # Mappings on the positive strand are
+                        # switched to negative strand with their positions
+                        # reversed and vice versa for mappings on the negative
+                        # strand.
                         if map_strand == '+':
                             strand = '-'
+                            # The 5' end is the last position
                             pos = ref_positions[-1]
                         else:
                             strand = '+'
+                            # The 5'end is the first position
                             pos = ref_positions[0]
 
                     # convert bam coordinate to one-based
