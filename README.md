@@ -11,7 +11,7 @@ After you get a copy of the source code, please change into the directory where 
 ```bash
 python setup.py install
 ```
-NOTE: The above will install the following depencies: 
+**NOTE**: The above will install the following depencies: 
 
 ```
 pyfaidx>=0.5.0
