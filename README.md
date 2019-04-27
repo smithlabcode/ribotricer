@@ -11,11 +11,7 @@ After you get a copy of the source code, please change into the directory where 
 ```bash
 python setup.py install
 ```
-
-This will install the following packages. If some of these are already present, 
-they might be replaced by the designated version. So we strongly recommend
-creating a separate enrivoment (using `venv` or `conda`) before installing
-`ribotricer`.
+NOTE: The above will install the following depencies: 
 
 ```
 pyfaidx>=0.5.0
@@ -29,6 +25,10 @@ click-help-colors>=0.3
 quicksect>=0.2.0
 tqdm>=4.23.4
 ```
+If some of these are already present, 
+they might be replaced by the designated version. So we strongly recommend
+creating a separate enrivoment (using `venv` or `conda`) before installing
+`ribotricer`.
 
 ------------------
 
