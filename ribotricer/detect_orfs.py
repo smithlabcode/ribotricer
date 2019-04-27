@@ -18,7 +18,7 @@ from collections import defaultdict
 import datetime
 
 from tqdm import tqdm
-from bx.intervals.intersection import IntervalTree
+from quicksect import Interval, IntervalTree
 
 from .bam import split_bam
 from .const import CUTOFF
@@ -30,6 +30,9 @@ from .orf import ORF
 from .plotting import plot_read_lengths
 from .plotting import plot_metagene
 from .statistics import coherence
+
+# Required for IntervalTree
+STRAND_TO_NUM = {'+': 1, '-': -1}
 
 
 def merge_read_lengths(alignments, psite_offsets):
@@ -101,14 +104,15 @@ def parse_ribotricer_index(ribotricer_index):
         with tqdm(total=total_lines) as pbar:
             # read header
             anno.readline()
-            line = 'annotated'
+            line = anno.readline()
             while 'annotated' in line:
                 pbar.update()
                 line = anno.readline()
                 orf = ORF.from_string(line)
                 if orf is not None and orf.category == 'annotated':
-                    refseq[orf.chrom].insert(orf.intervals[0].start,
-                                             orf.intervals[-1].end, orf.strand)
+                    refseq[orf.chrom].insert(
+                        Interval(orf.intervals[0].start, orf.intervals[-1].end,
+                                 STRAND_TO_NUM[orf.strand]))
                     annotated.append(orf)
     return (annotated, refseq)
 
