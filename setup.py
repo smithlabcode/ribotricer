@@ -26,7 +26,7 @@ setuptools.setup(
     version='1.0.0',
     author='Wenzheng Li, Saket Choudhary',
     author_email='wenzhenl@usc.edu',
-    description="Python package to detect translating ORF from Ribo-seq data",
+    description='Python package to detect translating ORF from Ribo-seq data',
     long_description=readme,
     long_description_content_type='text/markdown',
     url='https://github.com/smithlabcode/ribotricer',
@@ -35,8 +35,9 @@ setuptools.setup(
     python_requires='>=3',
     install_requires=requirements,
     classifiers=[
-        'License :: OSI Approved :: GNU GPL 3',
+        'License :: OSI Approved :: GNU General Public License v3 (GPLv3)',
         'Natural Language :: English',
         'Programming Language :: Python :: 3',
+        'Topic :: Scientific/Engineering :: Bio-Informatics'
     ],
 )
