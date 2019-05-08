@@ -1,7 +1,7 @@
 # Accurate detection of short and long active ORFs using Ribo-seq data
 
 ## Installation
-We highly recommend that you install ribotricer via conda (currently requires Python 3.6)
+We highly recommend that you install ribotricer via conda
 ```bash
 conda install -c bioconda ribotricer
 ```
@@ -22,7 +22,6 @@ scipy>=0.19.1
 matplotlib>=2.1.0
 click>=6.0
 click-help-colors>=0.3
-quicksect>=0.2.0
 tqdm>=4.23.4
 ```
 If some of these are already present, 

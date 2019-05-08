@@ -18,8 +18,8 @@ from collections import defaultdict
 import datetime
 
 from tqdm import tqdm
-from quicksect import Interval, IntervalTree
-
+from .interval import Interval
+from .intervalTree import IntervalTree
 from .bam import split_bam
 from .const import CUTOFF
 from .const import MINIMUM_VALID_CODONS
@@ -30,9 +30,6 @@ from .orf import ORF
 from .plotting import plot_read_lengths
 from .plotting import plot_metagene
 from .statistics import coherence
-
-# Required for IntervalTree
-STRAND_TO_NUM = {'+': 1, '-': -1}
 
 
 def merge_read_lengths(alignments, psite_offsets):
@@ -111,8 +108,8 @@ def parse_ribotricer_index(ribotricer_index):
                 orf = ORF.from_string(line)
                 if orf is not None and orf.category == 'annotated':
                     refseq[orf.chrom].insert(
-                        Interval(orf.intervals[0].start, orf.intervals[-1].end,
-                                 STRAND_TO_NUM[orf.strand]))
+                        Interval(orf.chrom, orf.intervals[0].start,
+                                 orf.intervals[-1].end, orf.strand))
                     annotated.append(orf)
     return (annotated, refseq)
 
@@ -210,9 +207,8 @@ def export_orf_coverages(ribotricer_index,
     with open(ribotricer_index, 'r') as anno:
         total_lines = len(['' for line in anno])
 
-    with open(ribotricer_index,
-              'r') as anno, open('{}_translating_ORFs.tsv'.format(prefix),
-                                 'w') as output:
+    with open(ribotricer_index, 'r') as anno, open(
+            '{}_translating_ORFs.tsv'.format(prefix), 'w') as output:
         output.write(to_write)
         with tqdm(total=total_lines) as pbar:
             # Skip header
@@ -231,12 +227,10 @@ def export_orf_coverages(ribotricer_index,
                 if not report_all and status == 'nontranslating':
                     pass
                 else:
-                    to_write = formatter.format(orf.oid, orf.category, status,
-                                                coh, count, length, valid,
-                                                orf.tid, orf.ttype, orf.gid,
-                                                orf.gname, orf.gtype,
-                                                orf.chrom, orf.strand,
-                                                orf.start_codon, cov)
+                    to_write = formatter.format(
+                        orf.oid, orf.category, status, coh, count, length,
+                        valid, orf.tid, orf.ttype, orf.gid, orf.gname,
+                        orf.gtype, orf.chrom, orf.strand, orf.start_codon, cov)
                     output.write(to_write)
 
     # now = datetime.datetime.now()
@@ -312,8 +306,9 @@ def detect_orfs(bam, ribotricer_index, prefix, protocol, read_lengths,
     # infer experimental protocol if not provided
     if protocol is None:
         now = datetime.datetime.now()
-        print('{} ... {}'.format(now.strftime('%b %d %H:%M:%S'),
-                                 'started inferring experimental design'))
+        print('{} ... {}'.format(
+            now.strftime('%b %d %H:%M:%S'),
+            'started inferring experimental design'))
         protocol = infer_protocol(bam, refseq, prefix)
     del refseq
 
@@ -325,8 +320,9 @@ def detect_orfs(bam, ribotricer_index, prefix, protocol, read_lengths,
 
     # plot read length distribution
     now = datetime.datetime.now()
-    print('{} ... {}'.format(now.strftime('%b %d %H:%M:%S'),
-                             'started plotting read length distribution'))
+    print('{} ... {}'.format(
+        now.strftime('%b %d %H:%M:%S'),
+        'started plotting read length distribution'))
     plot_read_lengths(read_length_counts, prefix)
 
     # calculate metagene profiles
@@ -339,22 +335,24 @@ def detect_orfs(bam, ribotricer_index, prefix, protocol, read_lengths,
 
     # plot metagene profiles
     now = datetime.datetime.now()
-    print('\n{} ... {}'.format(now.strftime('%b %d %H:%M:%S'),
-                               'started plotting metagene profiles'))
+    print('\n{} ... {}'.format(
+        now.strftime('%b %d %H:%M:%S'), 'started plotting metagene profiles'))
     plot_metagene(metagenes, read_length_counts, prefix)
 
     # align metagenes if psite_offsets not provided
     if psite_offsets is None:
         now = datetime.datetime.now()
-        print('{} ... {}'.format(now.strftime('%b %d %H:%M:%S'),
-                                 'started inferring P-site offsets'))
+        print('{} ... {}'.format(
+            now.strftime('%b %d %H:%M:%S'),
+            'started inferring P-site offsets'))
         psite_offsets = align_metagenes(metagenes, read_length_counts, prefix,
                                         read_lengths is None)
 
     # merge read lengths based on P-sites offsets
     now = datetime.datetime.now()
-    print('{} ... {}'.format(now.strftime('%b %d %H:%M:%S'),
-                             'started shifting according to P-site offsets'))
+    print('{} ... {}'.format(
+        now.strftime('%b %d %H:%M:%S'),
+        'started shifting according to P-site offsets'))
     merged_alignments = merge_read_lengths(alignments, psite_offsets)
 
     # export wig file
@@ -366,10 +364,11 @@ def detect_orfs(bam, ribotricer_index, prefix, protocol, read_lengths,
 
     # saving detecting results to disk
     now = datetime.datetime.now()
-    print('{} ... {}'.format(now.strftime('%b %d %H:%M:%S'),
-                             'started calculating phase scores for each ORF'))
+    print('{} ... {}'.format(
+        now.strftime('%b %d %H:%M:%S'),
+        'started calculating phase scores for each ORF'))
     export_orf_coverages(ribotricer_index, merged_alignments, prefix,
                          report_all)
     now = datetime.datetime.now()
-    print('{} ... {}'.format(now.strftime('%b %d %H:%M:%S'),
-                             'finished ribotricer detect-orfs'))
+    print('{} ... {}'.format(
+        now.strftime('%b %d %H:%M:%S'), 'finished ribotricer detect-orfs'))
