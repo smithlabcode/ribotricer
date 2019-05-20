@@ -103,7 +103,20 @@ Output: {PREFIX}\_pos.wig for the positive strand and {PREFIX}\_neg.wig for the 
 The periodicity of all ORF profiles are assessed and the translating ones are outputed. You can output all ORFs regardless
 of the translation status with option ```--report_all```  
 Output: {PREFIX}\_translating\_ORFs.tsv
-    
+
+------------------
+
+## Definition of ORF types
+Ribotricer reports eight different ORF types as defined below:
+* **annotated**: CDS annotated in the provided GTF file
+* **super_uORF**: upstream ORF of the annotated CDS, not overlapping with any CDS of the same gene
+* **super_dORF**: downstream ORF of the annotated CDS, not overlapping with any CDS of the same gene
+* **uORF**: upstream ORF of the annotated CDS, not overlapping with the main CDS
+* **dORF**: downstream ORF of the annotated CDS, not overlapping with the main CDS
+* **overlap_uORF**: upstream ORF of the annotated CDS, overlapping with the main CDS
+* **overlap_dORF**: downstream ORF of the annotated CDS, overlapping with the main CDS
+* **novel**: ORF in non-coding genes or in non-coding transcripts of coding genes
+
 ------------------
 
 ## Contacts and bug reports
