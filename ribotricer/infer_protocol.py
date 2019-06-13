@@ -15,8 +15,11 @@
 
 from collections import Counter
 import pysam
-from .interval import Interval
+from quicksect import Interval
 from .common import is_read_uniq_mapping
+
+# required to convert numeric strands to '+/-'
+NUM_TO_STRAND = {1: '+', -1: '-'}
 
 
 def infer_protocol(bam, refseq, prefix, n_reads=20000):
@@ -63,14 +66,15 @@ def infer_protocol(bam, refseq, prefix, n_reads=20000):
                 mapped_start = read.reference_start
                 mapped_end = read.reference_end
                 chrom = read.reference_name
-                # get all genes intersecting with (mapped_start, mapped_end)
-                intervals = refseq[chrom].search(mapped_start, mapped_end)
-                gene_strands = {iv.strand for iv in intervals}
-                if len(gene_strands) == 1:
+                # get corresponding gene's strand
+                interval = list(
+                    set(refseq[chrom].find(Interval(mapped_start,
+                                                    mapped_end))))
+                if len(interval) == 1:
                     # Filter out genes with ambiguous strand info
                     # (those) that have a tx_start on opposite strands
+                    gene_strand = NUM_TO_STRAND[interval[0].data]
                     # count table for mapped strand vs gene strand
-                    gene_strand = list(gene_strands)[0]
                     strandedness['{}{}'.format(mapped_strand,
                                                gene_strand)] += 1
                     iteration += 1
