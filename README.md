@@ -1,5 +1,8 @@
 # Accurate detection of short and long active ORFs using Ribo-seq data
 
+[![install with pip](https://img.shields.io/pypi/v/ribotricer.svg?style=flat)](https://img.shields.io/pypi/v/ribotricer.svg)
+[![install with bioconda](https://img.shields.io/badge/install%20with-bioconda-brightgreen.svg?style=flat)](http://bioconda.github.io/recipes/ribotricer/README.html)
+
 ## Installation
 We highly recommend that you install ribotricer via conda: 
 ```bash
