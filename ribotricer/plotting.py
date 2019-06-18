@@ -57,9 +57,11 @@ def plot_metagene(metagenes, read_lengths, prefix, offset=200):
     """
     # print('plotting metagene profiles...')
     total_reads = sum(read_lengths.values())
+    frame_colors = ['#fc8d62', '#66c2a5', '#8da0cb']
     with PdfPages('{}_metagene_plots.pdf'.format(prefix)) as pdf:
         for length in sorted(metagenes):
-            metagene_cov_start, metagene_cov_stop, coh, valid = metagenes[
+            #TODO: This only consider the 5' end, should be generalized to 3'
+            metagene_cov_start, metagene_cov_stop, coh, valid, _, _ = metagenes[
                 length]
             if len(metagene_cov_start) != 0:
                 min_index = min(metagene_cov_start.index.tolist())
@@ -68,7 +70,7 @@ def plot_metagene(metagenes, read_lengths, prefix, offset=200):
                 metagene_cov_start = metagene_cov_start[np.arange(
                     min_index, start_offset)]
                 x = np.arange(min_index, start_offset)
-                colors = np.tile(['r', 'g', 'b'], len(x) // 3 + 1)
+                colors = np.tile(frame_colors, len(x) // 3 + 1)
                 xticks = np.arange(min_index, start_offset, 20)
                 ratio = read_lengths[length] / total_reads
                 fig, (ax, ax2) = plt.subplots(nrows=2, ncols=1)
@@ -95,7 +97,7 @@ def plot_metagene(metagenes, read_lengths, prefix, offset=200):
                 metagene_cov_stop = metagene_cov_stop[np.arange(
                     stop_offset, max_index)]
                 x = np.arange(stop_offset, max_index)
-                colors = np.tile(['r', 'g', 'b'], len(x) // 3 + 1)
+                colors = np.tile(frame_colors, len(x) // 3 + 1)
                 xticks = np.arange(stop_offset, max_index, 20)
                 ax2.vlines(x,
                            ymin=np.zeros(len(x)),

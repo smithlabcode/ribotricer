@@ -233,7 +233,7 @@ def align_metagenes(metagenes, read_lengths, prefix, remove_nonperiodic=False):
 
     # discard non-periodic read lengths
     if remove_nonperiodic:
-        for length, (_, _, coh, _) in list(metagenes.items()):
+        for length, (_, _, coh, _, _, _) in list(metagenes.items()):
             if coh < CUTOFF:
                 del read_lengths[length]
                 del metagenes[length]
@@ -249,7 +249,7 @@ def align_metagenes(metagenes, read_lengths, prefix, remove_nonperiodic=False):
             n_reads = reads
     reference = metagenes[base][0].values
     to_write = 'relative lag to base: {}\n'.format(base)
-    for length, (meta, _, _, _) in list(metagenes.items()):
+    for length, (meta, _, _, _, _, _) in list(metagenes.items()):
         cov = meta.values
         xcorr = np.correlate(reference, cov, 'full')
         origin = len(xcorr) // 2
