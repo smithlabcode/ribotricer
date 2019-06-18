@@ -186,17 +186,20 @@ def metagene_coverage(cds,
         metagene_coverage_stop = metagene_coverage_stop.div(
             position_counter_stop)
 
-        coh, valid = coherence(metagene_coverage_start.tolist())
+        coh_5p, valid_5p = coherence(metagene_coverage_start.tolist())
+        coh_3p, valid_3p = coherence(metagene_coverage_stop.tolist())
         metagenes[length] = (metagene_coverage_start, metagene_coverage_stop,
-                             coh, valid)
+                             coh_5p, valid_5p, coh_3p, valid_3p)
 
-    to_write_5p = ''
-    to_write_3p = ''
+    to_write_5p = 'fragment_length\toffset_5p\tprofile\tphase_score\tvalid_codons\n'
+    to_write_3p = 'fragment_length\toffset_3p\tprofile\tphase_score\tvalid_codons\n'
     for length in sorted(metagenes):
-        to_write_5p += '{}\t{}\t{}\n'.format(length, offset_5p,
-                                             metagenes[length][0].tolist())
-        to_write_3p += '{}\t{}\t{}\n'.format(length, offset_3p,
-                                             metagenes[length][1].tolist())
+        to_write_5p += '{}\t{}\t{}\t{}\t{}\n'.format(
+            length, offset_5p, metagenes[length][0].tolist(),
+            metagenes[length][2], metagenes[length][3])
+        to_write_3p += '{}\t{}\t{}\t{}\t{}\n'.format(
+            length, offset_3p, metagenes[length][1].tolist(),
+            metagenes[length][4], metagenes[length][5])
 
     with open('{}_metagene_profiles_5p.tsv'.format(prefix), 'w') as output:
         output.write(to_write_5p)

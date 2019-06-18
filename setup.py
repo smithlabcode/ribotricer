@@ -36,8 +36,7 @@ setuptools.setup(
     install_requires=requirements,
     classifiers=[
         'License :: OSI Approved :: GNU General Public License v3 (GPLv3)',
-        'Natural Language :: English',
-        'Programming Language :: Python :: 3',
+        'Natural Language :: English', 'Programming Language :: Python :: 3',
         'Topic :: Scientific/Engineering :: Bio-Informatics'
     ],
 )
