@@ -133,6 +133,10 @@ class ORF:
         gtype = set()
         chrom = set()
         strand = set()
+        required_attributes = [
+            'transcript_id', 'transcript_type', 'gene_id', 'gene_name',
+            'gene_type', 'chrom', 'strand'
+        ]
         for track in tracks:
             try:
                 tid.add(track.transcript_id)
@@ -146,9 +150,11 @@ class ORF:
                     Interval(track.chrom, track.start, track.end,
                              track.strand))
             except AttributeError:
-                print('missing attribute {}:{}-{}'.format(
-                    track.chrom, track.start, track.end))
-                return None
+                for attribute in required_attributes:
+                    if not hasattr(track, attribute):
+                        print('missing attribute "{}" in {}'.format(
+                            attribute, track))
+                        return None
         if (len(tid) != 1 or len(ttype) != 1 or len(gid) != 1
                 or len(gname) != 1 or len(gtype) != 1 or len(chrom) != 1
                 or len(strand) != 1):
