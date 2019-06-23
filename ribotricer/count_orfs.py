@@ -63,7 +63,10 @@ def count_orfs(ribotricer_index,
                     ]
                     if strand == '-':
                         coor = coor[::-1]
-                    profile = list(map(int, profile.strip()[1:-1].split(', ')))
+                    profile_stripped = profile.strip()[1:-1].split(', ')
+                    profile = list()
+                    if profile_stripped:
+                      profile = list(map(int, profile_stripped))
                     for pos, cov in zip(coor, profile):
                         if pos not in read_counts[gene_id, gene_name]:
                             read_counts[gene_id, gene_name][pos] = cov
