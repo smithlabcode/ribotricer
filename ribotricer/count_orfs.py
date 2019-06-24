@@ -73,7 +73,9 @@ def count_orfs(ribotricer_index,
 
     # Output count table
     with open('{}_cnt.txt'.format(prefix), 'w') as fout:
-        fout.write('gene_id\tcount\n')
+        fout.write('gene_id\tcount\tlength\n')
         for gene_id, gene_name in sorted(read_counts):
-            total = sum(read_counts[gene_id, gene_name].values())
-            fout.write('{}\t{}\n'.format(gene_id, total))
+            values = read_counts[gene_id, gene_name].values()
+            length = len(values)
+            total = sum(values)
+            fout.write('{}\t{}\t{}\n'.format(gene_id, total, length))
