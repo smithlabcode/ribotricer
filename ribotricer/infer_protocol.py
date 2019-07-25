@@ -19,7 +19,7 @@ from quicksect import Interval
 from .common import is_read_uniq_mapping
 
 # required to convert numeric strands to '+/-'
-NUM_TO_STRAND = {1: '+', -1: '-'}
+NUM_TO_STRAND = {1: "+", -1: "-"}
 
 
 def infer_protocol(bam, refseq, prefix, n_reads=20000):
@@ -54,48 +54,52 @@ def infer_protocol(bam, refseq, prefix, n_reads=20000):
     
     """
     iteration = 0
-    bam = pysam.AlignmentFile(bam, 'rb')
+    bam = pysam.AlignmentFile(bam, "rb")
     strandedness = Counter()
     for read in bam.fetch(until_eof=True):
         if iteration <= n_reads:
             if is_read_uniq_mapping(read):
                 if read.is_reverse:
-                    mapped_strand = '-'
+                    mapped_strand = "-"
                 else:
-                    mapped_strand = '+'
+                    mapped_strand = "+"
                 mapped_start = read.reference_start
                 mapped_end = read.reference_end
                 chrom = read.reference_name
                 # get corresponding gene's strand
                 interval = list(
-                    set(refseq[chrom].find(Interval(mapped_start,
-                                                    mapped_end))))
+                    set(refseq[chrom].find(Interval(mapped_start, mapped_end)))
+                )
                 if len(interval) == 1:
                     # Filter out genes with ambiguous strand info
                     # (those) that have a tx_start on opposite strands
                     gene_strand = NUM_TO_STRAND[interval[0].data]
                     # count table for mapped strand vs gene strand
-                    strandedness['{}{}'.format(mapped_strand,
-                                               gene_strand)] += 1
+                    strandedness["{}{}".format(mapped_strand, gene_strand)] += 1
                     iteration += 1
     # Add pseudocounts
-    strandedness['++'] += 1
-    strandedness['--'] += 1
-    strandedness['+-'] += 1
-    strandedness['-+'] += 1
+    strandedness["++"] += 1
+    strandedness["--"] += 1
+    strandedness["+-"] += 1
+    strandedness["-+"] += 1
 
     total = sum(strandedness.values())
-    forward_mapped_reads = (strandedness['++'] + strandedness['--'])
-    reverse_mapped_reads = (strandedness['-+'] + strandedness['+-'])
+    forward_mapped_reads = strandedness["++"] + strandedness["--"]
+    reverse_mapped_reads = strandedness["-+"] + strandedness["+-"]
     to_write = (
-        'In total {} reads checked:\n'
+        "In total {} reads checked:\n"
         '\tNumber of reads explained by "++, --": {} ({:.4f})\n'
-        '\tNumber of reads explained by "+-, -+": {} ({:.4f})\n').format(
-            total, forward_mapped_reads, forward_mapped_reads / total,
-            reverse_mapped_reads, reverse_mapped_reads / total)
-    with open('{}_protocol.txt'.format(prefix), 'w') as output:
+        '\tNumber of reads explained by "+-, -+": {} ({:.4f})\n'
+    ).format(
+        total,
+        forward_mapped_reads,
+        forward_mapped_reads / total,
+        reverse_mapped_reads,
+        reverse_mapped_reads / total,
+    )
+    with open("{}_protocol.txt".format(prefix), "w") as output:
         output.write(to_write)
-    protocol = 'forward'
+    protocol = "forward"
     if reverse_mapped_reads > forward_mapped_reads:
-        protocol = 'reverse'
+        protocol = "reverse"
     return protocol

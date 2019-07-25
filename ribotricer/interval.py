@@ -26,9 +26,12 @@ class Interval:
 
     def __eq__(self, other):
         """Override the default Equals behavior"""
-        return (self.chrom == other.chrom and self.start == other.start
-                and self.end == other.end and self.strand == other.strand)
+        return (
+            self.chrom == other.chrom
+            and self.start == other.start
+            and self.end == other.end
+            and self.strand == other.strand
+        )
 
     def __repr__(self):
-        return '{}\t{}\t{}\t{}'.format(self.chrom, self.start, self.end,
-                                       self.strand)
+        return "{}\t{}\t{}\t{}".format(self.chrom, self.start, self.end, self.strand)

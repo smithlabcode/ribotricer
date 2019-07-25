@@ -51,11 +51,11 @@ def split_bam(bam_path, protocol, prefix, read_lengths=None):
     # print('reading bam file...')
     # First pass just counts the reads
     # this is required to display a progress bar
-    bam = pysam.AlignmentFile(bam_path, 'rb')
+    bam = pysam.AlignmentFile(bam_path, "rb")
     total_reads = bam.count(until_eof=True)
     bam.close()
     with tqdm(total=total_reads) as pbar:
-        bam = pysam.AlignmentFile(bam_path, 'rb')
+        bam = pysam.AlignmentFile(bam_path, "rb")
         for read in bam.fetch(until_eof=True):
             pbar.update()
             # Track if the current read is usable
@@ -79,7 +79,7 @@ def split_bam(bam_path, protocol, prefix, read_lengths=None):
                 is_usable = False
 
             if is_usable:
-                map_strand = '-' if read.is_reverse else '+'
+                map_strand = "-" if read.is_reverse else "+"
                 ref_positions = read.get_reference_positions()
                 strand = None
                 pos = None
@@ -89,31 +89,31 @@ def split_bam(bam_path, protocol, prefix, read_lengths=None):
                     # Do nothing
                     pass
                 else:
-                    if protocol == 'forward':
+                    if protocol == "forward":
                         # Library preparation was forward-stranded:
                         # Genes defined on + strand should have
                         # reads mapping only on the positive strand
-                        if map_strand == '+':
-                            strand = '+'
+                        if map_strand == "+":
+                            strand = "+"
                             # Track the 5'end
                             pos = ref_positions[0]
                         else:
-                            strand = '-'
+                            strand = "-"
                             # For negative strand of forward protocol read the
                             # the 5'end of the read is the last element
                             pos = ref_positions[-1]
-                    elif protocol == 'reverse':
+                    elif protocol == "reverse":
                         # Library preparation was reverse-stranded
                         # Mappings on the positive strand are
                         # switched to negative strand with their positions
                         # reversed and vice versa for mappings on the negative
                         # strand.
-                        if map_strand == '+':
-                            strand = '-'
+                        if map_strand == "+":
+                            strand = "-"
                             # The 5' end is the last position
                             pos = ref_positions[-1]
                         else:
-                            strand = '+'
+                            strand = "+"
                             # The 5'end is the first position
                             pos = ref_positions[0]
 
@@ -122,16 +122,16 @@ def split_bam(bam_path, protocol, prefix, read_lengths=None):
                     read_length_counts[length] += 1
                     valid += 1
     bam.close()
-    summary = ('summary:\n\ttotal_reads: {}\n\tunique_mapped: {}\n'
-               '\tqcfail: {}\n\tduplicate: {}\n\tsecondary: {}\n'
-               '\tunmapped:{}\n\tmulti:{}\n\nlength dist:\n').format(
-                   total_count, valid, qcfail, duplicate, secondary, unmapped,
-                   multi)
+    summary = (
+        "summary:\n\ttotal_reads: {}\n\tunique_mapped: {}\n"
+        "\tqcfail: {}\n\tduplicate: {}\n\tsecondary: {}\n"
+        "\tunmapped:{}\n\tmulti:{}\n\nlength dist:\n"
+    ).format(total_count, valid, qcfail, duplicate, secondary, unmapped, multi)
 
     for length in sorted(read_length_counts):
-        summary += '\t{}: {}\n'.format(length, read_length_counts[length])
+        summary += "\t{}: {}\n".format(length, read_length_counts[length])
 
-    with open('{}_bam_summary.txt'.format(prefix), 'w') as output:
+    with open("{}_bam_summary.txt".format(prefix), "w") as output:
         output.write(summary)
 
     return (alignments, read_length_counts)

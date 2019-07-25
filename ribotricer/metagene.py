@@ -29,10 +29,12 @@ def next_genome_pos(ivs, max_positions, leader, trailer, reverse=False):
     if len(ivs) == 0:
         return iter([])
     cnt = 0
-    leader_iv = Interval(ivs[0].chrom, ivs[0].start - leader, ivs[0].start - 1,
-                         ivs[0].strand)
-    trailer_iv = Interval(ivs[-1].chrom, ivs[-1].end + 1,
-                          ivs[-1].end + trailer, ivs[-1].strand)
+    leader_iv = Interval(
+        ivs[0].chrom, ivs[0].start - leader, ivs[0].start - 1, ivs[0].strand
+    )
+    trailer_iv = Interval(
+        ivs[-1].chrom, ivs[-1].end + 1, ivs[-1].end + trailer, ivs[-1].strand
+    )
     combined_ivs = [leader_iv] + ivs + [trailer_iv]
 
     cnt = 0
@@ -50,12 +52,9 @@ def next_genome_pos(ivs, max_positions, leader, trailer, reverse=False):
                     yield pos
 
 
-def orf_coverage_length(orf,
-                        alignments,
-                        length,
-                        max_positions,
-                        offset_5p=20,
-                        offset_3p=0):
+def orf_coverage_length(
+    orf, alignments, length, max_positions, offset_5p=20, offset_3p=0
+):
     """
     Parameters
     ----------
@@ -82,42 +81,47 @@ def orf_coverage_length(orf,
     coverage = []
     chrom = orf.chrom
     strand = orf.strand
-    if strand == '-':
+    if strand == "-":
         offset_5p, offset_3p = offset_3p, offset_5p
 
-    for pos in next_genome_pos(orf.intervals, max_positions, offset_5p,
-                               offset_3p, strand == '-'):
+    for pos in next_genome_pos(
+        orf.intervals, max_positions, offset_5p, offset_3p, strand == "-"
+    ):
         try:
             coverage.append(alignments[length][strand][(chrom, pos)])
         except KeyError:
             coverage.append(0)
 
-    if strand == '-':
-        from_start = pd.Series(np.array(coverage),
-                               index=np.arange(-offset_3p,
-                                               len(coverage) - offset_3p))
-        from_stop = pd.Series(np.array(coverage),
-                              index=np.arange(offset_5p - len(coverage) + 1,
-                                              offset_5p + 1))
+    if strand == "-":
+        from_start = pd.Series(
+            np.array(coverage), index=np.arange(-offset_3p, len(coverage) - offset_3p)
+        )
+        from_stop = pd.Series(
+            np.array(coverage),
+            index=np.arange(offset_5p - len(coverage) + 1, offset_5p + 1),
+        )
     else:
-        from_start = pd.Series(np.array(coverage),
-                               index=np.arange(-offset_5p,
-                                               len(coverage) - offset_5p))
-        from_stop = pd.Series(np.array(coverage),
-                              index=np.arange(offset_3p - len(coverage) + 1,
-                                              offset_3p + 1))
+        from_start = pd.Series(
+            np.array(coverage), index=np.arange(-offset_5p, len(coverage) - offset_5p)
+        )
+        from_stop = pd.Series(
+            np.array(coverage),
+            index=np.arange(offset_3p - len(coverage) + 1, offset_3p + 1),
+        )
 
     return (from_start, from_stop)
 
 
-def metagene_coverage(cds,
-                      alignments,
-                      read_lengths,
-                      prefix,
-                      max_positions=600,
-                      offset_5p=20,
-                      offset_3p=0,
-                      meta_min_reads=100000):
+def metagene_coverage(
+    cds,
+    alignments,
+    read_lengths,
+    prefix,
+    max_positions=600,
+    offset_5p=20,
+    offset_3p=0,
+    meta_min_reads=100000,
+):
     """
     Parameters
     ----------
@@ -161,49 +165,65 @@ def metagene_coverage(cds,
 
         for orf in tqdm(cds):
             from_start, from_stop = orf_coverage_length(
-                orf, alignments, length, max_positions, offset_5p, offset_3p)
+                orf, alignments, length, max_positions, offset_5p, offset_3p
+            )
             cov_mean = from_start.mean()
             if cov_mean > 0:
                 from_start = from_start / cov_mean
                 from_start = from_start.fillna(0)
                 metagene_coverage_start = metagene_coverage_start.add(
-                    from_start, fill_value=0)
+                    from_start, fill_value=0
+                )
                 position_counter_start += Counter(from_start.index.tolist())
 
                 from_stop = from_stop / cov_mean
                 from_stop = from_stop.fillna(0)
                 metagene_coverage_stop = metagene_coverage_stop.add(
-                    from_stop, fill_value=0)
+                    from_stop, fill_value=0
+                )
                 position_counter_stop += Counter(from_stop.index.tolist())
 
-        if (len(position_counter_start) != len(metagene_coverage_start)
-                or len(position_counter_stop) != len(metagene_coverage_stop)):
-            raise RuntimeError('Metagene coverage and counter mismatch')
+        if len(position_counter_start) != len(metagene_coverage_start) or len(
+            position_counter_stop
+        ) != len(metagene_coverage_stop):
+            raise RuntimeError("Metagene coverage and counter mismatch")
         position_counter_start = pd.Series(position_counter_start)
-        metagene_coverage_start = metagene_coverage_start.div(
-            position_counter_start)
+        metagene_coverage_start = metagene_coverage_start.div(position_counter_start)
         position_counter_stop = pd.Series(position_counter_stop)
-        metagene_coverage_stop = metagene_coverage_stop.div(
-            position_counter_stop)
+        metagene_coverage_stop = metagene_coverage_stop.div(position_counter_stop)
 
         coh_5p, valid_5p = coherence(metagene_coverage_start.tolist())
         coh_3p, valid_3p = coherence(metagene_coverage_stop.tolist())
-        metagenes[length] = (metagene_coverage_start, metagene_coverage_stop,
-                             coh_5p, valid_5p, coh_3p, valid_3p)
+        metagenes[length] = (
+            metagene_coverage_start,
+            metagene_coverage_stop,
+            coh_5p,
+            valid_5p,
+            coh_3p,
+            valid_3p,
+        )
 
-    to_write_5p = 'fragment_length\toffset_5p\tprofile\tphase_score\tvalid_codons\n'
-    to_write_3p = 'fragment_length\toffset_3p\tprofile\tphase_score\tvalid_codons\n'
+    to_write_5p = "fragment_length\toffset_5p\tprofile\tphase_score\tvalid_codons\n"
+    to_write_3p = "fragment_length\toffset_3p\tprofile\tphase_score\tvalid_codons\n"
     for length in sorted(metagenes):
-        to_write_5p += '{}\t{}\t{}\t{}\t{}\n'.format(
-            length, offset_5p, metagenes[length][0].tolist(),
-            metagenes[length][2], metagenes[length][3])
-        to_write_3p += '{}\t{}\t{}\t{}\t{}\n'.format(
-            length, offset_3p, metagenes[length][1].tolist(),
-            metagenes[length][4], metagenes[length][5])
+        to_write_5p += "{}\t{}\t{}\t{}\t{}\n".format(
+            length,
+            offset_5p,
+            metagenes[length][0].tolist(),
+            metagenes[length][2],
+            metagenes[length][3],
+        )
+        to_write_3p += "{}\t{}\t{}\t{}\t{}\n".format(
+            length,
+            offset_3p,
+            metagenes[length][1].tolist(),
+            metagenes[length][4],
+            metagenes[length][5],
+        )
 
-    with open('{}_metagene_profiles_5p.tsv'.format(prefix), 'w') as output:
+    with open("{}_metagene_profiles_5p.tsv".format(prefix), "w") as output:
         output.write(to_write_5p)
-    with open('{}_metagene_profiles_3p.tsv'.format(prefix), 'w') as output:
+    with open("{}_metagene_profiles_3p.tsv".format(prefix), "w") as output:
         output.write(to_write_3p)
 
     return metagenes
@@ -239,7 +259,7 @@ def align_metagenes(metagenes, read_lengths, prefix, remove_nonperiodic=False):
                 del metagenes[length]
 
     if len(read_lengths) == 0:
-        sys.exit('Warning: no periodic read length found...')
+        sys.exit("Warning: no periodic read length found...")
 
     psite_offsets = {}
     base = n_reads = 0
@@ -248,16 +268,16 @@ def align_metagenes(metagenes, read_lengths, prefix, remove_nonperiodic=False):
             base = length
             n_reads = reads
     reference = metagenes[base][0].values
-    to_write = 'relative lag to base: {}\n'.format(base)
+    to_write = "relative lag to base: {}\n".format(base)
     for length, (meta, _, _, _, _, _) in list(metagenes.items()):
         cov = meta.values
-        xcorr = np.correlate(reference, cov, 'full')
+        xcorr = np.correlate(reference, cov, "full")
         origin = len(xcorr) // 2
         bound = min(base, length)
-        xcorr = xcorr[origin - bound:origin + bound]
+        xcorr = xcorr[origin - bound : origin + bound]
         lag = np.argmax(xcorr) - len(xcorr) // 2
         psite_offsets[length] = lag + TYPICAL_OFFSET
-        to_write += '\tlag of {}: {}\n'.format(length, lag)
-    with open('{}_psite_offsets.txt'.format(prefix), 'w') as output:
+        to_write += "\tlag of {}: {}\n".format(length, lag)
+    with open("{}_psite_offsets.txt".format(prefix), "w") as output:
         output.write(to_write)
     return psite_offsets

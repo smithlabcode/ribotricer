@@ -21,19 +21,21 @@ from .interval import Interval
 class ORF:
     """Class for candidate ORF."""
 
-    def __init__(self,
-                 category,
-                 transcript_id,
-                 transcript_type,
-                 gene_id,
-                 gene_name,
-                 gene_type,
-                 chrom,
-                 strand,
-                 intervals,
-                 seq='',
-                 leader='',
-                 trailer=''):
+    def __init__(
+        self,
+        category,
+        transcript_id,
+        transcript_type,
+        gene_id,
+        gene_name,
+        gene_type,
+        chrom,
+        strand,
+        intervals,
+        seq="",
+        leader="",
+        trailer="",
+    ):
         self.category = category
         self.tid = transcript_id
         self.ttype = transcript_type
@@ -45,9 +47,12 @@ class ORF:
         self.intervals = sorted(intervals, key=lambda x: x.start)
         start = self.intervals[0].start
         end = self.intervals[-1].end
-        self.oid = '{}_{}_{}_{}'.format(
-            transcript_id, start, end,
-            sum([x.end - x.start + 1 for x in self.intervals]))
+        self.oid = "{}_{}_{}_{}".format(
+            transcript_id,
+            start,
+            end,
+            sum([x.end - x.start + 1 for x in self.intervals]),
+        )
         self.seq = seq
         self.leader = leader
         self.trailer = trailer
@@ -73,13 +78,16 @@ class ORF:
         parsed line.
         """
         if not line:
-            print('annotation line cannot be empty')
+            print("annotation line cannot be empty")
             return None
-        fields = line.split('\t')
+        fields = line.split("\t")
         if len(fields) != 11:
-            sys.exit('{}\n{}'.format(
-                'Error: unexpected number of columns found for index file',
-                'please run ribotricer prepare-orfs to regenerate'))
+            sys.exit(
+                "{}\n{}".format(
+                    "Error: unexpected number of columns found for index file",
+                    "please run ribotricer prepare-orfs to regenerate",
+                )
+            )
             return None
         oid = fields[0]
         category = fields[1]
@@ -93,27 +101,29 @@ class ORF:
         start_codon = fields[9]
         coordinate = fields[10]
         intervals = []
-        for group in coordinate.split(','):
-            start, end = group.split('-')
+        for group in coordinate.split(","):
+            start, end = group.split("-")
             start = int(start)
             end = int(end)
             intervals.append(Interval(chrom, start, end, strand))
         # seq = fields[11]
         # leader = fields[12]
         # trailer = fields[13]
-        return cls(category,
-                   tid,
-                   ttype,
-                   gid,
-                   gname,
-                   gtype,
-                   chrom,
-                   strand,
-                   intervals,
-                   seq=start_codon)
+        return cls(
+            category,
+            tid,
+            ttype,
+            gid,
+            gname,
+            gtype,
+            chrom,
+            strand,
+            intervals,
+            seq=start_codon,
+        )
 
     @classmethod
-    def from_tracks(cls, tracks, category, seq='', leader='', trailer=''):
+    def from_tracks(cls, tracks, category, seq="", leader="", trailer=""):
         """
         Parameters
         ----------
@@ -134,8 +144,13 @@ class ORF:
         chrom = set()
         strand = set()
         required_attributes = [
-            'transcript_id', 'transcript_type', 'gene_id', 'gene_name',
-            'gene_type', 'chrom', 'strand'
+            "transcript_id",
+            "transcript_type",
+            "gene_id",
+            "gene_name",
+            "gene_type",
+            "chrom",
+            "strand",
         ]
         for track in tracks:
             try:
@@ -147,18 +162,23 @@ class ORF:
                 chrom.add(track.chrom)
                 strand.add(track.strand)
                 intervals.append(
-                    Interval(track.chrom, track.start, track.end,
-                             track.strand))
+                    Interval(track.chrom, track.start, track.end, track.strand)
+                )
             except AttributeError:
                 for attribute in required_attributes:
                     if not hasattr(track, attribute):
-                        print('missing attribute "{}" in {}'.format(
-                            attribute, track))
+                        print('missing attribute "{}" in {}'.format(attribute, track))
                         return None
-        if (len(tid) != 1 or len(ttype) != 1 or len(gid) != 1
-                or len(gname) != 1 or len(gtype) != 1 or len(chrom) != 1
-                or len(strand) != 1):
-            print('inconsistent tracks for one ORF')
+        if (
+            len(tid) != 1
+            or len(ttype) != 1
+            or len(gid) != 1
+            or len(gname) != 1
+            or len(gtype) != 1
+            or len(chrom) != 1
+            or len(strand) != 1
+        ):
+            print("inconsistent tracks for one ORF")
             return None
         tid = list(tid)[0]
         ttype = list(ttype)[0]
@@ -167,5 +187,17 @@ class ORF:
         gtype = list(gtype)[0]
         chrom = list(chrom)[0]
         strand = list(strand)[0]
-        return cls(category, tid, ttype, gid, gname, gtype, chrom, strand,
-                   intervals, seq, leader, trailer)
+        return cls(
+            category,
+            tid,
+            ttype,
+            gid,
+            gname,
+            gtype,
+            chrom,
+            strand,
+            intervals,
+            seq,
+            leader,
+            trailer,
+        )

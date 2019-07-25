@@ -35,7 +35,7 @@ def is_read_uniq_mapping(read):
         is_uniq = False
     tags = dict(read.get_tags())
     try:
-        nh_count = tags['NH']
+        nh_count = tags["NH"]
     except KeyError:
         # Reliable in case of STAR
         if read.mapping_quality == 255:
@@ -46,7 +46,7 @@ def is_read_uniq_mapping(read):
         elif read.flag in __SAM_NOT_UNIQ_FLAGS__:
             is_uniq = False
         else:
-            raise RuntimeError('Malformed BAM?')
+            raise RuntimeError("Malformed BAM?")
     if nh_count == 1:
         is_uniq = True
     return is_uniq
@@ -68,10 +68,13 @@ def merge_intervals(intervals):
     merged_intervals = []
     i = 0
     while i < len(intervals):
-        to_merge = Interval(intervals[i].chrom, intervals[i].start,
-                            intervals[i].end, intervals[i].strand)
-        while (i + 1 < len(intervals)
-               and intervals[i + 1].start <= to_merge.end):
+        to_merge = Interval(
+            intervals[i].chrom,
+            intervals[i].start,
+            intervals[i].end,
+            intervals[i].strand,
+        )
+        while i + 1 < len(intervals) and intervals[i + 1].start <= to_merge.end:
             to_merge.end = max(to_merge.end, intervals[i + 1].end)
             i += 1
         merged_intervals.append(to_merge)

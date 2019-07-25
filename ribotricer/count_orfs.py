@@ -17,11 +17,7 @@ from collections import defaultdict
 from .orf import ORF
 
 
-def count_orfs(ribotricer_index,
-               detected_orfs,
-               features,
-               prefix,
-               report_all=False):
+def count_orfs(ribotricer_index, detected_orfs, features, prefix, report_all=False):
     """
     Parameters
     ----------
@@ -38,44 +34,41 @@ def count_orfs(ribotricer_index,
     """
     orf_index = {}
     read_counts = defaultdict(dict)
-    with open(ribotricer_index, 'r') as fin:
+    with open(ribotricer_index, "r") as fin:
         # Skip header
         fin.readline()
         for line in fin:
             orf = ORF.from_string(line)
             if orf.category in features:
                 orf_index[orf.oid] = orf
-    with open(detected_orfs, 'r') as fin:
+    with open(detected_orfs, "r") as fin:
         # Skip header
         fin.readline()
         for line in fin:
-            fields = line.strip().split('\t')
+            fields = line.strip().split("\t")
             oid, otype, status = fields[:3]
             gene_id, gene_name, gene_type = fields[9:12]
             chrom, strand, start_codon, profile = fields[12:]
             if otype in features:
                 # do not output 'nontranslating' events unless report_all is set
-                if status != 'nontranslating' or report_all:
+                if status != "nontranslating" or report_all:
                     intervals = orf_index[oid].intervals
-                    coor = [
-                        x for iv in intervals
-                        for x in range(iv.start, iv.end + 1)
-                    ]
-                    if strand == '-':
+                    coor = [x for iv in intervals for x in range(iv.start, iv.end + 1)]
+                    if strand == "-":
                         coor = coor[::-1]
-                    profile_stripped = profile.strip()[1:-1].split(', ')
+                    profile_stripped = profile.strip()[1:-1].split(", ")
                     profile = list()
                     if profile_stripped[0]:
-                      profile = list(map(int, profile_stripped))
+                        profile = list(map(int, profile_stripped))
                     for pos, cov in zip(coor, profile):
                         if pos not in read_counts[gene_id, gene_name]:
                             read_counts[gene_id, gene_name][pos] = cov
 
     # Output count table
-    with open('{}_cnt.txt'.format(prefix), 'w') as fout:
-        fout.write('gene_id\tcount\tlength\n')
+    with open("{}_cnt.txt".format(prefix), "w") as fout:
+        fout.write("gene_id\tcount\tlength\n")
         for gene_id, gene_name in sorted(read_counts):
             values = read_counts[gene_id, gene_name].values()
             length = len(values)
             total = sum(values)
-            fout.write('{}\t{}\t{}\n'.format(gene_id, total, length))
+            fout.write("{}\t{}\t{}\n".format(gene_id, total, length))

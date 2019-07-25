@@ -32,12 +32,13 @@ class FastaReader:
         """
         self.fasta_location = fasta_location
         try:
-            self.fasta = Fasta(fasta_location,
-                               as_raw=True,
-                               sequence_always_upper=True)
+            self.fasta = Fasta(fasta_location, as_raw=True, sequence_always_upper=True)
         except Exception as e:
-            raise Exception('Error reading fasta file {} : {}'.format(
-                os.path.abspath(self.fasta_location), e))
+            raise Exception(
+                "Error reading fasta file {} : {}".format(
+                    os.path.abspath(self.fasta_location), e
+                )
+            )
 
     def query(self, intervals):
         """ Query regions for sequence.
@@ -64,18 +65,23 @@ class FastaReader:
         for i in intervals:
             if i.chrom not in list(chrom_lengths.keys()):
                 warnings.warn(
-                    'Chromosome {} does not appear in the fasta'.format(
-                        i.chrom), UserWarning)
+                    "Chromosome {} does not appear in the fasta".format(i.chrom),
+                    UserWarning,
+                )
             else:
                 chrom_length = chrom_lengths[i.chrom]
                 if i.start > chrom_length:
                     raise Exception(
-                        'Chromsome start point exceeds chromosome length: {}>{}'
-                        .format(i.start, chrom_length))
+                        "Chromsome start point exceeds chromosome length: {}>{}".format(
+                            i.start, chrom_length
+                        )
+                    )
                 elif i.end > chrom_length:
                     raise Exception(
-                        'Chromsome end point exceeds chromosome length: {}>{}'.
-                        format(i.end, chrom_length))
+                        "Chromsome end point exceeds chromosome length: {}>{}".format(
+                            i.end, chrom_length
+                        )
+                    )
                 seq = self.fasta.get_seq(i.chrom, i.start, i.end)
                 sequences.append(seq)
         return sequences
@@ -94,7 +100,7 @@ class FastaReader:
         complement_seq: str
                         complemenet of input fasta
         """
-        complement_letters = {'A': 'T', 'C': 'G', 'T': 'A', 'G': 'C'}
+        complement_letters = {"A": "T", "C": "G", "T": "A", "G": "C"}
         seq = seq.upper()
         comp = []
         for nuc in seq:
@@ -102,7 +108,7 @@ class FastaReader:
                 comp.append(complement_letters[nuc])
             else:
                 comp.append(nuc)
-        return ''.join(comp)
+        return "".join(comp)
 
     def reverse_complement(self, seq):
         """Reverse-complment a FASTA sequence.

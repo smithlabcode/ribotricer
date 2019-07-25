@@ -32,7 +32,7 @@ from .plotting import plot_metagene
 from .statistics import coherence
 
 # Required for IntervalTree
-STRAND_TO_NUM = {'+': 1, '-': -1}
+STRAND_TO_NUM = {"+": 1, "-": -1}
 
 
 def merge_read_lengths(alignments, psite_offsets):
@@ -58,7 +58,7 @@ def merge_read_lengths(alignments, psite_offsets):
         for strand in alignments[length]:
             for chrom, pos in alignments[length][strand]:
                 count = alignments[length][strand][(chrom, pos)]
-                if strand == '+':
+                if strand == "+":
                     pos_shifted = pos + offset
                 else:
                     pos_shifted = pos - offset
@@ -95,24 +95,28 @@ def parse_ribotricer_index(ribotricer_index):
     # so need to read only upto a point where the regions
     # no longer have the annotated tag.
     total_lines = 0
-    with open(ribotricer_index, 'r') as anno:
+    with open(ribotricer_index, "r") as anno:
         # read header
         anno.readline()
-        while 'annotated' in anno.readline():
+        while "annotated" in anno.readline():
             total_lines += 1
-    with open(ribotricer_index, 'r') as anno:
+    with open(ribotricer_index, "r") as anno:
         with tqdm(total=total_lines) as pbar:
             # read header
             anno.readline()
             line = anno.readline()
-            while 'annotated' in line:
+            while "annotated" in line:
                 pbar.update()
                 line = anno.readline()
                 orf = ORF.from_string(line)
-                if orf is not None and orf.category == 'annotated':
+                if orf is not None and orf.category == "annotated":
                     refseq[orf.chrom].insert(
-                        Interval(orf.intervals[0].start, orf.intervals[-1].end,
-                                 STRAND_TO_NUM[orf.strand]))
+                        Interval(
+                            orf.intervals[0].start,
+                            orf.intervals[-1].end,
+                            STRAND_TO_NUM[orf.strand],
+                        )
+                    )
                     annotated.append(orf)
     return (annotated, refseq)
 
@@ -138,11 +142,11 @@ def orf_coverage(orf, alignments, offset_5p=0, offset_3p=0):
     coverage = []
     chrom = orf.chrom
     strand = orf.strand
-    if strand == '-':
+    if strand == "-":
         offset_5p, offset_3p = offset_3p, offset_5p
     first, last = orf.intervals[0], orf.intervals[-1]
     for pos in range(first.start - offset_5p, first.start):
-        if orf.category == 'annotated':
+        if orf.category == "annotated":
             try:
                 coverage.append(alignments[strand][(chrom, pos)])
             except KeyError:
@@ -155,7 +159,7 @@ def orf_coverage(orf, alignments, offset_5p=0, offset_3p=0):
 
     for interval in orf.intervals:
         for pos in range(interval.start, interval.end + 1):
-            if orf.category == 'annotated':
+            if orf.category == "annotated":
                 try:
                     coverage.append(alignments[strand][(chrom, pos)])
                 except KeyError:
@@ -167,7 +171,7 @@ def orf_coverage(orf, alignments, offset_5p=0, offset_3p=0):
                     coverage.append(0)
 
     for pos in range(last.end + 1, last.end + offset_3p + 1):
-        if orf.category == 'annotated':
+        if orf.category == "annotated":
             try:
                 coverage.append(alignments[strand][(chrom, pos)])
             except KeyError:
@@ -178,15 +182,12 @@ def orf_coverage(orf, alignments, offset_5p=0, offset_3p=0):
             else:
                 coverage.append(0)
 
-    if strand == '-':
+    if strand == "-":
         coverage.reverse()
     return coverage
 
 
-def export_orf_coverages(ribotricer_index,
-                         merged_alignments,
-                         prefix,
-                         report_all=False):
+def export_orf_coverages(ribotricer_index, merged_alignments, prefix, report_all=False):
     """
     Parameters
     ----------
@@ -201,18 +202,31 @@ def export_orf_coverages(ribotricer_index,
     """
     # print('exporting coverages for all ORFs...')
     columns = [
-        'ORF_ID', 'ORF_type', 'status', 'phase_score', 'read_count', 'length',
-        'valid_codons', 'transcript_id', 'transcript_type', 'gene_id',
-        'gene_name', 'gene_type', 'chrom', 'strand', 'start_codon', 'profile\n'
+        "ORF_ID",
+        "ORF_type",
+        "status",
+        "phase_score",
+        "read_count",
+        "length",
+        "valid_codons",
+        "transcript_id",
+        "transcript_type",
+        "gene_id",
+        "gene_name",
+        "gene_type",
+        "chrom",
+        "strand",
+        "start_codon",
+        "profile\n",
     ]
-    to_write = '\t'.join(columns)
-    formatter = '{}\t' * (len(columns) - 1) + '{}\n'
-    with open(ribotricer_index, 'r') as anno:
-        total_lines = len(['' for line in anno])
+    to_write = "\t".join(columns)
+    formatter = "{}\t" * (len(columns) - 1) + "{}\n"
+    with open(ribotricer_index, "r") as anno:
+        total_lines = len(["" for line in anno])
 
-    with open(ribotricer_index,
-              'r') as anno, open('{}_translating_ORFs.tsv'.format(prefix),
-                                 'w') as output:
+    with open(ribotricer_index, "r") as anno, open(
+        "{}_translating_ORFs.tsv".format(prefix), "w"
+    ) as output:
         output.write(to_write)
         with tqdm(total=total_lines) as pbar:
             # Skip header
@@ -224,19 +238,33 @@ def export_orf_coverages(ribotricer_index,
                 count = sum(cov)
                 length = len(cov)
                 coh, valid = coherence(cov)
-                status = 'translating' if (
-                    coh >= CUTOFF
-                    and valid >= MINIMUM_VALID_CODONS) else 'nontranslating'
+                status = (
+                    "translating"
+                    if (coh >= CUTOFF and valid >= MINIMUM_VALID_CODONS)
+                    else "nontranslating"
+                )
                 # skip outputing nontranslating ones
-                if not report_all and status == 'nontranslating':
+                if not report_all and status == "nontranslating":
                     pass
                 else:
-                    to_write = formatter.format(orf.oid, orf.category, status,
-                                                coh, count, length, valid,
-                                                orf.tid, orf.ttype, orf.gid,
-                                                orf.gname, orf.gtype,
-                                                orf.chrom, orf.strand,
-                                                orf.start_codon, cov)
+                    to_write = formatter.format(
+                        orf.oid,
+                        orf.category,
+                        status,
+                        coh,
+                        count,
+                        length,
+                        valid,
+                        orf.tid,
+                        orf.ttype,
+                        orf.gid,
+                        orf.gname,
+                        orf.gtype,
+                        orf.chrom,
+                        orf.strand,
+                        orf.start_codon,
+                        cov,
+                    )
                     output.write(to_write)
 
     # now = datetime.datetime.now()
@@ -257,24 +285,24 @@ def export_wig(merged_alignments, prefix):
     """
     # print('exporting merged alignments to wig file...')
     for strand in merged_alignments:
-        to_write = ''
-        cur_chrom = ''
+        to_write = ""
+        cur_chrom = ""
         for chrom, pos in sorted(merged_alignments[strand]):
             if chrom != cur_chrom:
                 cur_chrom = chrom
-                to_write += 'variableStep chrom={}\n'.format(chrom)
-            to_write += '{}\t{}\n'.format(
-                pos, merged_alignments[strand][(chrom, pos)])
-        if strand == '+':
-            fname = '{}_pos.wig'.format(prefix)
+                to_write += "variableStep chrom={}\n".format(chrom)
+            to_write += "{}\t{}\n".format(pos, merged_alignments[strand][(chrom, pos)])
+        if strand == "+":
+            fname = "{}_pos.wig".format(prefix)
         else:
-            fname = '{}_neg.wig'.format(prefix)
-        with open(fname, 'w') as output:
+            fname = "{}_neg.wig".format(prefix)
+        with open(fname, "w") as output:
             output.write(to_write)
 
 
-def detect_orfs(bam, ribotricer_index, prefix, protocol, read_lengths,
-                psite_offsets, report_all):
+def detect_orfs(
+    bam, ribotricer_index, prefix, protocol, read_lengths, psite_offsets, report_all
+):
     """
     Parameters
     ----------
@@ -300,76 +328,101 @@ def detect_orfs(bam, ribotricer_index, prefix, protocol, read_lengths,
                 status
     """
     now = datetime.datetime.now()
-    print(now.strftime('%b %d %H:%M:%S ..... started ribotricer detect-orfs'))
+    print(now.strftime("%b %d %H:%M:%S ..... started ribotricer detect-orfs"))
 
     # parse the index file
     now = datetime.datetime.now()
-    print(
-        now.strftime(
-            '%b %d %H:%M:%S ... started parsing ribotricer index file'))
+    print(now.strftime("%b %d %H:%M:%S ... started parsing ribotricer index file"))
     annotated, refseq = parse_ribotricer_index(ribotricer_index)
 
     # infer experimental protocol if not provided
     if protocol is None:
         now = datetime.datetime.now()
-        print('{} ... {}'.format(now.strftime('%b %d %H:%M:%S'),
-                                 'started inferring experimental design'))
+        print(
+            "{} ... {}".format(
+                now.strftime("%b %d %H:%M:%S"), "started inferring experimental design"
+            )
+        )
         protocol = infer_protocol(bam, refseq, prefix)
     del refseq
 
     # split bam file into strand and read length
     now = datetime.datetime.now()
-    print(now.strftime('%b %d %H:%M:%S ... started reading bam file'))
-    alignments, read_length_counts = split_bam(bam, protocol, prefix,
-                                               read_lengths)
+    print(now.strftime("%b %d %H:%M:%S ... started reading bam file"))
+    alignments, read_length_counts = split_bam(bam, protocol, prefix, read_lengths)
 
     # plot read length distribution
     now = datetime.datetime.now()
-    print('{} ... {}'.format(now.strftime('%b %d %H:%M:%S'),
-                             'started plotting read length distribution'))
+    print(
+        "{} ... {}".format(
+            now.strftime("%b %d %H:%M:%S"), "started plotting read length distribution"
+        )
+    )
     plot_read_lengths(read_length_counts, prefix)
 
     # calculate metagene profiles
     now = datetime.datetime.now()
-    print('{} ... {}'.format(
-        now.strftime('%b %d %H:%M:%S'),
-        'started calculating metagene profiles. This may take a long time...'))
-    metagenes = metagene_coverage(annotated, alignments, read_length_counts,
-                                  prefix)
+    print(
+        "{} ... {}".format(
+            now.strftime("%b %d %H:%M:%S"),
+            "started calculating metagene profiles. This may take a long time...",
+        )
+    )
+    metagenes = metagene_coverage(annotated, alignments, read_length_counts, prefix)
 
     # plot metagene profiles
     now = datetime.datetime.now()
-    print('\n{} ... {}'.format(now.strftime('%b %d %H:%M:%S'),
-                               'started plotting metagene profiles'))
+    print(
+        "\n{} ... {}".format(
+            now.strftime("%b %d %H:%M:%S"), "started plotting metagene profiles"
+        )
+    )
     plot_metagene(metagenes, read_length_counts, prefix)
 
     # align metagenes if psite_offsets not provided
     if psite_offsets is None:
         now = datetime.datetime.now()
-        print('{} ... {}'.format(now.strftime('%b %d %H:%M:%S'),
-                                 'started inferring P-site offsets'))
-        psite_offsets = align_metagenes(metagenes, read_length_counts, prefix,
-                                        read_lengths is None)
+        print(
+            "{} ... {}".format(
+                now.strftime("%b %d %H:%M:%S"), "started inferring P-site offsets"
+            )
+        )
+        psite_offsets = align_metagenes(
+            metagenes, read_length_counts, prefix, read_lengths is None
+        )
 
     # merge read lengths based on P-sites offsets
     now = datetime.datetime.now()
-    print('{} ... {}'.format(now.strftime('%b %d %H:%M:%S'),
-                             'started shifting according to P-site offsets'))
+    print(
+        "{} ... {}".format(
+            now.strftime("%b %d %H:%M:%S"),
+            "started shifting according to P-site offsets",
+        )
+    )
     merged_alignments = merge_read_lengths(alignments, psite_offsets)
 
     # export wig file
     now = datetime.datetime.now()
-    print('{} ... {}'.format(
-        now.strftime('%b %d %H:%M:%S'),
-        'started exporting wig file of alignments after shifting'))
+    print(
+        "{} ... {}".format(
+            now.strftime("%b %d %H:%M:%S"),
+            "started exporting wig file of alignments after shifting",
+        )
+    )
     export_wig(merged_alignments, prefix)
 
     # saving detecting results to disk
     now = datetime.datetime.now()
-    print('{} ... {}'.format(now.strftime('%b %d %H:%M:%S'),
-                             'started calculating phase scores for each ORF'))
-    export_orf_coverages(ribotricer_index, merged_alignments, prefix,
-                         report_all)
+    print(
+        "{} ... {}".format(
+            now.strftime("%b %d %H:%M:%S"),
+            "started calculating phase scores for each ORF",
+        )
+    )
+    export_orf_coverages(ribotricer_index, merged_alignments, prefix, report_all)
     now = datetime.datetime.now()
-    print('{} ... {}'.format(now.strftime('%b %d %H:%M:%S'),
-                             'finished ribotricer detect-orfs'))
+    print(
+        "{} ... {}".format(
+            now.strftime("%b %d %H:%M:%S"), "finished ribotricer detect-orfs"
+        )
+    )

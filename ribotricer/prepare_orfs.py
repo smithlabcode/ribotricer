@@ -41,7 +41,7 @@ def tracks_to_ivs(tracks):
     chrom = {track.chrom for track in tracks}
     strand = {track.strand for track in tracks}
     if len(chrom) != 1 or len(strand) != 1:
-        print('fail to fetch seq: inconsistent chrom or strand')
+        print("fail to fetch seq: inconsistent chrom or strand")
         intervals = []
     else:
         chrom = list(chrom)[0]
@@ -126,15 +126,14 @@ def fetch_seq(fasta, tracks):
     if not isinstance(fasta, FastaReader):
         fasta = FastaReader(fasta)
     sequences = fasta.query(intervals)
-    merged_seq = ''.join(sequences)
+    merged_seq = "".join(sequences)
     strand = tracks[0].strand
-    if strand == '-':
+    if strand == "-":
         merged_seq = fasta.reverse_complement(merged_seq)
     return merged_seq
 
 
-def search_orfs(fasta, intervals, min_orf_length, start_codons, stop_codons,
-                longest):
+def search_orfs(fasta, intervals, min_orf_length, start_codons, stop_codons, longest):
     """
     Parameters
     ----------
@@ -169,42 +168,42 @@ def search_orfs(fasta, intervals, min_orf_length, start_codons, stop_codons,
         fasta = FastaReader(fasta)
     intervals = merge_intervals(intervals)
     sequences = fasta.query(intervals)
-    merged_seq = ''.join(sequences)
+    merged_seq = "".join(sequences)
     reverse = False
     strand = intervals[0].strand
-    if strand == '-':
+    if strand == "-":
         merged_seq = fasta.reverse_complement(merged_seq)
         reverse = True
 
     start_stop_idx = []
-    if 'ATG' in start_codons:
-        start_stop_idx += [(m.start(0), 'ATG')
-                           for m in re.finditer('ATG', merged_seq)]
-    if start_codons - {'ATG'}:
-        alternative_start_regx = re.compile(r'(?=({}))'.format(
-            '|'.join(start_codons - {'ATG'})))
+    if "ATG" in start_codons:
+        start_stop_idx += [(m.start(0), "ATG") for m in re.finditer("ATG", merged_seq)]
+    if start_codons - {"ATG"}:
+        alternative_start_regx = re.compile(
+            r"(?=({}))".format("|".join(start_codons - {"ATG"}))
+        )
         start_stop_idx += [
-            (m.start(0), 'start')
+            (m.start(0), "start")
             for m in re.finditer(alternative_start_regx, merged_seq)
         ]
-    stop_regx = re.compile(r'(?=({}))'.format('|'.join(stop_codons)))
-    start_stop_idx += [(m.start(0), 'stop')
-                       for m in re.finditer(stop_regx, merged_seq)]
+    stop_regx = re.compile(r"(?=({}))".format("|".join(stop_codons)))
+    start_stop_idx += [(m.start(0), "stop") for m in re.finditer(stop_regx, merged_seq)]
     start_stop_idx.sort(key=lambda x: x[0])
     for frame in [0, 1, 2]:
         inframe_codons = [x for x in start_stop_idx if x[0] % 3 == frame]
         starts = []
         for idx, label in inframe_codons:
-            if label != 'stop':
+            if label != "stop":
                 starts.append(idx)
             elif starts:
                 for start in starts:
                     if idx - start >= min_orf_length:
-                        ivs = transcript_to_genome_iv(start, idx - 1,
-                                                      intervals, reverse)
+                        ivs = transcript_to_genome_iv(
+                            start, idx - 1, intervals, reverse
+                        )
                         seq = merged_seq[start:idx]
                         leader = merged_seq[:start]
-                        trailer = merged_seq[idx + 3:]
+                        trailer = merged_seq[idx + 3 :]
                         if ivs:
                             orfs.append((ivs, seq, leader, trailer))
                     if longest:
@@ -231,34 +230,35 @@ def check_orf_type(orf, cds_orfs):
     and hence multiple returns. 
     """
     if orf.gid not in cds_orfs:
-        return 'novel'
+        return "novel"
     if orf.tid not in cds_orfs[orf.gid]:
-        return 'novel'
+        return "novel"
     matched_cds = cds_orfs[orf.gid][orf.tid]
     if orf.intervals == matched_cds.intervals:
-        return 'annotated'
+        return "annotated"
     gene_cds = [cds_orfs[orf.gid][tid] for tid in cds_orfs[orf.gid]]
     gene_start = min([gc.intervals[0].start for gc in gene_cds])
     gene_end = max([gc.intervals[-1].end for gc in gene_cds])
     if orf.intervals[-1].end < gene_start:
-        return 'super_uORF' if orf.strand == '+' else 'super_dORF'
+        return "super_uORF" if orf.strand == "+" else "super_dORF"
     if orf.intervals[0].start > gene_end:
-        return 'super_dORF' if orf.strand == '+' else 'super_uORF'
+        return "super_dORF" if orf.strand == "+" else "super_uORF"
     if orf.intervals[0].start < matched_cds.intervals[0].start:
         if orf.intervals[-1].end < matched_cds.intervals[0].start:
-            return 'uORF' if orf.strand == '+' else 'dORF'
+            return "uORF" if orf.strand == "+" else "dORF"
         if orf.intervals[-1].end < matched_cds.intervals[-1].end:
-            return 'overlap_uORF' if orf.strand == '+' else 'overlap_dORF'
+            return "overlap_uORF" if orf.strand == "+" else "overlap_dORF"
     if orf.intervals[-1].end > matched_cds.intervals[-1].end:
         if orf.intervals[0].start > matched_cds.intervals[-1].end:
-            return 'dORF' if orf.strand == '+' else 'uORF'
+            return "dORF" if orf.strand == "+" else "uORF"
         if orf.intervals[0].start > matched_cds.intervals[0].start:
-            return 'overlap_dORF' if orf.strand == '+' else 'overlap_uORF'
-    return 'internal'
+            return "overlap_dORF" if orf.strand == "+" else "overlap_uORF"
+    return "internal"
 
 
-def prepare_orfs(gtf, fasta, prefix, min_orf_length, start_codons, stop_codons,
-                 longest):
+def prepare_orfs(
+    gtf, fasta, prefix, min_orf_length, start_codons, stop_codons, longest
+):
     """
     Parameters
     ----------
@@ -280,9 +280,9 @@ def prepare_orfs(gtf, fasta, prefix, min_orf_length, start_codons, stop_codons,
     """
 
     now = datetime.datetime.now()
-    print(now.strftime('%b %d %H:%M:%S ..... started ribotricer prepare-orfs'))
+    print(now.strftime("%b %d %H:%M:%S ..... started ribotricer prepare-orfs"))
     now = datetime.datetime.now()
-    print(now.strftime('%b %d %H:%M:%S ... starting to parse GTF file'))
+    print(now.strftime("%b %d %H:%M:%S ... starting to parse GTF file"))
     candidate_orfs = []
     if not isinstance(gtf, GTFReader):
         gtf = GTFReader(gtf)
@@ -291,23 +291,24 @@ def prepare_orfs(gtf, fasta, prefix, min_orf_length, start_codons, stop_codons,
 
     # process CDS gtf
     now = datetime.datetime.now()
-    print(
-        now.strftime('%b %d %H:%M:%S ... starting extracting annotated ORFs'))
+    print(now.strftime("%b %d %H:%M:%S ... starting extracting annotated ORFs"))
     cds_orfs = defaultdict(lambda: defaultdict(ORF))
     for gid in tqdm(gtf.cds):
         for tid in gtf.cds[gid]:
             tracks = gtf.cds[gid][tid]
             seq = fetch_seq(fasta, tracks)
-            orf = ORF.from_tracks(tracks, 'annotated', seq=seq[:3])
+            orf = ORF.from_tracks(tracks, "annotated", seq=seq[:3])
             if orf:
                 cds_orfs[gid][tid] = orf
                 candidate_orfs.append(orf)
 
     now = datetime.datetime.now()
-    print('{} ... {}'.format(
-        now.strftime('%b %d %H:%M:%S'),
-        'starting searching transcriptome-wide ORFs. This may take a long time...'
-    ))
+    print(
+        "{} ... {}".format(
+            now.strftime("%b %d %H:%M:%S"),
+            "starting searching transcriptome-wide ORFs. This may take a long time...",
+        )
+    )
     for tid in tqdm(gtf.transcript):
         tracks = gtf.transcript[tid]
         ttype = tracks[0].transcript_type
@@ -317,42 +318,64 @@ def prepare_orfs(gtf, fasta, prefix, min_orf_length, start_codons, stop_codons,
         chrom = tracks[0].chrom
         strand = tracks[0].strand
         ivs = tracks_to_ivs(tracks)
-        orfs = search_orfs(fasta, ivs, min_orf_length, start_codons,
-                           stop_codons, longest)
+        orfs = search_orfs(
+            fasta, ivs, min_orf_length, start_codons, stop_codons, longest
+        )
         for ivs, seq, leader, trailer in orfs:
-            orf = ORF('unknown',
-                      tid,
-                      ttype,
-                      gid,
-                      gname,
-                      gtype,
-                      chrom,
-                      strand,
-                      ivs,
-                      seq=seq[:3])
+            orf = ORF(
+                "unknown",
+                tid,
+                ttype,
+                gid,
+                gname,
+                gtype,
+                chrom,
+                strand,
+                ivs,
+                seq=seq[:3],
+            )
             orf.category = check_orf_type(orf, cds_orfs)
-            if orf.category != 'annotated' and orf.category != 'internal':
+            if orf.category != "annotated" and orf.category != "internal":
                 candidate_orfs.append(orf)
 
     # save to file
     now = datetime.datetime.now()
-    print(now.strftime('%b %d %H:%M:%S ... saving candidate ORFs into disk'))
+    print(now.strftime("%b %d %H:%M:%S ... saving candidate ORFs into disk"))
     columns = [
-        'ORF_ID', 'ORF_type', 'transcript_id', 'transcript_type', 'gene_id',
-        'gene_name', 'gene_type', 'chrom', 'strand', 'start_codon',
-        'coordinate\n'
+        "ORF_ID",
+        "ORF_type",
+        "transcript_id",
+        "transcript_type",
+        "gene_id",
+        "gene_name",
+        "gene_type",
+        "chrom",
+        "strand",
+        "start_codon",
+        "coordinate\n",
     ]
 
-    to_write = '\t'.join(columns)
-    formatter = '{}\t' * (len(columns) - 1) + '{}\n'
+    to_write = "\t".join(columns)
+    formatter = "{}\t" * (len(columns) - 1) + "{}\n"
     for orf in tqdm(candidate_orfs):
-        coordinate = ','.join(
-            ['{}-{}'.format(iv.start, iv.end) for iv in orf.intervals])
-        to_write += formatter.format(orf.oid, orf.category, orf.tid, orf.ttype,
-                                     orf.gid, orf.gname, orf.gtype, orf.chrom,
-                                     orf.strand, orf.start_codon, coordinate)
+        coordinate = ",".join(
+            ["{}-{}".format(iv.start, iv.end) for iv in orf.intervals]
+        )
+        to_write += formatter.format(
+            orf.oid,
+            orf.category,
+            orf.tid,
+            orf.ttype,
+            orf.gid,
+            orf.gname,
+            orf.gtype,
+            orf.chrom,
+            orf.strand,
+            orf.start_codon,
+            coordinate,
+        )
 
-    with open('{}_candidate_orfs.tsv'.format(prefix), 'w') as output:
+    with open("{}_candidate_orfs.tsv".format(prefix), "w") as output:
         output.write(to_write)
     now = datetime.datetime.now()
-    print(now.strftime('%b %d %H:%M:%S ... finished ribotricer prepare-orfs'))
+    print(now.strftime("%b %d %H:%M:%S ... finished ribotricer prepare-orfs"))
