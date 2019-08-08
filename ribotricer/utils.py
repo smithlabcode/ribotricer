@@ -286,7 +286,7 @@ def _nucleotide_to_codon_profile(profile):
     return codon_profile
 
 
-def summarize_profile_to_codon_level(ribotricer_output, saveto=None):
+def summarize_profile_to_codon_level(detected_orfs, saveto):
     """Collapse nucleotide level profiles in ribotricer to codon leve.
   
   Parameters
@@ -296,11 +296,19 @@ def summarize_profile_to_codon_level(ribotricer_output, saveto=None):
   saveto: string
           Path to write output to
   """
-    ribotricer_output_df = pd.read_csv(ribotricer_output, sep="\t")
-    ribotricer_output_df["profile_codon"] = ribotricer_output_df.profile.apply(
-        _nucleotide_to_codon_profile
-    )
-    if saveto:
-        ribotricer_output_df[["ORF_ID", "codon_profile"]].to_csv(saveto, sep="\t")
-        return
-    return ribotricer_output_df[["ORF_ID", "codon_profile"]]
+    with open(saveto, "w") as fout:
+        fout.write("ORF_ID\tcodon_profile\n")
+        with open(detected_orfs, "r") as fin:
+            # Skip header
+            fin.readline()
+            for line in fin:
+                fields = line.strip().split("\t")
+                oid, otype, status = fields[:3]
+                gene_id, gene_name, gene_type = fields[9:12]
+                chrom, strand, start_codon, profile = fields[12:]
+
+                profile_stripped = profile.strip()[1:-1].split(", ")
+                if profile_stripped[0]:
+                    profile = np.array(list(map(int, profile_stripped)))
+                codon_profile = np.add.reduceat(profile, range(0, len(profile), 3))
+                fout.write("{}\t{}\n".format(oid, list(codon_profile)))
