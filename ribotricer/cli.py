@@ -22,6 +22,7 @@ from . import __version__
 from .detect_orfs import detect_orfs
 from .prepare_orfs import prepare_orfs
 from .count_orfs import count_orfs
+from .orf_seq import orf_seq
 
 click.disable_unicode_literals_warning = True
 CONTEXT_SETTINGS = dict(help_option_names=["-h", "--help"])
@@ -73,10 +74,10 @@ def prepare_orfs_cmd(
     gtf, fasta, prefix, min_orf_length, start_codons, stop_codons, longest
 ):
     if not os.path.isfile(gtf):
-        sys.exit("Error: GTF file is not found")
+        sys.exit("Error: GTF file not found")
 
     if not os.path.isfile(fasta):
-        sys.exit("Error: FASTA file is not found")
+        sys.exit("Error: FASTA file not found")
 
     if min_orf_length <= 0:
         sys.exit("Error: min ORF length at least to be 1")
@@ -152,10 +153,10 @@ def detect_orfs_cmd(
     bam, ribotricer_index, prefix, stranded, read_lengths, psite_offsets, report_all
 ):
     if not os.path.isfile(bam):
-        sys.exit("Error: BAM file is not found")
+        sys.exit("Error: BAM file not found")
 
     if not os.path.isfile(ribotricer_index):
-        sys.exit("Error: ribotricer index file is not found")
+        sys.exit("Error: ribotricer index file not found")
 
     if read_lengths is not None:
         try:
@@ -218,11 +219,37 @@ def detect_orfs_cmd(
 def count_orfs_cmd(ribotricer_index, detected_orfs, features, prefix, report_all):
 
     if not os.path.isfile(ribotricer_index):
-        sys.exit("Error: ribotricer index file is not found")
+        sys.exit("Error: ribotricer index file not found")
 
     if not os.path.isfile(detected_orfs):
-        sys.exit("Error: detected orfs file is not found")
+        sys.exit("Error: detected orfs file not found")
 
     features = set(x.strip() for x in features.strip().split(","))
 
     count_orfs(ribotricer_index, detected_orfs, features, prefix, report_all)
+
+
+###################### orfs-seq function #########################################
+@cli.command(
+    "orfs-seq",
+    context_settings=CONTEXT_SETTINGS,
+    help="Generate sequence for ORFs in ribotricer's index",
+)
+@click.option(
+    "--ribotricer_index",
+    help=(
+        "Path to the index file of ribotricer\n"
+        "This file should be generated using ribotricer prepare-orfs"
+    ),
+    required=True,
+)
+@click.option("--fasta", help="Path to FASTA file", required=True)
+@click.option("--saveto", help="Path to output file", required=True)
+def orf_seq_cmd(ribotricer_index, fasta, saveto):
+    if not os.path.isfile(ribotricer_index):
+        sys.exit("Error: ribotricer index file not found")
+
+    if not os.path.isfile(fasta):
+        sys.exit("Error: fasta file not found")
+
+    orf_seq(ribotricer_index, fasta, saveto)
