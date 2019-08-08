@@ -27,8 +27,9 @@ def orf_seq(ribotricer_index, genome_fasta, saveto):
     fasta = FastaReader(genome_fasta)
     annotation_df = pd.read_csv(ribotricer_index, sep="\t")
     with open(saveto, "w") as fh:
+        fh.write("ORF_ID\tsequence\n")
         for idx, row in tqdm(annotation_df.iterrows(), total=annotation_df.shape[0]):
-            chrom = row.chrom
+            chrom = str(row.chrom)
             orf_id = row.ORF_ID
             coordinates = row.coordinate.split(",")
             strand = row.strand
@@ -44,4 +45,4 @@ def orf_seq(ribotricer_index, genome_fasta, saveto):
             seq = (" ").join(fasta.query(intervals))
             if strand == "-":
                 seq = fasta.reverse_complement(seq)
-            fh.write("{}\t{}".format(orf_id, seq))
+            fh.write("{}\t{}\n".format(orf_id, seq))
