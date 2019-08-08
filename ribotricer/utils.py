@@ -279,7 +279,7 @@ def theta_rna(rna_file, prefix, cutoff=10):
 
 def _nucleotide_to_codon_profile(profile):
     """Summarize nucleotid profile to a codon level profile"""
-    if isinstance(profile, string):
+    if isinstance(profile, str):
         profile = eval(profile)
     profile = np.array(profile)
     codon_profile = np.add.reduceat(profile, range(0, len(profile), 3))
