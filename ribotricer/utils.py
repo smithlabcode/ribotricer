@@ -275,3 +275,32 @@ def theta_rna(rna_file, prefix, cutoff=10):
         rna_angles += angle(rna[ID], 0)
     with open("{}_raw_rna_angles.txt".format(prefix), "w") as output:
         output.write("\n".join(map(str, rna_angles)))
+
+
+def _nucleotide_to_codon_profile(profile):
+    """Summarize nucleotid profile to a codon level profile"""
+    if isinstance(profile, string):
+        profile = eval(profile)
+    profile = np.array(profile)
+    codon_profile = np.add.reduceat(profile, range(0, len(profile), 3))
+    return codon_profile
+
+
+def summarize_profile_to_codon_level(ribotricer_output, saveto=None):
+    """Collapse nucleotide level profiles in ribotricer to codon leve.
+  
+  Parameters
+  ----------
+  ribotricer_output: string
+                     Path to ribotricer detect-orfs output
+  saveto: string
+          Path to write output to
+  """
+    ribotricer_output_df = pd.read_csv(ribotricer_output, sep="\t")
+    ribotricer_output_df["profile_codon"] = ribotricer_output_df.profile.apply(
+        _nucleotide_to_codon_profile
+    )
+    if saveto:
+        ribotricer_output_df[["ORF_ID", "codon_profile"]].to_csv(saveto, sep="\t")
+        return
+    return ribotricer_output_df[["ORF_ID", "codon_profile"]]
