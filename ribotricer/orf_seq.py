@@ -42,7 +42,7 @@ def orf_seq(ribotricer_index, genome_fasta, saveto):
                 interval = Interval(chrom, start, stop, strand)
                 intervals.append(interval)
 
-            seq = (" ").join(fasta.query(intervals))
+            seq = ("").join(fasta.query(intervals))
             if strand == "-":
                 seq = fasta.reverse_complement(seq)
             fh.write("{}\t{}\n".format(orf_id, seq))

@@ -22,6 +22,7 @@ from . import __version__
 from .detect_orfs import detect_orfs
 from .prepare_orfs import prepare_orfs
 from .count_orfs import count_orfs
+from .count_orfs import count_orfs_codon
 from .orf_seq import orf_seq
 
 click.disable_unicode_literals_warning = True
@@ -227,6 +228,66 @@ def count_orfs_cmd(ribotricer_index, detected_orfs, features, prefix, report_all
     features = set(x.strip() for x in features.strip().split(","))
 
     count_orfs(ribotricer_index, detected_orfs, features, prefix, report_all)
+
+
+###################### count-orfs-codon function #########################################
+@cli.command(
+    "count-orfs-codon",
+    context_settings=CONTEXT_SETTINGS,
+    help="Count reads for detected ORFs",
+)
+@click.option(
+    "--ribotricer_index",
+    help=(
+        "Path to the index file of ribotricer\n"
+        "This file should be generated using ribotricer prepare-orfs"
+    ),
+    required=True,
+)
+@click.option(
+    "--detected_orfs",
+    help=(
+        "Path to the detected orfs file\n"
+        "This file should be generated using ribotricer detect-orfs"
+    ),
+    required=True,
+)
+@click.option("--features", help="ORF types separated with comma", required=True)
+@click.option("--ribotricer_index_fasta", help="Path to ORF seq file", required=True)
+@click.option("--saveto", help="Path to output file", required=True)
+@click.option(
+    "--report_all",
+    help=("Whether output all ORFs including those " "non-translating ones"),
+    is_flag=True,
+)
+def count_orfs_cmd(
+    ribotricer_index,
+    detected_orfs,
+    features,
+    ribotricer_index_fasta,
+    saveto,
+    report_all,
+):
+
+    if not os.path.isfile(ribotricer_index):
+        sys.exit("Error: ribotricer index file not found")
+
+    if not os.path.isfile(detected_orfs):
+        sys.exit("Error: detected orfs file not found")
+
+    if not os.path.isfile(ribotricer_index_fasta):
+        sys.exit("Error: ribotricer_index_fasta file not found")
+
+    features = set(x.strip() for x in features.strip().split(","))
+
+    count_orfs_codon(
+        ribotricer_index,
+        detected_orfs,
+        features,
+        ribotricer_index_fasta,
+        saveto,
+        report_all,
+    )
 
 
 ###################### orfs-seq function #########################################
