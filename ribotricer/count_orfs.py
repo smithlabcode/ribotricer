@@ -171,9 +171,10 @@ def count_orfs_codon(
     fout_df["per_codon_enrichment(total/n_occur)"] = (
         fout_df["total_codon_coverage"] / fout_df["codon_occurences"]
     )
-    fout_df["relative_enrichment(per_codon/total_gene_coverage)"] = fout_df[
-        "per_codon_enrichment(total/n_occur)"
-    ] / fout_df.groupby("gene_id")["total_codon_coverage"].transform("sum")
+    fout_df["-log10_relative_enrichment(per_codon/total_gene_coverage)"] = -np.log10(
+        fout_df["per_codon_enrichment(total/n_occur)"]
+        / fout_df.groupby("gene_id")["total_codon_coverage"].transform("sum")
+    )
     # Overwrite
     fout_df = fout_df.round(3)
     fout_df.to_csv(saveto, sep="\t", index=False, header=True)
