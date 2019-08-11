@@ -83,7 +83,7 @@ def count_orfs_codon(
     detected_orfs,
     features,
     ribotricer_index_fasta,
-    saveto,
+    prefix,
     report_all=False,
 ):
     """
@@ -99,7 +99,7 @@ def count_orfs_codon(
               set of ORF types, such as {annotated}
     ribotricer_index_fasta: str
                             Path to fasta index generated using orf-seq  
-    saveto: str
+    prefix: str
            path to output file 
     report_all: bool
                 if True, all coverages will be exported
@@ -156,18 +156,30 @@ def count_orfs_codon(
                             read_counts[gene_id, codon_seq][pos] = cov
 
     # Output count table
-    with open(saveto, "w") as fout:
-        fout.write("gene_id\tcodon\tcodon_occurences\ttotal_codon_coverage\n")
+    with open("{}_genewise.tsv".format(prefix), "w") as fout:
+        fout.write(
+            "gene_id\tcodon\tvalues\tmean_codon_coverage\tmedian_codon_coverage\tvar_codon_coverage\tcodon_occurences\ttotal_codon_coverage\n"
+        )
         for gene_id, codon_seq in sorted(read_counts):
-            values = read_counts[gene_id, codon_seq].values()
+            values = list(read_counts[gene_id, codon_seq].values())
             codon_occurences = len(values)
             total_codon_coverage = sum(values)
+            mean_codon_coverage = np.mean(values)
+            median_codon_coverage = np.median(values)
+            var_codon_coverage = np.var(values)
             fout.write(
-                "{}\t{}\t{}\t{}\n".format(
-                    gene_id, codon_seq, codon_occurences, total_codon_coverage
+                "{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\n".format(
+                    gene_id,
+                    codon_seq,
+                    values,
+                    mean_codon_coverage,
+                    median_codon_coverage,
+                    var_codon_coverage,
+                    codon_occurences,
+                    total_codon_coverage,
                 )
             )
-    fout_df = pd.read_csv(saveto, sep="\t")
+    fout_df = pd.read_csv("{}_genewise.tsv".format(prefix), sep="\t")
     fout_df["per_codon_enrichment(total/n_occur)"] = (
         fout_df["total_codon_coverage"] / fout_df["codon_occurences"]
     )
@@ -176,5 +188,35 @@ def count_orfs_codon(
         / fout_df.groupby("gene_id")["total_codon_coverage"].transform("sum")
     )
     # Overwrite
-    fout_df = fout_df.round(3)
-    fout_df.to_csv(saveto, sep="\t", index=False, header=True)
+    fout_df.to_csv("{}_genewise.tsv".format(prefix), sep="\t", index=False, header=True)
+    # Remove infs
+    fout_df = fout_df.replace([np.inf, -np.inf], np.nan)
+    fout_df = fout_df.dropna()
+    fout_df["relative_enrichment"] = fout_df[
+        "per_codon_enrichment(total/n_occur)"
+    ] / fout_df.groupby("gene_id")["total_codon_coverage"].transform("sum")
+
+    relative_enrichment_median = pd.DataFrame(
+        fout_df.groupby("codon")["relative_enrichment"].median()
+    )
+    relative_enrichment_median.columns = ["median_relative_enrichment"]
+
+    relative_enrichment_mean = pd.DataFrame(
+        fout_df.groupby("codon")["relative_enrichment"].mean()
+    )
+    relative_enrichment_mean.columns = ["mean_relative_enrichment"]
+
+    relative_enrichment_var = pd.DataFrame(
+        fout_df.groupby("codon")["relative_enrichment"].var()
+    )
+    relative_enrichment_var.columns = ["var_relative_enrichment"]
+
+    relative_enrichment = relative_enrichment_mean.join(
+        relative_enrichment_median
+    ).join(relative_enrichment_var)
+    relative_enrichment.index.name = "codon"
+
+    relative_enrichment = relative_enrichment.reset_index()
+    relative_enrichment.to_csv(
+        "{}_codonwise.tsv".format(prefix), sep="\t", index=False, header=True
+    )

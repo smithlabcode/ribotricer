@@ -254,7 +254,7 @@ def count_orfs_cmd(ribotricer_index, detected_orfs, features, prefix, report_all
 )
 @click.option("--features", help="ORF types separated with comma", required=True)
 @click.option("--ribotricer_index_fasta", help="Path to ORF seq file", required=True)
-@click.option("--saveto", help="Path to output file", required=True)
+@click.option("--prefix", help="Prefix for output files", required=True)
 @click.option(
     "--report_all",
     help=("Whether output all ORFs including those " "non-translating ones"),
@@ -265,7 +265,7 @@ def count_orfs_cmd(
     detected_orfs,
     features,
     ribotricer_index_fasta,
-    saveto,
+    prefix,
     report_all,
 ):
 
@@ -285,7 +285,7 @@ def count_orfs_cmd(
         detected_orfs,
         features,
         ribotricer_index_fasta,
-        saveto,
+        prefix,
         report_all,
     )
 
