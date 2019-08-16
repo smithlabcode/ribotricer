@@ -30,26 +30,23 @@ def is_read_uniq_mapping(read):
     Most reliable: ['NH'] tag
     """
     # Filter out secondary alignments
-    is_uniq = None
     if read.is_secondary:
-        is_uniq = False
+        return False
     tags = dict(read.get_tags())
     try:
         nh_count = tags["NH"]
+        return nh_count == 1
     except KeyError:
         # Reliable in case of STAR
         if read.mapping_quality == 255:
-            is_uniq = True
+            return True
         elif read.mapping_quality < 1:
-            is_uniq = False
+            return False
         # NH tag not set so rely on flags
         elif read.flag in __SAM_NOT_UNIQ_FLAGS__:
-            is_uniq = False
+            return False
         else:
             raise RuntimeError("Malformed BAM?")
-    if nh_count == 1:
-        is_uniq = True
-    return is_uniq
 
 
 def merge_intervals(intervals):
