@@ -187,7 +187,13 @@ def orf_coverage(orf, alignments, offset_5p=0, offset_3p=0):
     return coverage
 
 
-def export_orf_coverages(ribotricer_index, merged_alignments, prefix, report_all=False):
+def export_orf_coverages(
+    ribotricer_index,
+    merged_alignments,
+    prefix,
+    phase_score_cutoff=CUTOFF,
+    report_all=False,
+):
     """
     Parameters
     ----------
@@ -240,7 +246,7 @@ def export_orf_coverages(ribotricer_index, merged_alignments, prefix, report_all
                 coh, valid = coherence(cov)
                 status = (
                     "translating"
-                    if (coh >= CUTOFF and valid >= MINIMUM_VALID_CODONS)
+                    if (coh >= phase_score_cutoff and valid >= MINIMUM_VALID_CODONS)
                     else "nontranslating"
                 )
                 # skip outputing nontranslating ones
@@ -301,7 +307,14 @@ def export_wig(merged_alignments, prefix):
 
 
 def detect_orfs(
-    bam, ribotricer_index, prefix, protocol, read_lengths, psite_offsets, report_all
+    bam,
+    ribotricer_index,
+    prefix,
+    protocol,
+    read_lengths,
+    psite_offsets,
+    phase_score_cutoff,
+    report_all,
 ):
     """
     Parameters
@@ -323,6 +336,9 @@ def detect_orfs(
                    Psite offsets for each read lengths
                    If None, the profiles from different read lengths will be
                    automatically aligned using cross-correlation
+    phase_score_cutoff: float
+                        Phase score cutoff value for tagging an ORF as translating o
+                        or non-translating
     report_all: bool
                 Whether to output all ORFs' scores regardless of translation
                 status
@@ -388,7 +404,11 @@ def detect_orfs(
             )
         )
         psite_offsets = align_metagenes(
-            metagenes, read_length_counts, prefix, read_lengths is None
+            metagenes,
+            read_length_counts,
+            prefix,
+            phase_score_cutoff,
+            read_lengths is None,
         )
 
     # merge read lengths based on P-sites offsets
@@ -419,7 +439,9 @@ def detect_orfs(
             "started calculating phase scores for each ORF",
         )
     )
-    export_orf_coverages(ribotricer_index, merged_alignments, prefix, report_all)
+    export_orf_coverages(
+        ribotricer_index, merged_alignments, prefix, phase_score_cutoff, report_all
+    )
     now = datetime.datetime.now()
     print(
         "{} ... {}".format(

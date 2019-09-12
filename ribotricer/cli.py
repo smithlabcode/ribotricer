@@ -15,17 +15,19 @@
 # GNU General Public License for more details.
 
 import click
-import sys
 import os
-from click_help_colors import HelpColorsGroup
+import sys
+
 from . import __version__
-from .detect_orfs import detect_orfs
-from .prepare_orfs import prepare_orfs
+from .const import CUTOFF
 from .count_orfs import count_orfs
 from .count_orfs import count_orfs_codon
+from .detect_orfs import detect_orfs
 from .orf_seq import orf_seq
+from .prepare_orfs import prepare_orfs
 
-click.disable_unicode_literals_warning = True
+from click_help_colors import HelpColorsGroup
+
 CONTEXT_SETTINGS = dict(help_option_names=["-h", "--help"])
 
 
@@ -146,12 +148,26 @@ def prepare_orfs_cmd(
     ),
 )
 @click.option(
+    "--phase_score_cutoff",
+    type=float,
+    default=CUTOFF,
+    show_default=True,
+    help="Phase score cutoff for determining active translation",
+)
+@click.option(
     "--report_all",
     help=("Whether output all ORFs including those " "non-translating ones"),
     is_flag=True,
 )
 def detect_orfs_cmd(
-    bam, ribotricer_index, prefix, stranded, read_lengths, psite_offsets, report_all
+    bam,
+    ribotricer_index,
+    prefix,
+    stranded,
+    read_lengths,
+    psite_offsets,
+    phase_score_cutoff,
+    report_all,
 ):
     if not os.path.isfile(bam):
         sys.exit("Error: BAM file not found")
@@ -184,7 +200,14 @@ def detect_orfs_cmd(
     if stranded == "yes":
         stranded = "forward"
     detect_orfs(
-        bam, ribotricer_index, prefix, stranded, read_lengths, psite_offsets, report_all
+        bam,
+        ribotricer_index,
+        prefix,
+        stranded,
+        read_lengths,
+        psite_offsets,
+        phase_score_cutoff,
+        report_all,
     )
 
 
@@ -211,7 +234,7 @@ def detect_orfs_cmd(
     required=True,
 )
 @click.option("--features", help="ORF types separated with comma", required=True)
-@click.option("--prefix", help="Prefix to output file", required=True)
+@click.option("--out", help="Path to output file", required=True)
 @click.option(
     "--report_all",
     help=("Whether output all ORFs including those " "non-translating ones"),
@@ -227,7 +250,7 @@ def count_orfs_cmd(ribotricer_index, detected_orfs, features, prefix, report_all
 
     features = set(x.strip() for x in features.strip().split(","))
 
-    count_orfs(ribotricer_index, detected_orfs, features, prefix, report_all)
+    count_orfs(ribotricer_index, detected_orfs, features, out, report_all)
 
 
 ###################### count-orfs-codon function #########################################

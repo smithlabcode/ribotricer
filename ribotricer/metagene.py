@@ -14,7 +14,7 @@
 # GNU General Public License for more details.
 
 import sys
-from collections import Counter
+from collections import Counter, OrderedDict
 
 import numpy as np
 import pandas as pd
@@ -229,7 +229,9 @@ def metagene_coverage(
     return metagenes
 
 
-def align_metagenes(metagenes, read_lengths, prefix, remove_nonperiodic=False):
+def align_metagenes(
+    metagenes, read_lengths, prefix, phase_score_cutoff=CUTOFF, remove_nonperiodic=False
+):
     """align metagene coverages to determine the lag of the psites, the
     non-periodic read length will be discarded in this step
 
@@ -254,14 +256,18 @@ def align_metagenes(metagenes, read_lengths, prefix, remove_nonperiodic=False):
     # discard non-periodic read lengths
     if remove_nonperiodic:
         for length, (_, _, coh, _, _, _) in list(metagenes.items()):
-            if coh < CUTOFF:
+            if coh < phase_score_cutoff:
                 del read_lengths[length]
                 del metagenes[length]
 
     if len(read_lengths) == 0:
-        sys.exit("Warning: no periodic read length found...")
+        sys.exit(
+            "Warning: no periodic read length found... using cutoff {}".format(
+                phase_score_cutoff
+            )
+        )
 
-    psite_offsets = {}
+    psite_offsets = OrderedDict()
     base = n_reads = 0
     for length, reads in list(read_lengths.items()):
         if reads > n_reads:
