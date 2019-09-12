@@ -21,7 +21,7 @@ import numpy as np
 import pandas as pd
 
 
-def count_orfs(ribotricer_index, detected_orfs, features, prefix, report_all=False):
+def count_orfs(ribotricer_index, detected_orfs, features, outfile, report_all=False):
     """
     Parameters
     ----------
@@ -69,7 +69,7 @@ def count_orfs(ribotricer_index, detected_orfs, features, prefix, report_all=Fal
                             read_counts[gene_id, gene_name][pos] = cov
 
     # Output count table
-    with open("{}_cnt.txt".format(prefix), "w") as fout:
+    with open(outfile, "w") as fout:
         fout.write("gene_id\tcount\tlength\n")
         for gene_id, gene_name in sorted(read_counts):
             values = read_counts[gene_id, gene_name].values()
