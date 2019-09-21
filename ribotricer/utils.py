@@ -401,3 +401,46 @@ def translate(seq):
             codon = seq[i : i + 3]
             protein += CODON_TO_AA[codon]
     return protein
+
+
+def learn_ribotricer_cutoff(roc_input_file):
+    """Learn ribotricer phase score cutoff 
+  
+  Parameters
+  ----------
+  roc_input_file: str
+                  Path to ROC file generated using ribotricer benchmark
+
+  Returns
+  -------
+  cutoff: float
+          Recommended phase score cutoff  
+
+  fscore: float
+          Corresponding F1 score acheived at the determined cutoff
+  """
+    from sklearn.metrics import precision_recall_fscore_support
+    import pandas as pd
+
+    data = pd.read_csv(roc_input_file, sep="\t")
+    ribotricer_scores = data.ribotricer
+    truth = data.truth
+    precision_recall_fscore_support_df = []
+
+    cutoffs = np.linspace(0, 1, 1000)
+
+    for cutoff in cutoffs:
+        predicted = np.where(ribotricer_scores > cutoff, 1, 0)
+        s = precision_recall_fscore_support(
+            truth, predicted, average="binary", pos_label=1
+        )
+        precision_recall_fscore_support_df.append([cutoff] + list(s))
+    precision_recall_fscore_support_df = pd.DataFrame(
+        precision_recall_fscore_support_df,
+        columns=["cutoff", "precision", "recall", "fscore", "cutoff"],
+    )
+    cutoff = precision_recall_fscore_support_df.loc[
+        precision_recall_fscore_support_df["fscore"].idxmax()
+    ].cutoff.iloc[0]
+    fscore = precision_recall_fscore_support_df["fscore"].max()
+    return cutoff, fscore
