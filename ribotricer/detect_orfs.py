@@ -192,6 +192,7 @@ def export_orf_coverages(
     merged_alignments,
     prefix,
     phase_score_cutoff=CUTOFF,
+    min_valid_codons=MINIMUM_VALID_CODONS,
     report_all=False,
 ):
     """
@@ -246,7 +247,7 @@ def export_orf_coverages(
                 coh, valid = coherence(cov)
                 status = (
                     "translating"
-                    if (coh >= phase_score_cutoff and valid >= MINIMUM_VALID_CODONS)
+                    if (coh >= phase_score_cutoff and valid >= min_valid_codons)
                     else "nontranslating"
                 )
                 # skip outputing nontranslating ones

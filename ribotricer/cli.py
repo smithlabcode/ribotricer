@@ -20,6 +20,8 @@ import sys
 
 from . import __version__
 from .const import CUTOFF
+from .const import MINIMUM_VALID_CODONS
+
 from .count_orfs import count_orfs
 from .count_orfs import count_orfs_codon
 from .detect_orfs import detect_orfs
@@ -155,6 +157,13 @@ def prepare_orfs_cmd(
     help="Phase score cutoff for determining active translation",
 )
 @click.option(
+    "--min_valid_codons",
+    type=int,
+    default=MINIMUM_VALID_CODONS,
+    show_default=True,
+    help="Minimum number of codons with non-zero reads for determining active translation",
+)
+@click.option(
     "--report_all",
     help=("Whether output all ORFs including those " "non-translating ones"),
     is_flag=True,
@@ -167,6 +176,7 @@ def detect_orfs_cmd(
     read_lengths,
     psite_offsets,
     phase_score_cutoff,
+    min_valid_codons,
     report_all,
 ):
     if not os.path.isfile(bam):
@@ -207,6 +217,7 @@ def detect_orfs_cmd(
         read_lengths,
         psite_offsets,
         phase_score_cutoff,
+        min_valid_codons,
         report_all,
     )
 
@@ -240,7 +251,7 @@ def detect_orfs_cmd(
     help=("Whether output all ORFs including those " "non-translating ones"),
     is_flag=True,
 )
-def count_orfs_cmd(ribotricer_index, detected_orfs, features, prefix, report_all):
+def count_orfs_cmd(ribotricer_index, detected_orfs, features, out, report_all):
 
     if not os.path.isfile(ribotricer_index):
         sys.exit("Error: ribotricer index file not found")
@@ -283,7 +294,7 @@ def count_orfs_cmd(ribotricer_index, detected_orfs, features, prefix, report_all
     help=("Whether output all ORFs including those " "non-translating ones"),
     is_flag=True,
 )
-def count_orfs_cmd(
+def count_orfs_codon_cmd(
     ribotricer_index,
     detected_orfs,
     features,
