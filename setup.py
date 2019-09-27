@@ -25,7 +25,7 @@ setuptools.setup(
     name="ribotricer",
     version="1.0.3",
     author="Wenzheng Li, Saket Choudhary",
-    author_email="wenzhenl@usc.edu",
+    author_email="skchoudh@usc.edu",
     description="Python package to detect translating ORF from Ribo-seq data",
     long_description=readme,
     long_description_content_type="text/markdown",
