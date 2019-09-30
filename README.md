@@ -72,7 +72,7 @@ of all candidate ORFs:
 ribotricer detect-orfs --bam {BAM} --ribotricer_index {RIBOTRICER_INDEX_PREFIX}_candidate_ORFs.tsv --prefix {OUTPUT_PREFIX}
 ```
 
-NOTE: This will use default phase-score cutoff of 0.428. Our species specific recommended cutoffs
+**NOTE**: This above command, by default, uses a phase-score cutoff of 0.428. Our species specific recommended cutoffs
 are as follows:
 
 
