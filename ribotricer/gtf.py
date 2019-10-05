@@ -44,6 +44,13 @@ class GTFTrack(object):
             setattr(self, "gene_name", self.gene_id)
         if not hasattr(self, "transcript_name") and hasattr(self, "transcript_id"):
             setattr(self, "transcript_name", self.transcript_id)
+        if not hasattr(self, "transcript_type") and not hasattr(
+            self, GTFTrack.standards["transcript_biotype"]
+        ):
+            # transcript_type not set so set it to "assumed_protein_coding".
+            setattr(self, "transcript_type", "assumed_protein_coding")
+        if not hasattr(self, "gene_type") and hasattr(self, "transcript_type"):
+            setattr(self, "gene_type", self.transcript_type)
 
     @classmethod
     def from_string(cls, line):
