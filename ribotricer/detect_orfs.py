@@ -315,6 +315,7 @@ def detect_orfs(
     read_lengths,
     psite_offsets,
     phase_score_cutoff,
+    min_valid_codons,
     report_all,
 ):
     """
@@ -441,7 +442,12 @@ def detect_orfs(
         )
     )
     export_orf_coverages(
-        ribotricer_index, merged_alignments, prefix, phase_score_cutoff, report_all
+        ribotricer_index,
+        merged_alignments,
+        prefix,
+        phase_score_cutoff,
+        min_valid_codons,
+        report_all,
     )
     now = datetime.datetime.now()
     print(
