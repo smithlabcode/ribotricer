@@ -19,12 +19,16 @@ import os
 import sys
 
 from . import __version__
+from .common import _clean_input
 from .const import CUTOFF
 from .const import MINIMUM_VALID_CODONS
 
 from .count_orfs import count_orfs
 from .count_orfs import count_orfs_codon
 from .detect_orfs import detect_orfs
+from .learn_cutoff import determine_cutoff_bam
+from .learn_cutoff import determine_cutoff_tsv
+
 from .orf_seq import orf_seq
 from .prepare_orfs import prepare_orfs
 
@@ -348,3 +352,132 @@ def orf_seq_cmd(ribotricer_index, fasta, saveto):
         sys.exit("Error: fasta file not found")
 
     orf_seq(ribotricer_index, fasta, saveto)
+
+
+###################### learn-cutoff function #########################################
+@cli.command(
+    "learn-cutoff",
+    context_settings=CONTEXT_SETTINGS,
+    help="Learn phase score cutoff from BAM/TSV file",
+)
+@click.option("--ribo_bams", help="Path(s) to Ribo-seq BAM file separated by comma")
+@click.option("--rna_bams", help="Path(s) to RNA-seq BAM file separated by comma")
+@click.option(
+    "--ribo_tsvs",
+    help="Path(s) to Ribo-seq *_translating_ORFs.tsv file separated by comma",
+)
+@click.option(
+    "--rna_tsvs",
+    help="Path(s) to RNA-seq *_translating_ORFs.tsv file separated by comma",
+)
+@click.option(
+    "--ribotricer_index",
+    help=(
+        "Path to the index file of ribotricer\n"
+        "This file should be generated using ribotricer prepare-orfs (required for BAM input)"
+    ),
+)
+@click.option("--prefix", help="Prefix to output file")
+@click.option(
+    "--filter_by_tx_annotation",
+    help="transcript_type to filter regions by",
+    type=str,
+    default="protein_coding",
+    show_default=True,
+)
+@click.option(
+    "--phase_score_cutoff",
+    type=float,
+    default=CUTOFF,
+    show_default=True,
+    help="Phase score cutoff for determining active translation (required for BAM input)",
+)
+@click.option(
+    "--min_valid_codons",
+    type=int,
+    default=MINIMUM_VALID_CODONS,
+    show_default=True,
+    help="Minimum number of codons with non-zero reads for determining active translation (required for BAM input)",
+)
+@click.option(
+    "--sampling_ratio",
+    type=float,
+    default=0.33,
+    show_default=True,
+    help="Number of protein coding regions to sample per bootstrap",
+)
+@click.option(
+    "--n_bootstraps",
+    type=int,
+    default=20000,
+    show_default=True,
+    help="Number of bootstraps",
+)
+@click.option(
+    "--report_all",
+    help=("Whether output all ORFs including those " "non-translating ones"),
+    is_flag=True,
+)
+def determine_cutoff_cmd(
+    ribo_bams,
+    rna_bams,
+    ribo_tsvs,
+    rna_tsvs,
+    ribotricer_index,
+    prefix,
+    filter_by_tx_annotation,
+    phase_score_cutoff,
+    min_valid_codons,
+    sampling_ratio,
+    n_bootstraps,
+    report_all,
+):
+
+    filter_by = _clean_input(filter_by_tx_annotation)
+
+    ribo_stranded_protocols = []
+    rna_stranded_protocols = []
+
+    if ribo_bams and ribo_tsvs:
+        sys.exit("Error: --ribo-bams and --rna_bams cannot be specified together")
+
+    if rna_bams and rna_tsvs:
+        sys.exit("Error: --rna-bams and --rna_tsvs cannot be specified together")
+
+    if (ribo_bams and rna_tsvs) or (rna_bams and ribo_tsvs):
+        sys.exit("Error: BAM and TSV inputs cannot be specified together")
+
+    if ribotricer_index:
+        if not os.path.isfile(ribotricer_index):
+            sys.exit("Error: ribotricer index file not found")
+    if ribo_bams:
+        ribo_bams = _clean_input(ribo_bams)
+        rna_bams = _clean_input(rna_bams)
+    else:
+        ribo_tsvs = _clean_input(ribo_tsvs)
+        rna_tsvs = _clean_input(rna_tsvs)
+
+    if ribo_bams and rna_bams:
+        if not prefix:
+            sys.exit("Error: --prefix required with BAM inputs")
+        elif not ribotricer_index:
+            sys.exit("Error: --ribotricer_index required with BAM inputs")
+        else:
+            determine_cutoff_bam(
+                ribo_bams,
+                rna_bams,
+                ribotricer_index,
+                prefix,
+                ribo_stranded_protocols,
+                rna_stranded_protocols,
+                filter_by,
+                sampling_ratio,
+                n_bootstraps,
+                phase_score_cutoff,
+                min_valid_codons,
+                report_all,
+            )
+    else:
+        determine_cutoff_tsv(
+            ribo_tsvs, rna_tsvs, filter_by, sampling_ratio, n_bootstraps
+        )

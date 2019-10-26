@@ -13,6 +13,8 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 
+import ntpath
+import pathlib
 from .interval import Interval
 
 # Source: https://broadinstitute.github.io/picard/explain-flags.html
@@ -77,3 +79,30 @@ def merge_intervals(intervals):
         merged_intervals.append(to_merge)
         i += 1
     return merged_intervals
+
+
+def mkdir_p(path):
+    """Make directory even if it exists.
+
+  Parameters
+  ----------
+  path: str
+  """
+    pathlib.Path(path).mkdir(parents=True, exist_ok=True)
+
+
+def path_leaf(path):
+    """Get path's tail from a filepath"""
+    head, tail = ntpath.split(path)
+    return tail or ntpath.basename(head)
+
+
+def parent_dir(path):
+    """Get path's tail from a filepath"""
+    head, tail = ntpath.split(path)
+    return head
+
+
+def _clean_input(comma_string):
+
+    return list(map(lambda term: term.strip(" "), comma_string.split(",")))
