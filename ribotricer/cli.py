@@ -230,7 +230,7 @@ def detect_orfs_cmd(
 @cli.command(
     "count-orfs",
     context_settings=CONTEXT_SETTINGS,
-    help="Count reads for detected ORFs",
+    help="Count reads for detected ORFs at gene level",
 )
 @click.option(
     "--ribotricer_index",
@@ -272,7 +272,7 @@ def count_orfs_cmd(ribotricer_index, detected_orfs, features, out, report_all):
 @cli.command(
     "count-orfs-codon",
     context_settings=CONTEXT_SETTINGS,
-    help="Count reads for detected ORFs",
+    help="Count reads for detected ORFs at codon level",
 )
 @click.option(
     "--ribotricer_index",

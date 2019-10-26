@@ -6,6 +6,7 @@ from .const import CUTOFF
 from .const import MINIMUM_VALID_CODONS
 from .detect_orfs import detect_orfs
 
+
 def determine_cutoff_tsv(
     ribo_tsvs, rna_tsvs, filter_by=["protein_coding"], sampling_ratio=0.33, reps=10000
 ):
@@ -151,15 +152,20 @@ def determine_cutoff_bam(
             sys.exit("Error: Ribo-seq protocol and bam file length mismatch")
     else:
         rna_stranded_protocols = [None] * len(rna_bams)
+        ribo_stranded_protocols = [None] * len(ribo_bams)
 
     print("Running ribotricer on Ribo-seq samples ..... \n")
-    ribo_bams_renameed = ["ribo_bam_{}".format(i + 1) for i in range(len(ribo_bams))]
-    rna_bams_renameed = ["rna_bam_{}".format(i + 1) for i in range(len(rna_bams))]
+    ribo_bams_renamed = dict(
+        zip(ribo_bams, ["ribo_bam_{}".format(i + 1) for i in range(len(ribo_bams))])
+    )
+    rna_bams_renamed = dict(
+        zip(rna_bams, ["rna_bam_{}".format(i + 1) for i in range(len(rna_bams))])
+    )
 
     rna_tsvs = []
     ribo_tsvs = []
     for bam, stranded in zip(ribo_bams, ribo_stranded_protocols):
-        bam_prefix = "{}__{}".format(prefix, bam)
+        bam_prefix = "{}__{}".format(prefix, ribo_bams_renamed[bam])
         mkdir_p(parent_dir(bam_prefix))
         detect_orfs(
             bam,
@@ -174,8 +180,8 @@ def determine_cutoff_bam(
         )
         ribo_tsvs.append("{}_translating_ORFs.tsv".format(bam_prefix))
     print("Running ribotricer on RNA-seq samples ..... \n")
-    for bam, stranded, renamed_bam in zip(ribo_bams, rna_stranded_protocols):
-        bam_prefix = "{}__{}".format(prefix, renamed_bam)
+    for bam, stranded in zip(rna_bams, rna_stranded_protocols):
+        bam_prefix = "{}__{}".format(prefix, rna_bams_renamed[bam])
         mkdir_p(parent_dir(bam_prefix))
         detect_orfs(
             bam,
