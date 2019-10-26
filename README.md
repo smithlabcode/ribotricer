@@ -172,7 +172,8 @@ Ribotricer can also learn cutoff empirically from the data. Given at least one R
 `ribotricer` learns the cutoff by running one iteration of the algorithm on the provided files with a prespecified
 cutoff (`--phase_score_cutoff`, default: 0.428) and then uses the generated output to find the median difference between Ribo-seq and RNA-seq phase scores of only candidate ORFs with `transcript_type` set to `protein_coding` (`--filter_by_tx_annotation`).
 
-```ribotricer learn-cutoff --ribo_bams ribo_bam1.bam,ribo_bam2.bam \
+```
+ribotricer learn-cutoff --ribo_bams ribo_bam1.bam,ribo_bam2.bam \
 --rna_bams rna_1.bam \
 --prefix ribo_rna_prefix \
 --ribotricer_index {RIBOTRICER_ANNOTATION}
