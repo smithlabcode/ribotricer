@@ -36,7 +36,11 @@ tqdm>=4.23.4
 If some of these are already present, 
 they might be replaced by the designated version. So we strongly recommend
 creating a separate enrivoment (using `venv` or `conda`) before installing
-`ribotricer`.
+`ribotricer`:
+
+```
+conda create -n ribotricer -c bioconda ribotricer
+```
 
 ------------------
 
@@ -70,7 +74,9 @@ and the BAM file to detect the actively translating ORFs by assessing the period
 of all candidate ORFs:
 
 ```bash
-ribotricer detect-orfs --bam {BAM} --ribotricer_index {RIBOTRICER_INDEX_PREFIX}_candidate_ORFs.tsv --prefix {OUTPUT_PREFIX}
+ribotricer detect-orfs --bam {BAM} \
+--ribotricer_index {RIBOTRICER_INDEX_PREFIX}_candidate_ORFs.tsv \
+--prefix {OUTPUT_PREFIX}
 ```
 
 **NOTE**: This above command, by default, uses a phase-score cutoff of 0.428. Our species specific recommended cutoffs
@@ -160,15 +166,30 @@ Ribotricer reports eight different ORF types as defined below:
 
 ------------------
 
+## Learning cutoff empirically from data
+
+Ribotricer can also learn cutoff empirically from the data. Given at least one Ribo-seq and one RNA-seq BAM file,
+`ribotricer` learns the cutoff by running one iteration of the algorithm on the provided files with a prespecified
+cutoff (`--phase_score_cutoff`, default: 0.428) and then uses the generated output to find the median difference between Ribo-seq and RNA-seq phase scores of only candidate ORFs with `transcript_type` set to `protein_coding` (`--filter_by_tx_annotation`).
+
+```ribotricer learn-cutoff --ribo_bams ribo_bam1.bam,ribo_bam2.bam \
+--rna_bams rna_1.bam \
+--prefix ribo_rna_prefix \
+--ribotricer_index {RIBOTRICER_ANNOTATION}
+```
+
+------------------
+
 ## Contacts and bug reports
 Andrew D. Smith
 andrewds@usc.edu
 
+Saket Choudhary
+skchoudh@usc.edu
+
 Wenzheng Li
 wenzhenl@usc.edu
 
-Saket Choudhary
-skchoudh@usc.edu
 
 We are dedicated to make the best ORF detector for Ribo-seq data analysis.
 If you found a bug or mistake in this project, we would like to know about it.
