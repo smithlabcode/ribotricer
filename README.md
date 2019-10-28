@@ -1,6 +1,6 @@
 # Accurate detection of short and long active ORFs using Ribo-seq data
 
-[![Build Status](https://img.shields.io/travis/smithlabcode/ribotricer.svg?style=flat)](https://travis-ci.org/smithilabcode/ribotricer)
+[![Build Status](https://img.shields.io/travis/smithlabcode/ribotricer.svg?style=flat)](https://travis-ci.org/smithlabcode/ribotricer)
 [![install with pip](https://img.shields.io/pypi/v/ribotricer.svg?style=flat)](https://pypi.org/project/ribotricer/)
 [![install with bioconda](https://img.shields.io/badge/install%20with-bioconda-brightgreen.svg?style=flat)](http://bioconda.github.io/recipes/ribotricer/README.html)
 
@@ -74,9 +74,10 @@ and the BAM file to detect the actively translating ORFs by assessing the period
 of all candidate ORFs:
 
 ```bash
-ribotricer detect-orfs --bam {BAM} \
---ribotricer_index {RIBOTRICER_INDEX_PREFIX}_candidate_ORFs.tsv \
---prefix {OUTPUT_PREFIX}
+ribotricer detect-orfs \
+             --bam {BAM} \
+             --ribotricer_index {RIBOTRICER_INDEX_PREFIX}_candidate_ORFs.tsv \
+             --prefix {OUTPUT_PREFIX}
 ```
 
 **NOTE**: This above command, by default, uses a phase-score cutoff of 0.428. Our species specific recommended cutoffs
@@ -96,13 +97,29 @@ are as follows:
 In order to assign `non-translating` or `translating` status, ribotricer by default
 uses a cutoff threshold of `0.428`. ORFs with phase score above `0.428` are marked as 
 translating as long as they have at least five codons with non-zero read count.
-Ribotricer does not take coverage into account for predicting an ORF to be
-translating or not-translating. Apart from these two criteria, 
-there is no other requirement for an ORF to be active.
-the cutoff and the number of valid codons can also be specified by the user by
-`--phase_score_cutoff` and `--min_valid_codons` options respectively.
- If the number of codons are lesser than `--min_valid_codons`,
- the ORF status is assigned to be `non-translating` irrespective of its phase score.
+By default, ribotricer does not take coverage into account for predicting an ORF to be
+translating or not-translating. However, this behavior can be changed by following 
+filters:
+
+- `--min_valid_codons` (default=5): Minimum number of codons with non-zero reads for determining active translation
+- `--min_valid_codons_ratio` (default=0): Minimum ratio of codons with non-zero reads to total codons for determining active translation
+- `--min_reads_per_codon` (default=0): Minimum number of reads per codon for determining active translation
+- `--min_read_density` (default=0.0): Minimum read density (total_reads/length) over an ORF total codons for determining active translation
+
+For each of the above filters, an ORF failing **any** of the filters is 
+marked as `non-translating`.
+
+For example, to ensure that each ORF has at least 3/4 of its codons non-empty,
+we can specify `--min_valid_codons_ratio` to be 0.75:
+
+```
+
+ribotricer detect-orfs \
+             --bam {BAM} \
+             --ribotricer_index {RIBOTRICER_INDEX_PREFIX}_candidate_ORFs.tsv \
+             --prefix {OUTPUT_PREFIX}
+             --min_valid_codons_ratio 0.75
+```
 
 The ORF detection step consists of several small steps including:
 1. Infer the experimental protocol (strandedness of the reads)  
@@ -178,6 +195,7 @@ ribotricer learn-cutoff --ribo_bams ribo_bam1.bam,ribo_bam2.bam \
 --prefix ribo_rna_prefix \
 --ribotricer_index {RIBOTRICER_ANNOTATION}
 ```
+
 
 ------------------
 
