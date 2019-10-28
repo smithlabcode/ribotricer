@@ -104,5 +104,23 @@ def parent_dir(path):
 
 
 def _clean_input(comma_string):
-
+    """Clean comma separated option inputs in CLI"""
     return list(map(lambda term: term.strip(" "), comma_string.split(",")))
+
+
+def collapse_coverage_to_codon(coverage):
+    """Collapse nucleotide level coverage to codon level.
+  
+  Parameters
+  ----------
+  coverage: list
+            Nucleotide level counts 
+  Returns
+  -------
+  codon_coverage: list
+                  Coverage collapsed to codon level
+  """
+    codon_coverage = [
+        sum(coverage[current : current + 3]) for current in range(0, len(coverage), 3)
+    ]
+    return codon_coverage

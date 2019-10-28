@@ -20,3 +20,12 @@ TYPICAL_OFFSET = 12
 # minimum number of valid codons required in an ORF to label
 # it 'translating'
 MINIMUM_VALID_CODONS = 5
+# minimum number of reads required per codon in an ORF to label
+# it 'translating'
+# default: 0 (decided by CUTOFF and MINIMUM_VALID_CODONS)
+MINIMUM_READS_PER_CODON = 0
+# fraction of codons with non zero reads
+MINIMUM_VALID_CODONS_RATIO = 0
+# Minimum read density over ORF
+# defined as the number of reads per unit length of the ORF
+MINIMUM_DENSITY_OVER_ORF = 0.0

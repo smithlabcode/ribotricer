@@ -51,8 +51,8 @@ def count_orfs(ribotricer_index, detected_orfs, features, outfile, report_all=Fa
         for line in fin:
             fields = line.strip().split("\t")
             oid, otype, status = fields[:3]
-            gene_id, gene_name, gene_type = fields[9:12]
-            chrom, strand, start_codon, profile = fields[12:]
+            gene_id, gene_name, gene_type = fields[11:14]
+            chrom, strand, start_codon, profile = fields[14:]
             if otype in features:
                 # do not output 'nontranslating' events unless report_all is set
                 if status != "nontranslating" or report_all:
@@ -120,8 +120,8 @@ def count_orfs_codon(
         for line in fin:
             fields = line.strip().split("\t")
             oid, otype, status = fields[:3]
-            gene_id, gene_name, gene_type = fields[9:12]
-            chrom, strand, start_codon, profile = fields[12:]
+            gene_id, gene_name, gene_type = fields[11:14]
+            chrom, strand, start_codon, profile = fields[14:]
             if otype in features:
                 # do not output 'nontranslating' events unless report_all is set
                 if status != "nontranslating" or report_all:

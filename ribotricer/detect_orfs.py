@@ -17,12 +17,17 @@ from collections import Counter
 from collections import defaultdict
 import datetime
 
+import numpy as np
 from tqdm import tqdm
 from quicksect import Interval, IntervalTree
 
 from .bam import split_bam
+from .common import collapse_coverage_to_codon
 from .const import CUTOFF
 from .const import MINIMUM_VALID_CODONS
+from .const import MINIMUM_VALID_CODONS_RATIO
+from .const import MINIMUM_READS_PER_CODON
+from .const import MINIMUM_DENSITY_OVER_ORF
 from .infer_protocol import infer_protocol
 from .metagene import metagene_coverage
 from .metagene import align_metagenes
@@ -193,6 +198,9 @@ def export_orf_coverages(
     prefix,
     phase_score_cutoff=CUTOFF,
     min_valid_codons=MINIMUM_VALID_CODONS,
+    min_reads_per_codon=MINIMUM_READS_PER_CODON,
+    min_valid_codons_ratio=MINIMUM_VALID_CODONS_RATIO,
+    min_density_over_orf=MINIMUM_DENSITY_OVER_ORF,
     report_all=False,
 ):
     """
@@ -216,6 +224,8 @@ def export_orf_coverages(
         "read_count",
         "length",
         "valid_codons",
+        "valid_codons_ratio",
+        "read_density",
         "transcript_id",
         "transcript_type",
         "gene_id",
@@ -244,10 +254,24 @@ def export_orf_coverages(
                 cov = orf_coverage(orf, merged_alignments)
                 count = sum(cov)
                 length = len(cov)
-                coh, valid = coherence(cov)
+                coh, valid_codons = coherence(cov)
+                n_codons = length // 3
+
+                # codon level coverage
+                codon_coverage = np.array(collapse_coverage_to_codon(cov))
+                valid_codons_ratio = valid_codons / n_codons
+                # total reads in the ORF divided by the length
+                orf_density = np.sum(codon_coverage) / n_codons
+                codon_coverage_exceeds_min = codon_coverage >= min_reads_per_codon
                 status = (
                     "translating"
-                    if (coh >= phase_score_cutoff and valid >= min_valid_codons)
+                    if (
+                        coh >= phase_score_cutoff
+                        and valid_codons >= min_valid_codons
+                        and np.all(codon_coverage_exceeds_min)
+                        and valid_codons_ratio >= min_valid_codons_ratio
+                        and orf_density >= min_density_over_orf
+                    )
                     else "nontranslating"
                 )
                 # skip outputing nontranslating ones
@@ -261,7 +285,9 @@ def export_orf_coverages(
                         coh,
                         count,
                         length,
-                        valid,
+                        valid_codons,
+                        valid_codons_ratio,
+                        orf_density,
                         orf.tid,
                         orf.ttype,
                         orf.gid,
@@ -316,6 +342,9 @@ def detect_orfs(
     psite_offsets,
     phase_score_cutoff,
     min_valid_codons,
+    min_reads_per_codon,
+    min_valid_codons_ratio,
+    min_density_over_orf,
     report_all,
 ):
     """
@@ -447,6 +476,9 @@ def detect_orfs(
         prefix,
         phase_score_cutoff,
         min_valid_codons,
+        min_reads_per_codon,
+        min_valid_codons_ratio,
+        min_density_over_orf,
         report_all,
     )
     now = datetime.datetime.now()

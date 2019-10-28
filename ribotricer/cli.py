@@ -22,6 +22,9 @@ from . import __version__
 from .common import _clean_input
 from .const import CUTOFF
 from .const import MINIMUM_VALID_CODONS
+from .const import MINIMUM_VALID_CODONS_RATIO
+from .const import MINIMUM_READS_PER_CODON
+from .const import MINIMUM_DENSITY_OVER_ORF
 
 from .count_orfs import count_orfs
 from .count_orfs import count_orfs_codon
@@ -168,6 +171,27 @@ def prepare_orfs_cmd(
     help="Minimum number of codons with non-zero reads for determining active translation",
 )
 @click.option(
+    "--min_reads_per_codon",
+    type=int,
+    default=MINIMUM_READS_PER_CODON,
+    show_default=True,
+    help="Minimum number of reads per codon for determining active translation",
+)
+@click.option(
+    "--min_valid_codons_ratio",
+    type=float,
+    default=MINIMUM_VALID_CODONS_RATIO,
+    show_default=True,
+    help="Minimum ratio of codons with non-zero reads to total codons for determining active translation",
+)
+@click.option(
+    "--min_read_density",
+    type=float,
+    default=MINIMUM_DENSITY_OVER_ORF,
+    show_default=True,
+    help="Minimum read density (total_reads/length) over an ORF total codons for determining active translation",
+)
+@click.option(
     "--report_all",
     help=("Whether output all ORFs including those " "non-translating ones"),
     is_flag=True,
@@ -181,6 +205,9 @@ def detect_orfs_cmd(
     psite_offsets,
     phase_score_cutoff,
     min_valid_codons,
+    min_reads_per_codon,
+    min_valid_codons_ratio,
+    min_read_density,
     report_all,
 ):
     if not os.path.isfile(bam):
@@ -222,6 +249,9 @@ def detect_orfs_cmd(
         psite_offsets,
         phase_score_cutoff,
         min_valid_codons,
+        min_reads_per_codon,
+        min_valid_codons_ratio,
+        min_read_density,
         report_all,
     )
 
