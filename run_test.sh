@@ -2,6 +2,7 @@
 set -eox pipefail
 wget -c https://www.dropbox.com/s/8iynb0k5dbhv0b1/ribotricer_test_data_tair10.zip
 unzip ribotricer_test_data_tair10.zip
+ribotricer detect-orfs --bam ribotricer_test_data_tair10/bams_unique/SRX219170.bam --ribotricer_index ribotricer_test_data_tair10/index/ribotricer_v44_annotation_longest_candidate_orfs.tsv --prefix ribotricer_test_data_tair10/SRX219170_generated_readspercodon_10 --min_reads_per_codon 10
 ribotricer detect-orfs --bam ribotricer_test_data_tair10/bams_unique/SRX219170.bam --ribotricer_index ribotricer_test_data_tair10/index/ribotricer_v44_annotation_longest_candidate_orfs.tsv --prefix ribotricer_test_data_tair10/SRX219170_generated
 MD5_expected=$(md5sum ribotricer_test_data_tair10/translating_ORFs/SRX219170_translating_ORFs.tsv | awk '{ print $1 }')
 MD5_observed=$(md5sum ribotricer_test_data_tair10/SRX219170_generated_translating_ORFs.tsv | awk '{ print $1 }')
@@ -30,4 +31,10 @@ fi
 #echo "detect-orfs validcodons=0.75 MD5 mismatch";
 #exit 1;
 #fi
-
+ribotricer detect-orfs --bam ribotricer_test_data_tair10/bams_unique/SRX219170.bam --ribotricer_index ribotricer_test_data_tair10/index/ribotricer_v44_annotation_longest_candidate_orfs.tsv --prefix ribotricer_test_data_tair10/SRX219170_generated_readspercodon_10 --min_reads_per_codon 10
+#MD5_expected=$(md5sum ribotricer_test_data_tair10/translating_ORFs/SRX219170_translating_ORFs_readdensity_10.tsv | awk '{ print $1 }')
+#MD5_observed=$(md5sum ribotricer_test_data_tair10/SRX219170_generated_readdensity_10_translating_ORFs.tsv | awk '{ print $1 }')
+#if [ $MD5_expected != $MD5_observed ]; then
+#echo "detect-orfs readdensity=10 MD5 mismatch";
+#exit 1;
+#fi

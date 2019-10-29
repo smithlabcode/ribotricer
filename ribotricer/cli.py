@@ -443,11 +443,6 @@ def orf_seq_cmd(ribotricer_index, fasta, saveto):
     show_default=True,
     help="Number of bootstraps",
 )
-@click.option(
-    "--report_all",
-    help=("Whether output all ORFs including those " "non-translating ones"),
-    is_flag=True,
-)
 def determine_cutoff_cmd(
     ribo_bams,
     rna_bams,
@@ -460,7 +455,6 @@ def determine_cutoff_cmd(
     min_valid_codons,
     sampling_ratio,
     n_bootstraps,
-    report_all,
 ):
 
     filter_by = _clean_input(filter_by_tx_annotation)
@@ -505,7 +499,7 @@ def determine_cutoff_cmd(
                 n_bootstraps,
                 phase_score_cutoff,
                 min_valid_codons,
-                report_all,
+                report_all=True,
             )
     else:
         determine_cutoff_tsv(
