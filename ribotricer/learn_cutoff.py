@@ -85,6 +85,11 @@ def determine_cutoff_tsv(
     diff_phase_score_median = np.median(diff_phase_median_samples)
     diff_phase_score_sd = np.std(diff_phase_median_samples)
 
+    diff_all = ribo_phase_scores_all - rna_phase_scores_all
+    diff_all_median = np.median(diff_all)
+    diff_all_mean = np.mean(diff_all)
+    diff_all_std = np.std(diff_all)
+
     print("sampling_ratio: {}".format(sampling_ratio))
     print("n_samples: {}".format(reps))
 
@@ -96,9 +101,13 @@ def determine_cutoff_tsv(
     print("rna_phase_score_median: {:.3f}".format(rna_phase_score_median))
     print("rna_phase_score_sd: {:.3f}".format(rna_phase_score_sd))
 
-    print("diff_phase_score_mean: {:.3f}".format(diff_phase_score_mean))
-    print("diff_phase_score_median: {:.3f}".format(diff_phase_score_median))
-    print("diff_phase_score_sd: {:.3f}".format(diff_phase_score_sd))
+    print("diff_phase_score_sampled_mean: {:.3f}".format(diff_phase_score_mean))
+    print("diff_phase_score_sampled_median: {:.3f}".format(diff_phase_score_median))
+    print("diff_phase_score_sampled_sd: {:.3f}".format(diff_phase_score_sd))
+
+    print("diff_phase_score_all_mean: {:.3f}".format(diff_all_mean))
+    print("diff_phase_score_all_median: {:.3f}".format(diff_all_median))
+    print("diff_phase_score_all_sd: {:.3f}".format(diff_all_std))
 
 
 def determine_cutoff_bam(
