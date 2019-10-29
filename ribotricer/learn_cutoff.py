@@ -4,6 +4,10 @@ from .common import mkdir_p
 from .common import parent_dir
 from .const import CUTOFF
 from .const import MINIMUM_VALID_CODONS
+from .const import MINIMUM_VALID_CODONS_RATIO
+from .const import MINIMUM_READS_PER_CODON
+from .const import MINIMUM_DENSITY_OVER_ORF
+
 from .detect_orfs import detect_orfs
 
 
@@ -118,7 +122,7 @@ def determine_cutoff_bam(
     ribo_stranded_protocols=[],
     rna_stranded_protocols=[],
     filter_by=["protein_coding"],
-    sampling_ratio=0.33,
+    sampling_r=0.33,
     reps=10000,
     phase_score_cutoff=CUTOFF,
     min_valid_codons=MINIMUM_VALID_CODONS,
@@ -184,7 +188,10 @@ def determine_cutoff_bam(
             read_lengths=None,
             psite_offsets=None,
             phase_score_cutoff=0,
-            min_valid_codons=5,
+            min_valid_codons=MINIMUM_VALID_CODONS,
+            min_reads_per_codon=MINIMUM_READS_PER_CODON,
+            min_valid_codons_ratio=MINIMUM_VALID_CODONS_RATIO,
+            min_density_over_orf=MINIMUM_DENSITY_OVER_ORF,
             report_all=True,
         )
         ribo_tsvs.append("{}_translating_ORFs.tsv".format(bam_prefix))
@@ -200,7 +207,10 @@ def determine_cutoff_bam(
             read_lengths=None,
             psite_offsets=None,
             phase_score_cutoff=0,
-            min_valid_codons=5,
+            min_valid_codons=MINIMUM_VALID_CODONS,
+            min_reads_per_codon=MINIMUM_READS_PER_CODON,
+            min_valid_codons_ratio=MINIMUM_VALID_CODONS_RATIO,
+            min_density_over_orf=MINIMUM_DENSITY_OVER_ORF,
             report_all=True,
         )
         rna_tsvs.append("{}_translating_ORFs.tsv".format(bam_prefix))
