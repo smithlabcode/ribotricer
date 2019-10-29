@@ -122,7 +122,7 @@ def determine_cutoff_bam(
     ribo_stranded_protocols=[],
     rna_stranded_protocols=[],
     filter_by=["protein_coding"],
-    sampling_r=0.33,
+    sampling_ratio=0.33,
     reps=10000,
     phase_score_cutoff=CUTOFF,
     min_valid_codons=MINIMUM_VALID_CODONS,
@@ -192,7 +192,7 @@ def determine_cutoff_bam(
             min_reads_per_codon=MINIMUM_READS_PER_CODON,
             min_valid_codons_ratio=MINIMUM_VALID_CODONS_RATIO,
             min_density_over_orf=MINIMUM_DENSITY_OVER_ORF,
-            report_all=True,
+            report_all=report_all,
         )
         ribo_tsvs.append("{}_translating_ORFs.tsv".format(bam_prefix))
     print("Running ribotricer on RNA-seq samples ..... \n")
@@ -211,7 +211,7 @@ def determine_cutoff_bam(
             min_reads_per_codon=MINIMUM_READS_PER_CODON,
             min_valid_codons_ratio=MINIMUM_VALID_CODONS_RATIO,
             min_density_over_orf=MINIMUM_DENSITY_OVER_ORF,
-            report_all=True,
+            report_all=report_all,
         )
         rna_tsvs.append("{}_translating_ORFs.tsv".format(bam_prefix))
     determine_cutoff_tsv(ribo_tsvs, rna_tsvs, filter_by, sampling_ratio, reps)
