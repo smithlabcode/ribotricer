@@ -255,7 +255,7 @@ def export_orf_coverages(
                 count = sum(cov)
                 length = len(cov)
                 coh, valid_codons = coherence(cov)
-                n_codons = length // 3
+                n_codons = max(1, length // 3)
 
                 # codon level coverage
                 codon_coverage = np.array(collapse_coverage_to_codon(cov))
