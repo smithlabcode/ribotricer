@@ -23,7 +23,7 @@ with open("requirements.txt") as req_file:
 
 setuptools.setup(
     name="ribotricer",
-    version="1.2.0",
+    version="1.3.0-dev0",
     author="Saket Choudhary, Wenzheng Li",
     author_email="skchoudh@usc.edu",
     description="Python package to detect translating ORFs from Ribo-seq data",
