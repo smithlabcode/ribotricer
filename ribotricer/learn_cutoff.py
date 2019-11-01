@@ -1,3 +1,4 @@
+import sys
 import numpy as np
 import pandas as pd
 from .common import mkdir_p
@@ -74,7 +75,7 @@ def determine_cutoff_tsv(
     rna_phase_scores_all = np.array(rna_df_filtered.phase_score.tolist())
 
     ribo_phase_median_samples = np.median(ribo_phase_scores_all[ribo_indices], axis=0)
-    rna_phase_median_samples = np.median(rna_phase_scores_all[ribo_indices], axis=0)
+    rna_phase_median_samples = np.median(rna_phase_scores_all[rna_indices], axis=0)
     diff_phase_median_samples = ribo_phase_median_samples - rna_phase_median_samples
 
     ribo_phase_score_mean = np.mean(ribo_phase_median_samples)
@@ -112,6 +113,8 @@ def determine_cutoff_tsv(
     print("diff_phase_score_all_mean: {:.3f}".format(diff_all_mean))
     print("diff_phase_score_all_median: {:.3f}".format(diff_all_median))
     print("diff_phase_score_all_sd: {:.3f}".format(diff_all_std))
+
+    print("recommended_cutoff: {:.3}f".format(diff_phase_score_median))
 
 
 def determine_cutoff_bam(
@@ -167,7 +170,7 @@ def determine_cutoff_bam(
         rna_stranded_protocols = [None] * len(rna_bams)
         ribo_stranded_protocols = [None] * len(ribo_bams)
 
-    print("Running ribotricer on Ribo-seq samples ..... \n")
+    print("Running ribotricer on Ribo-seq samples [] ..... \n".format(len(rna_bams)))
     ribo_bams_renamed = dict(
         zip(ribo_bams, ["ribo_bam_{}".format(i + 1) for i in range(len(ribo_bams))])
     )
@@ -195,7 +198,7 @@ def determine_cutoff_bam(
             report_all=report_all,
         )
         ribo_tsvs.append("{}_translating_ORFs.tsv".format(bam_prefix))
-    print("Running ribotricer on RNA-seq samples ..... \n")
+    print("Running ribotricer on RNA-seq samples [] ..... \n".format(len(rna_bams)))
     for bam, stranded in zip(rna_bams, rna_stranded_protocols):
         bam_prefix = "{}__{}".format(prefix, rna_bams_renamed[bam])
         mkdir_p(parent_dir(bam_prefix))

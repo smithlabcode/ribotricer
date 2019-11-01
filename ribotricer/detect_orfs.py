@@ -23,6 +23,8 @@ from quicksect import Interval, IntervalTree
 
 from .bam import split_bam
 from .common import collapse_coverage_to_codon
+from .common import mkdir_p
+from .common import parent_dir
 from .const import CUTOFF
 from .const import MINIMUM_VALID_CODONS
 from .const import MINIMUM_VALID_CODONS_RATIO
@@ -300,12 +302,6 @@ def export_orf_coverages(
                     )
                     output.write(to_write)
 
-    # now = datetime.datetime.now()
-    # print('{} ... {}'.format(
-    #     now.strftime('%b %d %H:%M:%S'), 'started saving results into disk'))
-    # with open('{}_translating_ORFs.tsv'.format(prefix), 'w') as output:
-    #     output.write(to_write)
-
 
 def export_wig(merged_alignments, prefix):
     """
@@ -381,6 +377,9 @@ def detect_orfs(
     now = datetime.datetime.now()
     print(now.strftime("%b %d %H:%M:%S ... started parsing ribotricer index file"))
     annotated, refseq = parse_ribotricer_index(ribotricer_index)
+
+    # create directory
+    mkdir_p(parent_dir(prefix))
 
     # infer experimental protocol if not provided
     if protocol is None:
