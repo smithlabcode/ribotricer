@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 # Part of ribotricer software
 #
-# Copyright (C) 2019 Wenzheng Li, Saket Choudhary and Andrew D Smith
+# Copyright (C) 2019 Saket Choudhary, Wenzheng Li, and Andrew D Smith
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -24,9 +24,9 @@ with open("requirements.txt") as req_file:
 setuptools.setup(
     name="ribotricer",
     version="1.2.0",
-    author="Wenzheng Li, Saket Choudhary",
+    author="Saket Choudhary, Wenzheng Li",
     author_email="skchoudh@usc.edu",
-    description="Python package to detect translating ORF from Ribo-seq data",
+    description="Python package to detect translating ORFs from Ribo-seq data",
     long_description=readme,
     long_description_content_type="text/markdown",
     url="https://github.com/smithlabcode/ribotricer",

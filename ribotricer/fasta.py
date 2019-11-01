@@ -1,7 +1,7 @@
 """process fasta files"""
 # Part of ribotricer software
 #
-# Copyright (C) 2019 Wenzheng Li, Saket Choudhary and Andrew D Smith
+# Copyright (C) 2019 Saket Choudhary, Wenzheng Li, and Andrew D Smith
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -13,6 +13,7 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 
+from collections import OrderedDict
 import os
 import warnings
 
@@ -54,10 +55,6 @@ class FastaReader:
                    An array containing scores for each Interval
                    This function is agnostic of the strand information,
                    the position in the scores is corresponding to the interval
-
-        .. currentmodule:: .FastaReader
-        .. autosummary::
-            .FastaReader
 
         """
         sequences = []
@@ -142,7 +139,7 @@ class FastaReader:
         .. autosummary::
             .FastaReader
         """
-        chroms = {}
+        chroms = OrderedDict()
         for chrom in list(self.fasta.keys()):
             chroms[chrom] = len(self.fasta[chrom])
         return chroms

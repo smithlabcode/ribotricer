@@ -1,7 +1,7 @@
 """Utilities for translating ORF detection"""
 # Part of ribotricer software
 #
-# Copyright (C) 2019 Wenzheng Li, Saket Choudhary and Andrew D Smith
+# Copyright (C) 2019 Saket Choudhary, Wenzheng Li, and Andrew D Smith
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -108,13 +108,12 @@ def parse_ribotricer_index(ribotricer_index):
         while "annotated" in anno.readline():
             total_lines += 1
     with open(ribotricer_index, "r") as anno:
-        with tqdm(total=total_lines) as pbar:
+        with tqdm(total=total_lines, unit="lines") as pbar:
             # read header
             anno.readline()
             line = anno.readline()
             while "annotated" in line:
                 pbar.update()
-                line = anno.readline()
                 orf = ORF.from_string(line)
                 if orf is not None and orf.category == "annotated":
                     refseq[orf.chrom].insert(
@@ -125,6 +124,7 @@ def parse_ribotricer_index(ribotricer_index):
                         )
                     )
                     annotated.append(orf)
+                line = anno.readline()
     return (annotated, refseq)
 
 
@@ -247,7 +247,7 @@ def export_orf_coverages(
         "{}_translating_ORFs.tsv".format(prefix), "w"
     ) as output:
         output.write(to_write)
-        with tqdm(total=total_lines) as pbar:
+        with tqdm(total=total_lines, unit="ORFs") as pbar:
             # Skip header
             anno.readline()
             for line in anno:

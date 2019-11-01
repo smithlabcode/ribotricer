@@ -1,8 +1,7 @@
-"""Utilities for reading GTF file
-"""
+"""Utilities for reading GTF file"""
 # Part of ribotricer software
 #
-# Copyright (C) 2019 Wenzheng Li, Saket Choudhary and Andrew D Smith
+# Copyright (C) 2019 Saket Choudhary, Wenzheng Li, and Andrew D Smith
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -108,7 +107,7 @@ class GTFReader(object):
         with open(self.gtf_location, "r") as gtf:
             total_lines = len(["" for line in gtf])
         with open(self.gtf_location, "r") as gtf:
-            with tqdm(total=total_lines) as pbar:
+            with tqdm(total=total_lines, unit="lines") as pbar:
                 for line in gtf:
                     pbar.update()
                     track = GTFTrack.from_string(line)

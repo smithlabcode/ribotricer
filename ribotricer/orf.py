@@ -2,7 +2,7 @@
 """
 # Part of ribotricer software
 #
-# Copyright (C) 2019 Wenzheng Li, Saket Choudhary and Andrew D Smith
+# Copyright (C) 2019 Saket Choudhary, Wenzheng Li, and Andrew D Smith
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -106,9 +106,6 @@ class ORF:
             start = int(start)
             end = int(end)
             intervals.append(Interval(chrom, start, end, strand))
-        # seq = fields[11]
-        # leader = fields[12]
-        # trailer = fields[13]
         return cls(
             category,
             tid,
@@ -178,7 +175,7 @@ class ORF:
             or len(chrom) != 1
             or len(strand) != 1
         ):
-            print("inconsistent tracks for one ORF")
+            print("inconsistent tracks for ORF: {}".format(track))
             return None
         tid = list(tid)[0]
         ttype = list(ttype)[0]

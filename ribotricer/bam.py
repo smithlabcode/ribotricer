@@ -1,7 +1,7 @@
 """Utilities for spliting bam file"""
 # Part of ribotricer software
 #
-# Copyright (C) 2019 Wenzheng Li, Saket Choudhary and Andrew D Smith
+# Copyright (C) 2019 Saket Choudhary, Wenzheng Li, and Andrew D Smith
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -54,7 +54,7 @@ def split_bam(bam_path, protocol, prefix, read_lengths=None):
     bam = pysam.AlignmentFile(bam_path, "rb")
     total_reads = bam.count(until_eof=True)
     bam.close()
-    with tqdm(total=total_reads) as pbar:
+    with tqdm(total=total_reads, unit="reads") as pbar:
         bam = pysam.AlignmentFile(bam_path, "rb")
         for read in bam.fetch(until_eof=True):
             pbar.update()

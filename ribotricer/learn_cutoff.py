@@ -1,3 +1,18 @@
+"""Utilities for translating learning phase-score cutoffs"""
+# Part of ribotricer software
+#
+# Copyright (C) 2019 Saket Choudhary, Wenzheng Li, and Andrew D Smith
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+
 import sys
 import numpy as np
 import pandas as pd
@@ -190,7 +205,7 @@ def determine_cutoff_bam(
             stranded,
             read_lengths=None,
             psite_offsets=None,
-            phase_score_cutoff=0,
+            phase_score_cutoff=0.0,
             min_valid_codons=MINIMUM_VALID_CODONS,
             min_reads_per_codon=MINIMUM_READS_PER_CODON,
             min_valid_codons_ratio=MINIMUM_VALID_CODONS_RATIO,
@@ -209,7 +224,7 @@ def determine_cutoff_bam(
             stranded,
             read_lengths=None,
             psite_offsets=None,
-            phase_score_cutoff=0,
+            phase_score_cutoff=0.0,
             min_valid_codons=MINIMUM_VALID_CODONS,
             min_reads_per_codon=MINIMUM_READS_PER_CODON,
             min_valid_codons_ratio=MINIMUM_VALID_CODONS_RATIO,

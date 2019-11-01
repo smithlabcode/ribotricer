@@ -2,7 +2,7 @@
 """
 # Part of ribotricer software
 #
-# Copyright (C) 2019 Wenzheng Li, Saket Choudhary and Andrew D Smith
+# Copyright (C) 2019 Saket Choudhary, Wenzheng Li, and Andrew D Smith
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -15,6 +15,8 @@
 # GNU General Public License for more details.
 
 from math import sin, cos, pi, sqrt
+import warnings
+
 import numpy as np
 from scipy import stats
 from scipy import signal
@@ -146,17 +148,19 @@ def coherence(original_values):
         else:
             normalized_values = normalized_values[:length]
             uniform_signal = [1, 0, 0] * (len(normalized_values) // 3)
-            f, Cxy = signal.coherence(
-                normalized_values,
-                uniform_signal,
-                window=[1.0, 1.0, 1.0],
-                nperseg=3,
-                noverlap=0,
-            )
-            periodicity_score = Cxy[np.argwhere(np.isclose(f, 1 / 3.0))[0]][0]
-            if periodicity_score > coh:
-                coh = periodicity_score
-                valid = length // 3
-            if valid == -1:
-                valid = length // 3
+            with warnings.catch_warnings():
+                warnings.simplefilter("ignore")
+                f, Cxy = signal.coherence(
+                    normalized_values,
+                    uniform_signal,
+                    window=[1.0, 1.0, 1.0],
+                    nperseg=3,
+                    noverlap=0,
+                )
+                periodicity_score = Cxy[np.argwhere(np.isclose(f, 1 / 3.0))[0]][0]
+                if periodicity_score > coh:
+                    coh = periodicity_score
+                    valid = length // 3
+                if valid == -1:
+                    valid = length // 3
     return np.sqrt(coh), valid

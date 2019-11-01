@@ -1,7 +1,7 @@
 """infer experimental protocol"""
 # Part of ribotricer software
 #
-# Copyright (C) 2019 Wenzheng Li, Saket Choudhary and Andrew D Smith
+# Copyright (C) 2019 Saket Choudhary, Wenzheng Li, and Andrew D Smith
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -14,9 +14,10 @@
 # GNU General Public License for more details.
 
 from collections import Counter
+from .common import is_read_uniq_mapping
+
 import pysam
 from quicksect import Interval
-from .common import is_read_uniq_mapping
 
 # required to convert numeric strands to '+/-'
 NUM_TO_STRAND = {1: "+", -1: "-"}

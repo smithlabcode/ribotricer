@@ -1,7 +1,7 @@
 """Plotting functions."""
 # Part of ribotricer software
 #
-# Copyright (C) 2019 Wenzheng Li, Saket Choudhary and Andrew D Smith
+# Copyright (C) 2019 Saket Choudhary, Wenzheng Li, and Andrew D Smith
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -32,7 +32,6 @@ def plot_read_lengths(read_lengths, prefix):
     prefix: str
             prefix for the output file
     """
-    # print('plotting read length distribution...')
     fig, ax = plt.subplots()
     x = sorted(read_lengths.keys())
     y = [read_lengths[i] for i in x]
@@ -56,7 +55,6 @@ def plot_metagene(metagenes, read_lengths, prefix, offset=200):
     prefix: str
             prefix for the output file
     """
-    # print('plotting metagene profiles...')
     total_reads = sum(read_lengths.values())
     frame_colors = ["#fc8d62", "#66c2a5", "#8da0cb"]
     with PdfPages("{}_metagene_plots.pdf".format(prefix)) as pdf:

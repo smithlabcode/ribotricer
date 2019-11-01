@@ -1,7 +1,7 @@
 """Functions for finding all candidate ORFs"""
 # Part of ribotricer software
 #
-# Copyright (C) 2019 Wenzheng Li, Saket Choudhary and Andrew D Smith
+# Copyright (C) 2019 Saket Choudhary, Wenzheng Li, and Andrew D Smith
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -17,13 +17,13 @@ from collections import defaultdict
 import datetime
 import re
 
-from tqdm import tqdm
-
 from .common import merge_intervals
 from .fasta import FastaReader
 from .gtf import GTFReader
 from .interval import Interval
 from .orf import ORF
+
+from tqdm import tqdm
 
 
 def tracks_to_ivs(tracks):
@@ -293,7 +293,7 @@ def prepare_orfs(
     now = datetime.datetime.now()
     print(now.strftime("%b %d %H:%M:%S ... starting extracting annotated ORFs"))
     cds_orfs = defaultdict(lambda: defaultdict(ORF))
-    for gid in tqdm(gtf.cds):
+    for gid in tqdm(gtf.cds, unit="lines"):
         for tid in gtf.cds[gid]:
             tracks = gtf.cds[gid][tid]
             seq = fetch_seq(fasta, tracks)
@@ -309,7 +309,7 @@ def prepare_orfs(
             "starting searching transcriptome-wide ORFs. This may take a long time...",
         )
     )
-    for tid in tqdm(gtf.transcript):
+    for tid in tqdm(gtf.transcript, unit="transcripts"):
         tracks = gtf.transcript[tid]
         ttype = tracks[0].transcript_type
         gid = tracks[0].gene_id
@@ -357,7 +357,7 @@ def prepare_orfs(
 
     to_write = "\t".join(columns)
     formatter = "{}\t" * (len(columns) - 1) + "{}\n"
-    for orf in tqdm(candidate_orfs):
+    for orf in tqdm(candidate_orfs, unit="ORFs"):
         coordinate = ",".join(
             ["{}-{}".format(iv.start, iv.end) for iv in orf.intervals]
         )

@@ -1,6 +1,7 @@
+"""Utility for handling chromosome intervals"""
 # Part of ribotricer software
 #
-# Copyright (C) 2019 Wenzheng Li, Saket Choudhary and Andrew D Smith
+# Copyright (C) 2019 Saket Choudhary, Wenzheng Li, and Andrew D Smith
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -18,7 +19,7 @@ class Interval:
        All the intervals used in this project is 1-based and closed
     """
 
-    def __init__(self, chrom=None, start=1, end=1, strand=None):
+    def __init__(self, chrom=None, start=1, end=1, strand="+"):
         self.chrom = chrom
         self.start = int(start)
         self.end = int(end)

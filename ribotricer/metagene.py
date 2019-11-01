@@ -1,7 +1,7 @@
 """Metagene profile related functions"""
 # Part of ribotricer software
 #
-# Copyright (C) 2019 Wenzheng Li, Saket Choudhary and Andrew D Smith
+# Copyright (C) 2019 Saket Choudhary, Wenzheng Li, and Andrew D Smith
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -156,14 +156,14 @@ def metagene_coverage(
         if reads < meta_min_reads:
             del read_lengths[length]
 
-    for length in tqdm(read_lengths):
+    for length in tqdm(read_lengths, unit="read-length"):
 
         metagene_coverage_start = pd.Series()
         position_counter_start = Counter()
         metagene_coverage_stop = pd.Series()
         position_counter_stop = Counter()
 
-        for orf in tqdm(cds):
+        for orf in tqdm(cds, unit="ORFs"):
             from_start, from_stop = orf_coverage_length(
                 orf, alignments, length, max_positions, offset_5p, offset_3p
             )
