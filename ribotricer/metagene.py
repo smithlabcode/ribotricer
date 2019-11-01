@@ -156,14 +156,14 @@ def metagene_coverage(
         if reads < meta_min_reads:
             del read_lengths[length]
 
-    for length in tqdm(read_lengths, unit="read-length"):
+    for length in tqdm(read_lengths, unit="read-length", leave=False):
 
         metagene_coverage_start = pd.Series()
         position_counter_start = Counter()
         metagene_coverage_stop = pd.Series()
         position_counter_stop = Counter()
 
-        for orf in tqdm(cds, unit="ORFs"):
+        for orf in tqdm(cds, position=1, unit="ORFs", leave=False):
             from_start, from_stop = orf_coverage_length(
                 orf, alignments, length, max_positions, offset_5p, offset_3p
             )

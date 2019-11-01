@@ -54,7 +54,7 @@ def split_bam(bam_path, protocol, prefix, read_lengths=None):
     bam = pysam.AlignmentFile(bam_path, "rb")
     total_reads = bam.count(until_eof=True)
     bam.close()
-    with tqdm(total=total_reads, unit="reads") as pbar:
+    with tqdm(total=total_reads, unit="reads", leave=False) as pbar:
         bam = pysam.AlignmentFile(bam_path, "rb")
         for read in bam.fetch(until_eof=True):
             pbar.update()

@@ -108,7 +108,7 @@ def parse_ribotricer_index(ribotricer_index):
         while "annotated" in anno.readline():
             total_lines += 1
     with open(ribotricer_index, "r") as anno:
-        with tqdm(total=total_lines, unit="lines") as pbar:
+        with tqdm(total=total_lines, unit="lines", leave=False) as pbar:
             # read header
             anno.readline()
             line = anno.readline()

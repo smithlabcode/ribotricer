@@ -293,7 +293,7 @@ def prepare_orfs(
     now = datetime.datetime.now()
     print(now.strftime("%b %d %H:%M:%S ... starting extracting annotated ORFs"))
     cds_orfs = defaultdict(lambda: defaultdict(ORF))
-    for gid in tqdm(gtf.cds, unit="lines"):
+    for gid in tqdm(gtf.cds, unit="lines", leave=False):
         for tid in gtf.cds[gid]:
             tracks = gtf.cds[gid][tid]
             seq = fetch_seq(fasta, tracks)
@@ -309,7 +309,7 @@ def prepare_orfs(
             "starting searching transcriptome-wide ORFs. This may take a long time...",
         )
     )
-    for tid in tqdm(gtf.transcript, unit="transcripts"):
+    for tid in tqdm(gtf.transcript, unit="transcripts", leave=False):
         tracks = gtf.transcript[tid]
         ttype = tracks[0].transcript_type
         gid = tracks[0].gene_id

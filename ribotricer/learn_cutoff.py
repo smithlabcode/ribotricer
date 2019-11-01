@@ -129,7 +129,7 @@ def determine_cutoff_tsv(
     print("diff_phase_score_all_median: {:.3f}".format(diff_all_median))
     print("diff_phase_score_all_sd: {:.3f}".format(diff_all_std))
 
-    print("recommended_cutoff: {:.3}f".format(diff_phase_score_median))
+    print("recommended_cutoff: {:.3f}".format(diff_phase_score_median))
 
 
 def determine_cutoff_bam(
@@ -185,7 +185,14 @@ def determine_cutoff_bam(
         rna_stranded_protocols = [None] * len(rna_bams)
         ribo_stranded_protocols = [None] * len(ribo_bams)
 
-    print("Running ribotricer on Ribo-seq samples [] ..... \n".format(len(rna_bams)))
+    sample_str = "samples"
+    if len(rna_bams) == 1:
+        sample_str = "sample"
+    print(
+        "Running ribotricer on {} Ribo-seq {} ..... \n".format(
+            len(rna_bams), sample_str
+        )
+    )
     ribo_bams_renamed = dict(
         zip(ribo_bams, ["ribo_bam_{}".format(i + 1) for i in range(len(ribo_bams))])
     )
@@ -213,7 +220,9 @@ def determine_cutoff_bam(
             report_all=report_all,
         )
         ribo_tsvs.append("{}_translating_ORFs.tsv".format(bam_prefix))
-    print("Running ribotricer on RNA-seq samples [] ..... \n".format(len(rna_bams)))
+    print(
+        "Running ribotricer on {} RNA-seq {} ..... \n".format(len(rna_bams), sample_str)
+    )
     for bam, stranded in zip(rna_bams, rna_stranded_protocols):
         bam_prefix = "{}__{}".format(prefix, rna_bams_renamed[bam])
         mkdir_p(parent_dir(bam_prefix))

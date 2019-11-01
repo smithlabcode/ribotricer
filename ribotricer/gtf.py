@@ -107,7 +107,7 @@ class GTFReader(object):
         with open(self.gtf_location, "r") as gtf:
             total_lines = len(["" for line in gtf])
         with open(self.gtf_location, "r") as gtf:
-            with tqdm(total=total_lines, unit="lines") as pbar:
+            with tqdm(total=total_lines, unit="lines", leave=False) as pbar:
                 for line in gtf:
                     pbar.update()
                     track = GTFTrack.from_string(line)
