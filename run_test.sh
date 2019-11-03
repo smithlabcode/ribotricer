@@ -1,6 +1,6 @@
 #/bin/bash
 set -eox pipefail
-wget -c https://www.dropbox.com/s/8iynb0k5dbhv0b1/ribotricer_test_data_tair10.zip
+wget -c https://www.dropbox.com/s/lqku9ur5k1efq06/ribotricer_test_data_tair10.zip
 unzip ribotricer_test_data_tair10.zip
 ribotricer detect-orfs --bam ribotricer_test_data_tair10/bams_unique/SRX219170.bam --ribotricer_index ribotricer_test_data_tair10/index/ribotricer_v44_annotation_longest_candidate_orfs.tsv --prefix ribotricer_test_data_tair10/SRX219170_generated
 MD5_expected=$(md5sum ribotricer_test_data_tair10/translating_ORFs/SRX219170_translating_ORFs.tsv | awk '{ print $1 }')
