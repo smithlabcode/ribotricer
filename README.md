@@ -90,7 +90,8 @@ are as follows:
 |C. elegans   | 0.239 |
 |Baker's Yeast| 0.318 |
 |Drosophila   | 0.181 |
-|Human/Mouse  | 0.428 |
+|Human        | 0.440 |
+|Mouse        | 0.418 |
 |Rat          | 0.453 |
 |Zebrafish    | 0.249 |
 
