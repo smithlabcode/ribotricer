@@ -1,4 +1,4 @@
-# Accurate detection of short and long active ORFs using Ribo-seq data
+# ribotricer: Accurate detection of short and long active ORFs using Ribo-seq data
 
 [![Build Status](https://img.shields.io/travis/smithlabcode/ribotricer.svg?style=flat)](https://travis-ci.org/smithlabcode/ribotricer)
 [![install with pip](https://img.shields.io/pypi/v/ribotricer.svg?style=flat)](https://pypi.org/project/ribotricer/)
