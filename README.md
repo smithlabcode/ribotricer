@@ -7,6 +7,8 @@
 [![pypi downloads](https://img.shields.io/pypi/dm/ribotricer)](https://pypi.org/project/ribotricer/)
 [![license](https://img.shields.io/pypi/l/ribotricer)](LICENSE)
 
+[Advanced Access Paper](https://academic.oup.com/bioinformatics/advance-article-abstract/doi/10.1093/bioinformatics/btz878/5637228)
+
 
 ## Installation
 We highly recommend that you install ribotricer via conda: 
