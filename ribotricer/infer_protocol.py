@@ -23,14 +23,14 @@ from quicksect import Interval
 NUM_TO_STRAND = {1: "+", -1: "-"}
 
 
-def infer_protocol(bam, refseq, prefix, n_reads=20000):
+def infer_protocol(bam, gene_interval_tree, prefix, n_reads=20000):
     """Infer strandedness protocol given a bam file
 
     Parameters
     ----------
     bam: str
          Path to bam file
-    refseq: defaultdict(IntervalTree)
+    gene_interval_tree: defaultdict(IntervalTree)
             chrom: (start, end, strand)
     prefix: str
             Prefix for protocol file
@@ -69,7 +69,7 @@ def infer_protocol(bam, refseq, prefix, n_reads=20000):
                 chrom = read.reference_name
                 # get corresponding gene's strand
                 interval = list(
-                    set(refseq[chrom].find(Interval(mapped_start, mapped_end)))
+                    set(gene_interval_tree[chrom].find(Interval(mapped_start, mapped_end)))
                 )
                 if len(interval) == 1:
                     # Filter out genes with ambiguous strand info
