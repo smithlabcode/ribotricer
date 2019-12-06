@@ -9,6 +9,8 @@
 
 [Advanced Access Paper](https://academic.oup.com/bioinformatics/advance-article-abstract/doi/10.1093/bioinformatics/btz878/5637228)
 
+[Supplementary File](https://saket-choudhary.me/pdfs/ribotricer_2019.pdf)
+
 
 ## Installation
 We highly recommend that you install ribotricer via conda: 
