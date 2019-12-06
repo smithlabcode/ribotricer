@@ -69,7 +69,11 @@ def infer_protocol(bam, gene_interval_tree, prefix, n_reads=20000):
                 chrom = read.reference_name
                 # get corresponding gene's strand
                 interval = list(
-                    set(gene_interval_tree[chrom].find(Interval(mapped_start, mapped_end)))
+                    set(
+                        gene_interval_tree[chrom].find(
+                            Interval(mapped_start, mapped_end)
+                        )
+                    )
                 )
                 if len(interval) == 1:
                     # Filter out genes with ambiguous strand info
