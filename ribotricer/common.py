@@ -15,6 +15,7 @@
 
 import ntpath
 import pathlib
+import sys
 from .interval import Interval
 
 # Source: https://broadinstitute.github.io/picard/explain-flags.html
@@ -48,7 +49,9 @@ def is_read_uniq_mapping(read):
         elif read.flag in __SAM_NOT_UNIQ_FLAGS__:
             return False
         else:
-            raise RuntimeError("Malformed BAM?")
+            sys.stdout.write(
+                "WARNING: ribotricer was unable to detect any tags for determining multimapping status. All the reads will be treated as uniquely mapping\n"
+            )
 
 
 def merge_intervals(intervals):
