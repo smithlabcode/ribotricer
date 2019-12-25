@@ -262,7 +262,7 @@ def align_metagenes(
 
     if len(read_lengths) == 0:
         sys.exit(
-            "Warning: no periodic read length found... using cutoff {}".format(
+            "WARNING: no periodic read length found... using cutoff {}".format(
                 phase_score_cutoff
             )
         )
