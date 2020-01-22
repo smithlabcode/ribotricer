@@ -1,3 +1,5 @@
+![alt text](./ribotricer_logo.png)
+
 # ribotricer: Accurate detection of short and long active ORFs using Ribo-seq data
 
 [![Build Status](https://img.shields.io/travis/smithlabcode/ribotricer.svg?style=flat)](https://travis-ci.org/smithlabcode/ribotricer)
