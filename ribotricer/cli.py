@@ -373,15 +373,18 @@ def count_orfs_codon_cmd(
     required=True,
 )
 @click.option("--fasta", help="Path to FASTA file", required=True)
+@click.option(
+    "--protein", help="Output protein sequence instead of nucleotide", is_flag=True
+)
 @click.option("--saveto", help="Path to output file", required=True)
-def orf_seq_cmd(ribotricer_index, fasta, saveto):
+def orf_seq_cmd(ribotricer_index, fasta, saveto, protein):
     if not os.path.isfile(ribotricer_index):
         sys.exit("Error: ribotricer index file not found")
 
     if not os.path.isfile(fasta):
         sys.exit("Error: fasta file not found")
 
-    orf_seq(ribotricer_index, fasta, saveto)
+    orf_seq(ribotricer_index, fasta, saveto, protein)
 
 
 ###################### learn-cutoff function #########################################
