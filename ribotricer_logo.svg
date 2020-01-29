@@ -115,7 +115,7 @@
                    stroke-miterlimit="10"
                    d="m 251.91724,54.89709 12.448,0.06581 1.22125,0.03793 c -6.86238,3.248257 -14.45735,3.058447 -20.63021,3.57303 -11.30667,0.942549 -21.87285,0.36396 -35.41728,2.360146 -2.52701,0.372997 -12.50999,3.268002 -13.09601,0.918999 -1.30299,-5.219002 4.11901,-4.48 8.041,-5.055 13.93601,-2.040001 6.63682,0.136349 46.78434,-1.905066" />
                 <path
-                   style="clip-rule:evenodd;fill:#007f7f;fill-rule:evenodd;stroke:#000000;stroke-width:0;stroke-linecap:square;stroke-miterlimit:10"
+                   style="clip-rule:evenodd;fill:#f1a340;fill-rule:evenodd;stroke:#000000;stroke-width:0;stroke-linecap:square;stroke-miterlimit:10;fill-opacity:1"
                    id="svg_99"
                    stroke-miterlimit="10"
                    d="m 193.916,57.719002 c -2.414,1.343998 -4.981,1.792999 -7.813,1.377998 2.53801,-0.745998 5.171,-1.177002 7.813,-1.377998" />
