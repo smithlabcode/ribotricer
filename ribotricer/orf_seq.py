@@ -94,7 +94,10 @@ def translate_nt_to_aa(seq):
     if len(seq) % 3 == 0:
         for i in range(0, len(seq), 3):
             codon = seq[i : i + 3]
-            protein += codon_table[codon]
+            if "N" in codon:
+                protein += "X"
+            else:
+                protein += codon_table[codon]
     return protein
 
 
