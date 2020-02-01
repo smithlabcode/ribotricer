@@ -97,7 +97,9 @@ def translate_nt_to_aa(seq):
             if "N" in codon:
                 protein += "X"
             elif codon not in codon_table:
-                sys.stderr.write('Found unknown codon {}. Substituing with X..\n'.format(codon))
+                sys.stderr.write(
+                    "Found unknown codon {}. Substituing with X..\n".format(codon)
+                )
             else:
                 protein += codon_table[codon]
     return protein
