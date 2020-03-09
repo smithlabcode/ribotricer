@@ -18,6 +18,7 @@ from collections import defaultdict
 
 import pysam
 from tqdm.autonotebook import tqdm
+
 tqdm.pandas()
 
 from .common import is_read_uniq_mapping

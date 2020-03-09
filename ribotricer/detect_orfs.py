@@ -19,6 +19,7 @@ import datetime
 
 import numpy as np
 from tqdm.autonotebook import tqdm
+
 tqdm.pandas()
 from quicksect import Interval, IntervalTree
 

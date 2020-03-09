@@ -24,6 +24,7 @@ from .interval import Interval
 from .orf import ORF
 
 from tqdm.autonotebook import tqdm
+
 tqdm.pandas()
 
 

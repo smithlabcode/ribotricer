@@ -15,6 +15,7 @@
 
 from collections import defaultdict
 from tqdm.autonotebook import tqdm
+
 tqdm.pandas()
 
 

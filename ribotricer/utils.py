@@ -18,6 +18,7 @@ from .statistics import coherence
 
 import numpy as np
 from tqdm.autonotebook import tqdm
+
 tqdm.pandas()
 
 CODON_TO_AA = {

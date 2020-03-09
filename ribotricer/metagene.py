@@ -19,6 +19,7 @@ from collections import Counter, OrderedDict
 import numpy as np
 import pandas as pd
 from tqdm.autonotebook import tqdm
+
 tqdm.pandas()
 
 from .const import CUTOFF, TYPICAL_OFFSET
