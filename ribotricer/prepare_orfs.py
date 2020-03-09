@@ -23,7 +23,8 @@ from .gtf import GTFReader
 from .interval import Interval
 from .orf import ORF
 
-from tqdm import tqdm
+from tqdm.autonotebook import tqdm
+tqdm.pandas()
 
 
 def tracks_to_ivs(tracks):

@@ -18,7 +18,8 @@ from collections import defaultdict
 import datetime
 
 import numpy as np
-from tqdm import tqdm
+from tqdm.autonotebook import tqdm
+tqdm.pandas()
 from quicksect import Interval, IntervalTree
 
 from .bam import split_bam

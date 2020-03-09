@@ -16,7 +16,8 @@
 import pandas as pd
 import pyfaidx
 import sys
-from tqdm import tqdm
+from tqdm.autonotebook import tqdm
+tqdm.pandas()
 
 
 from .interval import Interval

@@ -14,7 +14,8 @@
 # GNU General Public License for more details.
 
 from collections import defaultdict
-from tqdm import tqdm
+from tqdm.autonotebook import tqdm
+tqdm.pandas()
 
 
 class GTFTrack(object):

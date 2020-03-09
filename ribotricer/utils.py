@@ -17,7 +17,8 @@ from collections import defaultdict
 from .statistics import coherence
 
 import numpy as np
-from tqdm import tqdm
+from tqdm.autonotebook import tqdm
+tqdm.pandas()
 
 CODON_TO_AA = {
     "ATA": "I",
