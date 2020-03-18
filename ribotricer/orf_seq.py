@@ -14,7 +14,6 @@
 # GNU General Public License for more details.
 
 import pandas as pd
-import pyfaidx
 import sys
 from tqdm.autonotebook import tqdm
 
