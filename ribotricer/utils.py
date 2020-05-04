@@ -357,7 +357,7 @@ def _nucleotide_to_codon_profile(profile):
 
 def summarize_profile_to_codon_level(detected_orfs, saveto):
     """Collapse nucleotide level profiles in ribotricer to codon leve.
-  
+
   Parameters
   ----------
   ribotricer_output: string
@@ -407,7 +407,7 @@ def translate(seq):
 
 def learn_ribotricer_cutoff(roc_input_file):
     """Learn ribotricer phase score cutoff 
-  
+
   Parameters
   ----------
   roc_input_file: str

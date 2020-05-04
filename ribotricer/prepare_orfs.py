@@ -34,7 +34,7 @@ def tracks_to_ivs(tracks):
     ----------
     tracks: List[GTFTrack]
             list of gtf tracks
-    
+
     Returns
     -------
     intervals: List[Interval]
@@ -228,7 +228,7 @@ def check_orf_type(orf, cds_orfs):
     otype: str
            Type of the candidate ORF
 
-    This method uses a fail-sast strategy 
+    This method uses a fail-fast strategy
     and hence multiple returns. 
     """
     if orf.gid not in cds_orfs:

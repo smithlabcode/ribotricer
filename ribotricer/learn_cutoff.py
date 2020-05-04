@@ -166,8 +166,8 @@ def determine_cutoff_bam(
                            List of 'yes/no/reverse' 
   rna_stranded_protocols: list
                            List of 'yes/no/reverse' 
-  
-  
+
+
   Returns
   -------
   cutoff: float

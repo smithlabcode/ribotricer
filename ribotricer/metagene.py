@@ -13,6 +13,9 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 
+from .statistics import coherence
+from .interval import Interval
+from .const import CUTOFF, TYPICAL_OFFSET
 import sys
 from collections import Counter, OrderedDict
 
@@ -21,10 +24,6 @@ import pandas as pd
 from tqdm.autonotebook import tqdm
 
 tqdm.pandas()
-
-from .const import CUTOFF, TYPICAL_OFFSET
-from .interval import Interval
-from .statistics import coherence
 
 
 def next_genome_pos(ivs, max_positions, leader, trailer, reverse=False):

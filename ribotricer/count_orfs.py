@@ -88,7 +88,7 @@ def count_orfs_codon(
 ):
     """
     Create genewise codon summaries  
-    
+
     Parameters
     ----------
     ribotricer_index: str

@@ -13,15 +13,13 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 
+from .fasta import FastaReader
+from .interval import Interval
 import pandas as pd
 import sys
 from tqdm.autonotebook import tqdm
 
 tqdm.pandas()
-
-
-from .interval import Interval
-from .fasta import FastaReader
 
 
 def translate_nt_to_aa(seq):
@@ -108,7 +106,7 @@ def translate_nt_to_aa(seq):
 
 def orf_seq(ribotricer_index, genome_fasta, saveto, translate=False):
     """Generate sequence for ribotricer annotation.
-  
+
   Parameters
   -----------
 

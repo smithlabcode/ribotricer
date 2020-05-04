@@ -13,6 +13,23 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 
+from .statistics import coherence
+from .plotting import plot_metagene
+from .plotting import plot_read_lengths
+from .orf import ORF
+from .metagene import align_metagenes
+from .metagene import metagene_coverage
+from .infer_protocol import infer_protocol
+from .const import MINIMUM_DENSITY_OVER_ORF
+from .const import MINIMUM_READS_PER_CODON
+from .const import MINIMUM_VALID_CODONS_RATIO
+from .const import MINIMUM_VALID_CODONS
+from .const import CUTOFF
+from .common import parent_dir
+from .common import mkdir_p
+from .common import collapse_coverage_to_codon
+from .bam import split_bam
+from quicksect import Interval, IntervalTree
 from collections import Counter
 from collections import defaultdict
 import datetime
@@ -21,24 +38,7 @@ import numpy as np
 from tqdm.autonotebook import tqdm
 
 tqdm.pandas()
-from quicksect import Interval, IntervalTree
 
-from .bam import split_bam
-from .common import collapse_coverage_to_codon
-from .common import mkdir_p
-from .common import parent_dir
-from .const import CUTOFF
-from .const import MINIMUM_VALID_CODONS
-from .const import MINIMUM_VALID_CODONS_RATIO
-from .const import MINIMUM_READS_PER_CODON
-from .const import MINIMUM_DENSITY_OVER_ORF
-from .infer_protocol import infer_protocol
-from .metagene import metagene_coverage
-from .metagene import align_metagenes
-from .orf import ORF
-from .plotting import plot_read_lengths
-from .plotting import plot_metagene
-from .statistics import coherence
 
 # Required for IntervalTree
 STRAND_TO_NUM = {"+": 1, "-": -1}

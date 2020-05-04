@@ -13,6 +13,7 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 
+from .common import is_read_uniq_mapping
 from collections import Counter
 from collections import defaultdict
 
@@ -20,8 +21,6 @@ import pysam
 from tqdm.autonotebook import tqdm
 
 tqdm.pandas()
-
-from .common import is_read_uniq_mapping
 
 
 def split_bam(bam_path, protocol, prefix, read_lengths=None):

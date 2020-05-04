@@ -113,7 +113,7 @@ def _clean_input(comma_string):
 
 def collapse_coverage_to_codon(coverage):
     """Collapse nucleotide level coverage to codon level.
-  
+
   Parameters
   ----------
   coverage: list
