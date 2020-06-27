@@ -15,17 +15,19 @@
 
 
 ## Installation
-We highly recommend that you install ribotricer via conda: 
+We highly recommend that you install ribotricer via [conda](https://docs.conda.io/projects/conda/en/latest/user-guide/install/) in a clean environment: 
 
 ```bash
-conda install -c bioconda ribotricer
+conda create -n ribotricer_env -c bioconda ribotricer
+conda activate ribotricer_env
+ribotricer --help
 ```
 
 To install locally, you can either download the source code from release or clone the latest version using ```git clone```.
 After you get a copy of the source code, please change into the directory where the source code locates, and type
 
 ```bash
-python setup.py install
+make install
 ```
 
 **NOTE**: The above will install the following depencies: 
@@ -43,14 +45,7 @@ quicksect>=0.2.0
 tqdm>=4.23.4
 ```
 
-If some of these are already present, 
-they might be replaced by the designated version. So we strongly recommend
-creating a separate enrivoment (using `venv` or `conda`) before installing
-`ribotricer`:
-
-```
-conda create -n ribotricer -c bioconda ribotricer
-```
+If some of these are already present, they might be replaced by the designated version.
 
 ------------------
 
@@ -211,17 +206,9 @@ ribotricer learn-cutoff --ribo_bams ribo_bam1.bam,ribo_bam2.bam \
 ------------------
 
 ## Contacts and bug reports
-Andrew D. Smith
-andrewds@usc.edu
 
-Saket Choudhary
-skchoudh@usc.edu
+https://github.com/smithlabcode/ribotricer/issues
 
-Wenzheng Li
-wenzhenl@usc.edu
-
-
-We are dedicated to make the best ORF detector for Ribo-seq data analysis.
 If you found a bug or mistake in this project, we would like to know about it.
 Before you send us the bug report though, please check the following:
 
@@ -236,8 +223,9 @@ Before you send us the bug report though, please check the following:
 ------------------
 
 ## LICENSE
+
 Ribotricer for detecting actively translating ORFs from Ribo-seq data
-Copyright (C) 2018 Andrew D Smith, Wenzheng Li, Saket Choudhary and
+Copyright (C) 2020 Saket Choudhary, Wenzheng Li, Andrew D Smith, and
 the University of Southern California
 
 This program is free software: you can redistribute it and/or modify
