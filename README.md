@@ -30,7 +30,7 @@ After you get a copy of the source code, please change into the directory where 
 make install
 ```
 
-**NOTE**: The above will install the following depencies: 
+**NOTE**: The above will install the following depencies (If some of these are already present, they might be replaced by the designated version): 
 
 ```
 pyfaidx>=0.5.0
@@ -45,7 +45,6 @@ quicksect>=0.2.0
 tqdm>=4.23.4
 ```
 
-If some of these are already present, they might be replaced by the designated version.
 
 ------------------
 
@@ -53,8 +52,9 @@ If some of these are already present, they might be replaced by the designated v
 
 In order to run ribotricer, you need to have the following three files
 prepared including:
-* **genome annotation file** in GTF format, supporting both GENCODE and
-Ensembl annotation
+
+* **genome annotation file** in GTF format: our implementation handles
+all variations of GTFs besides the often used GENCODE and Ensembl hosted ones
 * **reference genome file** in FASTA format
 * **alignment file** in BAM format
 
@@ -62,6 +62,7 @@ Ensembl annotation
 
 The first step of ribotricer is to take the GTF file and the FASTA file to find all
 candidate ORFs. In order to generate all candidate ORFs, please run
+
 ```bash
 ribotricer prepare-orfs --gtf {GTF} --fasta {FASTA} --prefix {RIBOTRICER_INDEX_PREFIX}
 ```
@@ -128,6 +129,7 @@ ribotricer detect-orfs \
 ```
 
 The ORF detection step consists of several small steps including:
+
 1. Infer the experimental protocol (strandedness of the reads)  
 You can directly assign the strandedness using option ```--stranded```, it can be 'yes',
 'no', or 'reverse'. If this option is not provided, ribotricer will automatically infer the
