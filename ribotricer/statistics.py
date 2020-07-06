@@ -23,27 +23,27 @@ from scipy import signal
 
 
 def pvalue(x, N):
-    """Calculate p-value for coherence score
+    """Calculate p-value for phase score
 
     Parameters
     ----------
     x: double
-       coherence score
+       phase score
     N: int
        number of valid codons
 
     Returns
     -------
     pval: double
-          p-value for the coherence score
+          p-value for the phase score
     """
     df, nc = 2, 2.0 / (N - 1)
     x = 2 * N ** 2 * x / (N - 1)
     return stats.ncx2.sf(x, df, nc)
 
 
-def coherence(original_values):
-    """Calculate coherence with an idea ribo-seq signal.
+def phasescore(original_values):
+    """Calculate phase score of a given signal.
 
     Parameters
     ----------
