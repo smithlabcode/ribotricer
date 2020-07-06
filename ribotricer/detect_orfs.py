@@ -13,7 +13,7 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 
-from .statistics import coherence
+from .statistics import phasescore
 from .plotting import plot_metagene
 from .plotting import plot_read_lengths
 from .orf import ORF
@@ -258,7 +258,7 @@ def export_orf_coverages(
                 cov = orf_coverage(orf, merged_alignments)
                 count = sum(cov)
                 length = len(cov)
-                coh, valid_codons = coherence(cov)
+                coh, valid_codons = phasescore(cov)
                 n_codons = max(1, length // 3)
 
                 # codon level coverage
