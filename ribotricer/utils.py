@@ -14,7 +14,7 @@
 # GNU General Public License for more details.
 
 from collections import defaultdict
-from .statistics import coherence
+from .statistics import phasescore
 
 import numpy as np
 from tqdm.autonotebook import tqdm
@@ -200,9 +200,9 @@ def benchmark(rna_file, ribo_file, prefix, cutoff=5):
     common_ids = set(ribo.keys()) & set(rna.keys())
     for ID in tqdm(common_ids):
         if sum(rna[ID]) >= cutoff and sum(ribo[ID]) >= cutoff and len(ribo[ID]) >= 10:
-            rna_coh, rna_valid = coherence(rna[ID])
+            rna_coh, rna_valid = phasescore(rna[ID])
             rna_cov = rna_valid / len(rna[ID])
-            ribo_coh, ribo_valid = coherence(ribo[ID])
+            ribo_coh, ribo_valid = phasescore(ribo[ID])
             ribo_cov = ribo_valid / len(ribo[ID])
 
             to_write += "{}\t{}\t{}\t{}\t{}\n".format(
