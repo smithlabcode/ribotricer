@@ -13,7 +13,7 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 
-from .statistics import coherence
+from .statistics import phasescore
 from .interval import Interval
 from .const import CUTOFF, TYPICAL_OFFSET
 import sys
@@ -146,7 +146,7 @@ def metagene_coverage(
     Returns
     -------
     metagenes: dict
-               key is the length, value is (from_start, from_stop, coherence,
+               key is the length, value is (from_start, from_stop, phasescore,
                pval)
     """
     # print('calculating metagene profiles...')
@@ -193,14 +193,14 @@ def metagene_coverage(
         position_counter_stop = pd.Series(position_counter_stop)
         metagene_coverage_stop = metagene_coverage_stop.div(position_counter_stop)
 
-        coh_5p, valid_5p = coherence(metagene_coverage_start.tolist())
-        coh_3p, valid_3p = coherence(metagene_coverage_stop.tolist())
+        phasescore_5p, valid_5p = phasescore(metagene_coverage_start.tolist())
+        phasescore_3p, valid_3p = phasescore(metagene_coverage_stop.tolist())
         metagenes[length] = (
             metagene_coverage_start,
             metagene_coverage_stop,
-            coh_5p,
+            phasescore_5p,
             valid_5p,
-            coh_3p,
+            phasescore_3p,
             valid_3p,
         )
 
