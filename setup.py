@@ -35,7 +35,7 @@ setuptools.setup(
     url="https://github.com/smithlabcode/ribotricer",
     packages=setuptools.find_packages(),
     entry_points={"console_scripts": ["ribotricer=ribotricer.cli:cli"]},
-    python_requires=">=3.5",
+    python_requires=">=3.7",
     install_requires=requirements,
     classifiers=[
         "Development Status :: 5 - Production/Stable",
@@ -46,7 +46,6 @@ setuptools.setup(
         "Operating System :: POSIX :: Linux",
         "Operating System :: MacOS",
         "Operating System :: Microsoft :: Windows",
-        "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8",
         "Topic :: Scientific/Engineering :: Bio-Informatics",
