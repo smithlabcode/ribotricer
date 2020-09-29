@@ -16,7 +16,7 @@
 
 class Interval:
     """Class for interval
-       All the intervals used in this project is 1-based and closed
+    All the intervals used in this project is 1-based and closed
     """
 
     def __init__(self, chrom=None, start=1, end=1, strand="+"):

@@ -87,7 +87,7 @@ def count_orfs_codon(
     report_all=False,
 ):
     """
-    Create genewise codon summaries  
+    Create genewise codon summaries
 
     Parameters
     ----------
@@ -98,9 +98,9 @@ def count_orfs_codon(
     features: set
               set of ORF types, such as {annotated}
     ribotricer_index_fasta: str
-                            Path to fasta index generated using orf-seq  
+                            Path to fasta index generated using orf-seq
     prefix: str
-           path to output file 
+           path to output file
     report_all: bool
                 if True, all coverages will be exported
     """

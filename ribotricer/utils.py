@@ -358,13 +358,13 @@ def _nucleotide_to_codon_profile(profile):
 def summarize_profile_to_codon_level(detected_orfs, saveto):
     """Collapse nucleotide level profiles in ribotricer to codon leve.
 
-  Parameters
-  ----------
-  ribotricer_output: string
-                     Path to ribotricer detect-orfs output
-  saveto: string
-          Path to write output to
-  """
+    Parameters
+    ----------
+    ribotricer_output: string
+                       Path to ribotricer detect-orfs output
+    saveto: string
+            Path to write output to
+    """
     with open(saveto, "w") as fout:
         fout.write("ORF_ID\tcodon_profile\n")
         with open(detected_orfs, "r") as fin:
@@ -386,16 +386,16 @@ def summarize_profile_to_codon_level(detected_orfs, saveto):
 def translate(seq):
     """Translate a given nucleotide sequence to an amino acid sequence
 
-  Parameters
-  ----------
-  seq: str
-       Nucleotide seqeunce
+    Parameters
+    ----------
+    seq: str
+         Nucleotide seqeunce
 
-  Returns
-  -------
-  protein: str
-           Translated sequence of amino acids
-  """
+    Returns
+    -------
+    protein: str
+             Translated sequence of amino acids
+    """
 
     protein = ""
     if len(seq) % 3 == 0:
@@ -406,21 +406,21 @@ def translate(seq):
 
 
 def learn_ribotricer_cutoff(roc_input_file):
-    """Learn ribotricer phase score cutoff 
+    """Learn ribotricer phase score cutoff
 
-  Parameters
-  ----------
-  roc_input_file: str
-                  Path to ROC file generated using ribotricer benchmark
+    Parameters
+    ----------
+    roc_input_file: str
+                    Path to ROC file generated using ribotricer benchmark
 
-  Returns
-  -------
-  cutoff: float
-          Recommended phase score cutoff  
+    Returns
+    -------
+    cutoff: float
+            Recommended phase score cutoff
 
-  fscore: float
-          Corresponding F1 score acheived at the determined cutoff
-  """
+    fscore: float
+            Corresponding F1 score acheived at the determined cutoff
+    """
     from sklearn.metrics import precision_recall_fscore_support
     import pandas as pd
 

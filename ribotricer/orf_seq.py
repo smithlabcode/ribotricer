@@ -107,17 +107,17 @@ def translate_nt_to_aa(seq):
 def orf_seq(ribotricer_index, genome_fasta, saveto, translate=False):
     """Generate sequence for ribotricer annotation.
 
-  Parameters
-  -----------
+    Parameters
+    -----------
 
-  ribotricer_index: string
-                         Path to ribotricer generate annotation 
-  genome_Fasta: string
-                Path to genome fasta
+    ribotricer_index: string
+                           Path to ribotricer generate annotation
+    genome_Fasta: string
+                  Path to genome fasta
 
-  saveto: string
-          Path to output
-  """
+    saveto: string
+            Path to output
+    """
     fasta = FastaReader(genome_fasta)
     annotation_df = pd.read_csv(ribotricer_index, sep="\t")
     with open(saveto, "w") as fh:

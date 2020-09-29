@@ -87,10 +87,10 @@ def merge_intervals(intervals):
 def mkdir_p(path):
     """Make directory even if it exists.
 
-  Parameters
-  ----------
-  path: str
-  """
+    Parameters
+    ----------
+    path: str
+    """
     pathlib.Path(path).mkdir(parents=True, exist_ok=True)
 
 
@@ -114,15 +114,15 @@ def _clean_input(comma_string):
 def collapse_coverage_to_codon(coverage):
     """Collapse nucleotide level coverage to codon level.
 
-  Parameters
-  ----------
-  coverage: list
-            Nucleotide level counts 
-  Returns
-  -------
-  codon_coverage: list
-                  Coverage collapsed to codon level
-  """
+    Parameters
+    ----------
+    coverage: list
+              Nucleotide level counts
+    Returns
+    -------
+    codon_coverage: list
+                    Coverage collapsed to codon level
+    """
     codon_coverage = [
         sum(coverage[current : current + 3]) for current in range(0, len(coverage), 3)
     ]

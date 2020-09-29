@@ -32,20 +32,20 @@ def determine_cutoff_tsv(
 ):
     """Learn cutoff empirically from ribotricer generated ORF tsvs.
 
-  Parameters
-  ----------
-  ribo_tsvs: list
-             List of filepath of ribotricer generated *translating_ORFs.tsv 
-             for Ribo-seq samples
+    Parameters
+    ----------
+    ribo_tsvs: list
+               List of filepath of ribotricer generated *translating_ORFs.tsv
+               for Ribo-seq samples
 
-  rna_tsvs: list
-             List of filepath of ribotricer generated *translating_ORFs.tsv 
-             for RNA-seq samples
-  Returns
-  -------
-  cutoff: float
-          Suggested cutoff
-  """
+    rna_tsvs: list
+               List of filepath of ribotricer generated *translating_ORFs.tsv
+               for RNA-seq samples
+    Returns
+    -------
+    cutoff: float
+            Suggested cutoff
+    """
     ribo_df = pd.DataFrame()
     for tsv in ribo_tsvs:
         df = pd.read_csv(
@@ -148,31 +148,31 @@ def determine_cutoff_bam(
 ):
     """Learn cutoff emprically from the given data.
 
-  This uses the following steps:
+    This uses the following steps:
 
-  1. Run ribotricer using a cutoff of 0 for both RNA and Ribo samples
-  2. For each output of ribotricer, find the median difference between RNA and Ribo-seq 
-  phase scores using the protein_coding annotated regions in the output.
+    1. Run ribotricer using a cutoff of 0 for both RNA and Ribo samples
+    2. For each output of ribotricer, find the median difference between RNA and Ribo-seq
+    phase scores using the protein_coding annotated regions in the output.
 
-  Parameters
-  ----------
-  ribo_bams: list
-             List of filepaths to Ribo-seq bams
+    Parameters
+    ----------
+    ribo_bams: list
+               List of filepaths to Ribo-seq bams
 
-  rna_bams: list
-            List of filepaths to RNA-seq bams
+    rna_bams: list
+              List of filepaths to RNA-seq bams
 
-  ribo_stranded_protocols: list
-                           List of 'yes/no/reverse' 
-  rna_stranded_protocols: list
-                           List of 'yes/no/reverse' 
+    ribo_stranded_protocols: list
+                             List of 'yes/no/reverse'
+    rna_stranded_protocols: list
+                             List of 'yes/no/reverse'
 
 
-  Returns
-  -------
-  cutoff: float
-          Suggested cutoff
-  """
+    Returns
+    -------
+    cutoff: float
+            Suggested cutoff
+    """
     if len(ribo_stranded_protocols) > 1:
         if len(ribo_stranded_protocols) != len(ribo_bams):
             sys.exit("Error: Ribo-seq protocol and bam file length mismatch")

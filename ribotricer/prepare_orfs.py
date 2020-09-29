@@ -229,7 +229,7 @@ def check_orf_type(orf, cds_orfs):
            Type of the candidate ORF
 
     This method uses a fail-fast strategy
-    and hence multiple returns. 
+    and hence multiple returns.
     """
     if orf.gid not in cds_orfs:
         return "novel"

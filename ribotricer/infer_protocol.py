@@ -43,7 +43,7 @@ def infer_protocol(bam, gene_interval_tree, prefix, n_reads=20000):
               forward/reverse
 
     The strategy to do this is simple: keep a track
-    of mapped reads and their strand and then tally 
+    of mapped reads and their strand and then tally
     if the location of their mapping has a gene defined
     on the positive strand or the negative strand.
 

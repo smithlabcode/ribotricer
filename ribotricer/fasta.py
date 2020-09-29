@@ -42,7 +42,7 @@ class FastaReader:
             )
 
     def query(self, intervals):
-        """ Query regions for sequence.
+        """Query regions for sequence.
 
         Parameters
         ----------
