@@ -9,9 +9,7 @@
 [![pypi downloads](https://img.shields.io/pypi/dm/ribotricer)](https://pypi.org/project/ribotricer/)
 [![license](https://img.shields.io/pypi/l/ribotricer)](LICENSE)
 
-[Publication](https://academic.oup.com/bioinformatics/advance-article-abstract/doi/10.1093/bioinformatics/btz878/5637228)
-
-[Supplementary File](https://saket-choudhary.me/pdfs/ribotricer_2019.pdf)
+[Online Paper](https://academic.oup.com/bioinformatics/advance-article-abstract/doi/10.1093/bioinformatics/btz878/5637228) | [PDF](https://saket-choudhary.me/pdfs/ribotricer_2019.pdf) | [Supplementary File](https://saket-choudhary.me/pdfs/ribotricer_2019.pdf) | [Benchmarking scripts](https://github.com/smithlabcode/ribotricer-results/)
 
 
 ## Installation
