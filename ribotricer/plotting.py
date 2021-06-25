@@ -15,12 +15,13 @@
 
 import numpy as np
 import matplotlib
+matplotlib.use("Agg")
+
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_pdf import PdfPages
 
 matplotlib.rcParams["pdf.fonttype"] = 42
 matplotlib.rcParams["ps.fonttype"] = 42
-matplotlib.use("Agg")
 
 
 def plot_read_lengths(read_lengths, prefix):
