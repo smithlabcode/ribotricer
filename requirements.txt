@@ -1,7 +1,7 @@
 click==8.0.3
 click-help-colors==0.9.1
 matplotlib==3.5.1
-numpy==1.21.5
+numpy==1.22.2
 pandas==1.4.1
 pyfaidx==0.6.4
 pysam==0.18.0
