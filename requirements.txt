@@ -2,7 +2,7 @@ click==8.0.4
 click-help-colors==0.9.1
 matplotlib==3.5.1
 numpy>=1.21.1
-pandas>=1.4.1
+pandas>=1.3
 pyfaidx==0.6.4
 pysam==0.18.0
 quicksect==0.2.2
