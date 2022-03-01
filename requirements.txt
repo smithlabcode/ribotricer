@@ -7,4 +7,4 @@ pyfaidx==0.6.4
 pysam==0.18.0
 quicksect==0.2.2
 scipy>=1.7.0
-tqdm==4.62.3
+tqdm==4.63.0
