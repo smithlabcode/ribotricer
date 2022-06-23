@@ -13,6 +13,7 @@
 
 
 ## Installation
+
 We highly recommend that you install ribotricer via [conda](https://docs.conda.io/projects/conda/en/latest/user-guide/install/) in a clean environment: 
 
 ```bash
@@ -22,13 +23,13 @@ ribotricer --help
 ```
 
 To install locally, you can either download the source code from release or clone the latest version using ```git clone```.
-After you get a copy of the source code, please change into the directory where the source code locates, and type
+After you get a copy of the source code, please change into the source directory and run:
 
 ```bash
 make install
 ```
 
-**NOTE**: The above will install the following depencies (If some of these are already present, they might be replaced by the designated version): 
+**NOTE**: ribotricer will install the following dependencies (If some of these are already present, they might be replaced by the designated version): 
 
 ```
 pyfaidx>=0.5.0
@@ -225,7 +226,7 @@ Before you send us the bug report though, please check the following:
 ## LICENSE
 
 Ribotricer for detecting actively translating ORFs from Ribo-seq data
-Copyright (C) 2020 Saket Choudhary, Wenzheng Li, Andrew D Smith, and
+Copyright (C) 2022 Saket Choudhary, Wenzheng Li, Andrew D Smith, and
 the University of Southern California
 
 This program is free software: you can redistribute it and/or modify
