@@ -7,7 +7,7 @@
 [![install with bioconda](https://img.shields.io/badge/install%20with-bioconda-brightgreen.svg?style=flat)](http://bioconda.github.io/recipes/ribotricer/README.html)
 ![python versions](https://img.shields.io/pypi/pyversions/ribotricer)
 [![pypi downloads](https://img.shields.io/pypi/dm/ribotricer)](https://pypi.org/project/ribotricer/)
-[![Install with Conda](https://anaconda.org/bioconda/ribotricer/badges/downloads.svg)](https://anaconda.org/bioconda/ribotricer)
+[![Downloads](https://anaconda.org/bioconda/ribotricer/badges/downloads.svg)](https://anaconda.org/bioconda/ribotricer)
 [![license](https://img.shields.io/pypi/l/ribotricer)](LICENSE)
 
 [Online Paper](https://academic.oup.com/bioinformatics/advance-article-abstract/doi/10.1093/bioinformatics/btz878/5637228) | [PDF](https://saket-choudhary.me/pdfs/ribotricer_2019.pdf) | [Supplementary File](https://saket-choudhary.me/pdfs/ribotricer_2019.pdf) | [Benchmarking scripts](https://github.com/smithlabcode/ribotricer-results/)
