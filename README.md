@@ -181,8 +181,8 @@ Output: {OUTPUT_PREFIX}\_translating\_ORFs.tsv
 ## Definition of ORF types
 Ribotricer reports eight different ORF types as defined below:
 * **annotated**: CDS annotated in the provided GTF file
-* **super_uORF**: upstream ORF of the annotated CDS, not overlapping with any CDS of the same gene
-* **super_dORF**: downstream ORF of the annotated CDS, not overlapping with any CDS of the same gene
+* **super_uORF**: upstream ORF of the annotated CDS, not overlapping with any CDS of the same gene (first or most upstream uORF)
+* **super_dORF**: downstream ORF of the annotated CDS, not overlapping with any CDS of the same gene  (last or most downstream dORF)
 * **uORF**: upstream ORF of the annotated CDS, not overlapping with the main CDS
 * **dORF**: downstream ORF of the annotated CDS, not overlapping with the main CDS
 * **overlap_uORF**: upstream ORF of the annotated CDS, overlapping with the main CDS
