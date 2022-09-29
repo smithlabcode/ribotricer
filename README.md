@@ -204,6 +204,11 @@ ribotricer learn-cutoff --ribo_bams ribo_bam1.bam,ribo_bam2.bam \
 --ribotricer_index {RIBOTRICER_ANNOTATION}
 ```
 
+## Visualizing ribotricer output
+
+Ribotricer generates a de-noised profile of read counts for each ORF. We can visualize the read distribution for any ORF. For an example,
+see [this notebook](https://github.com/smithlabcode/ribotricer/blob/master/notebooks/Plotting_ribotricer_profile.ipynb).
+
 
 ------------------
 
