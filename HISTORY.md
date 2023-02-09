@@ -1,3 +1,8 @@
+# V1.3.3 (2022-02-09)
+
+- Print start codons when preparing orfs
+- Fix for custom start codons
+
 # v1.3.2 (2020-05-03)
 
 - Better support for extracting sequences from non-conventional GTFs
