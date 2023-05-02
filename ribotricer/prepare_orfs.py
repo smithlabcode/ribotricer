@@ -189,6 +189,7 @@ def search_orfs(fasta, intervals, min_orf_length, start_codons, stop_codons, lon
             for m in re.finditer(alternative_start_regx, merged_seq)
         ]
     stop_regx = re.compile(r"(?=({}))".format("|".join(stop_codons)))
+    #stop_regx = re.compile(r"{}".format("|".join(stop_codons)))
     start_stop_idx += [(m.start(0), "stop") for m in re.finditer(stop_regx, merged_seq)]
     start_stop_idx.sort(key=lambda x: x[0])
     for frame in [0, 1, 2]:
@@ -199,15 +200,20 @@ def search_orfs(fasta, intervals, min_orf_length, start_codons, stop_codons, lon
                 starts.append(idx)
             elif starts:
                 for start in starts:
-                    if idx - start >= min_orf_length:
+                    # if ORF is not proper length, continue
+                    if (idx - start) % 3 !=0:
+                        print(idx-start)
+                        continue
+                    if (idx - start >= min_orf_length) and (idx - start) % 3 == 0:
                         ivs = transcript_to_genome_iv(
                             start, idx - 1, intervals, reverse
                         )
-                        seq = merged_seq[start:idx]
+                        seq = merged_seq[start:(idx+3)]
+                        stop_codon = merged_seq[idx:(idx+3)]
                         leader = merged_seq[:start]
                         trailer = merged_seq[idx + 3 :]
                         if ivs:
-                            orfs.append((ivs, seq, leader, trailer))
+                            orfs.append((ivs, seq, stop_codon, leader, trailer))
                     if longest:
                         break
                 starts = []
@@ -299,7 +305,7 @@ def prepare_orfs(
         for tid in gtf.cds[gid]:
             tracks = gtf.cds[gid][tid]
             seq = fetch_seq(fasta, tracks)
-            orf = ORF.from_tracks(tracks, "annotated", seq=seq[:3])
+            orf = ORF.from_tracks(tracks, "annotated", seq=seq)
             if orf:
                 cds_orfs[gid][tid] = orf
                 candidate_orfs.append(orf)
@@ -323,7 +329,7 @@ def prepare_orfs(
         orfs = search_orfs(
             fasta, ivs, min_orf_length, start_codons, stop_codons, longest
         )
-        for ivs, seq, leader, trailer in orfs:
+        for ivs, seq, stop_codon, leader, trailer in orfs:
             orf = ORF(
                 "unknown",
                 tid,
@@ -334,7 +340,7 @@ def prepare_orfs(
                 chrom,
                 strand,
                 ivs,
-                seq=seq[:3],
+                seq=seq
             )
             orf.category = check_orf_type(orf, cds_orfs)
             if orf.category != "annotated" and orf.category != "internal":
@@ -354,6 +360,7 @@ def prepare_orfs(
         "chrom",
         "strand",
         "start_codon",
+        "stop_codon",
         "coordinate\n",
     ]
 
@@ -375,7 +382,8 @@ def prepare_orfs(
                     orf.chrom,
                     orf.strand,
                     orf.start_codon,
-                    coordinate,
+                    orf.stop_codon,
+                    coordinate
                     )
 
     with open("{}_candidate_orfs.tsv".format(prefix), "w") as output:

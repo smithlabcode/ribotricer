@@ -33,6 +33,7 @@ class ORF:
         strand,
         intervals,
         seq="",
+        stop_codon="",
         leader="",
         trailer="",
     ):
@@ -63,6 +64,13 @@ class ORF:
         if len(self.seq) < 3:
             return None
         return self.seq[:3]
+    
+    @property
+    def stop_codon(self):
+        """Return the first 3 bases from sequence"""
+        if len(self.seq) < 3:
+            return None
+        return self.seq[-3:]
 
     @classmethod
     def from_string(cls, line):
@@ -81,7 +89,7 @@ class ORF:
             print("annotation line cannot be empty")
             return None
         fields = line.split("\t")
-        if len(fields) != 11:
+        if len(fields) != 12:
             sys.exit(
                 "{}\n{}".format(
                     "Error: unexpected number of columns found for index file",
@@ -99,7 +107,8 @@ class ORF:
         chrom = fields[7]
         strand = fields[8]
         start_codon = fields[9]
-        coordinate = fields[10]
+        stop_codon = fields[10]
+        coordinate = fields[11]
         intervals = []
         for group in coordinate.split(","):
             start, end = group.split("-")
@@ -117,6 +126,7 @@ class ORF:
             strand,
             intervals,
             seq=start_codon,
+            stop_codon=stop_codon
         )
 
     @classmethod
@@ -127,7 +137,7 @@ class ORF:
         tracks: list of GTFTrack
 
         This method uses a fail-fast stragy and hence multiple
-        returns. It ultimately retulrs an object correponding to the
+        returns. It ultimately returns an object correponding to the
         parsed line.
         """
         if not tracks:
