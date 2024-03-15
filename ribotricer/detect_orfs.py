@@ -344,6 +344,7 @@ def detect_orfs(
     min_valid_codons_ratio,
     min_density_over_orf,
     report_all,
+    meta_min_reads=100000,
 ):
     """
     Parameters
@@ -371,6 +372,8 @@ def detect_orfs(
     report_all: bool
                 Whether to output all ORFs' scores regardless of translation
                 status
+    meta_min_reads: int
+                    minimum number of reads for a read length to be considered. Passed to metagene_coverage().
     """
     now = datetime.datetime.now()
     print(now.strftime("%b %d %H:%M:%S ..... started ribotricer detect-orfs"))
@@ -416,7 +419,7 @@ def detect_orfs(
             "started calculating metagene profiles. This may take a long time...",
         )
     )
-    metagenes = metagene_coverage(annotated, alignments, read_length_counts, prefix)
+    metagenes = metagene_coverage(annotated, alignments, read_length_counts, prefix, meta_min_reads = meta_min_reads)
 
     # plot metagene profiles
     now = datetime.datetime.now()

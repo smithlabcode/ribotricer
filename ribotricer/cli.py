@@ -197,6 +197,13 @@ def prepare_orfs_cmd(
     help=("Whether output all ORFs including those " "non-translating ones"),
     is_flag=True,
 )
+@click.option(
+    "--meta-min-reads",
+    type=int,
+    default=META_MIN_READS,
+    show_default=True,
+    help="Minimum number of reads for a read length to be considered",
+)
 def detect_orfs_cmd(
     bam,
     ribotricer_index,
@@ -210,6 +217,7 @@ def detect_orfs_cmd(
     min_valid_codons_ratio,
     min_read_density,
     report_all,
+    meta_min_reads,
 ):
     if not os.path.isfile(bam):
         sys.exit("Error: BAM file not found")
