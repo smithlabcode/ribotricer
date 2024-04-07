@@ -21,7 +21,9 @@ import numpy as np
 import pandas as pd
 
 
-def count_orfs(ribotricer_index, detected_orfs, features, outfile, report_all=False):
+def count_orfs(
+    ribotricer_index, detected_orfs, features, outfile, report_all=False
+):
     """
     Parameters
     ----------
@@ -57,7 +59,11 @@ def count_orfs(ribotricer_index, detected_orfs, features, outfile, report_all=Fa
                 # do not output 'nontranslating' events unless report_all is set
                 if status != "nontranslating" or report_all:
                     intervals = orf_index[oid].intervals
-                    coor = [x for iv in intervals for x in range(iv.start, iv.end + 1)]
+                    coor = [
+                        x
+                        for iv in intervals
+                        for x in range(iv.start, iv.end + 1)
+                    ]
                     if strand == "-":
                         coor = coor[::-1]
                     profile_stripped = profile.strip()[1:-1].split(", ")
@@ -105,7 +111,9 @@ def count_orfs_codon(
                 if True, all coverages will be exported
     """
     orf_index = {}
-    fasta_df = pd.read_csv(ribotricer_index_fasta, sep="\t").set_index("ORF_ID")
+    fasta_df = pd.read_csv(ribotricer_index_fasta, sep="\t").set_index(
+        "ORF_ID"
+    )
     read_counts = defaultdict(dict)
     with open(ribotricer_index, "r") as fin:
         # Skip header
@@ -126,9 +134,15 @@ def count_orfs_codon(
                 # do not output 'nontranslating' events unless report_all is set
                 if status != "nontranslating" or report_all:
                     intervals = orf_index[oid].intervals
-                    coor = [x for iv in intervals for x in range(iv.start, iv.end + 1)]
+                    coor = [
+                        x
+                        for iv in intervals
+                        for x in range(iv.start, iv.end + 1)
+                    ]
                     codon_coor = [
-                        x for iv in intervals for x in range(iv.start, iv.end + 1, 3)
+                        x
+                        for iv in intervals
+                        for x in range(iv.start, iv.end + 1, 3)
                     ]
                     if strand == "-":
                         coor = coor[::-1]
@@ -158,7 +172,17 @@ def count_orfs_codon(
     # Output count table
     with open("{}_genewise.tsv".format(prefix), "w") as fout:
         fout.write(
-            "gene_id\tcodon\tvalues\tmean_codon_coverage\tmedian_codon_coverage\tvar_codon_coverage\tcodon_occurences\ttotal_codon_coverage\n"
+            "\t".join(
+                "gene_id",
+                "codon",
+                "values",
+                "mean_codon_coverage",
+                "median_codon_coverage",
+                "var_codon_coverage",
+                "codon_occurences",
+                "total_codon_coverage",
+            )
+            + "\n"
         )
         for gene_id, codon_seq in sorted(read_counts):
             values = list(read_counts[gene_id, codon_seq].values())
@@ -183,12 +207,16 @@ def count_orfs_codon(
     fout_df["per_codon_enrichment(total/n_occur)"] = (
         fout_df["total_codon_coverage"] / fout_df["codon_occurences"]
     )
-    fout_df["-log10_relative_enrichment(per_codon/total_gene_coverage)"] = -np.log10(
+    fout_df[
+        "-log10_relative_enrichment(per_codon/total_gene_coverage)"
+    ] = -np.log10(
         fout_df["per_codon_enrichment(total/n_occur)"]
         / fout_df.groupby("gene_id")["total_codon_coverage"].transform("sum")
     )
     # Overwrite
-    fout_df.to_csv("{}_genewise.tsv".format(prefix), sep="\t", index=False, header=True)
+    fout_df.to_csv(
+        "{}_genewise.tsv".format(prefix), sep="\t", index=False, header=True
+    )
     # Remove infs
     fout_df = fout_df.replace([np.inf, -np.inf], np.nan)
     fout_df = fout_df.dropna()

@@ -205,7 +205,7 @@ def search_orfs(fasta, intervals, min_orf_length, start_codons, stop_codons, lon
                         )
                         seq = merged_seq[start:idx]
                         leader = merged_seq[:start]
-                        trailer = merged_seq[idx + 3 :]
+                        trailer = merged_seq[idx + 3:]
                         if ivs:
                             orfs.append((ivs, seq, leader, trailer))
                     if longest:

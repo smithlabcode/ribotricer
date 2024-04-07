@@ -281,7 +281,7 @@ def align_metagenes(
         xcorr = np.correlate(reference, cov, "full")
         origin = len(xcorr) // 2
         bound = min(base, length)
-        xcorr = xcorr[origin - bound : origin + bound]
+        xcorr = xcorr[(origin - bound):(origin + bound)]
         lag = np.argmax(xcorr) - len(xcorr) // 2
         psite_offsets[length] = lag + TYPICAL_OFFSET
         to_write += "\tlag of {}: {}\n".format(length, lag)

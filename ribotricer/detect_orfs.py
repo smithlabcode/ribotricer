@@ -174,7 +174,10 @@ def orf_coverage(orf, alignments, offset_5p=0, offset_3p=0):
                 except KeyError:
                     coverage.append(0)
             else:
-                if strand in alignments and (chrom, pos) in alignments[strand]:
+                if (
+                    strand in alignments
+                    and (chrom, pos) in alignments[strand]
+                ):
                     coverage.append(alignments[strand][(chrom, pos)])
                 else:
                     coverage.append(0)
@@ -266,7 +269,9 @@ def export_orf_coverages(
                 valid_codons_ratio = valid_codons / n_codons
                 # total reads in the ORF divided by the length
                 orf_density = np.sum(codon_coverage) / n_codons
-                codon_coverage_exceeds_min = codon_coverage >= min_reads_per_codon
+                codon_coverage_exceeds_min = (
+                    codon_coverage >= min_reads_per_codon
+                )
                 status = (
                     "translating"
                     if (
@@ -322,7 +327,9 @@ def export_wig(merged_alignments, prefix):
             if chrom != cur_chrom:
                 cur_chrom = chrom
                 to_write += "variableStep chrom={}\n".format(chrom)
-            to_write += "{}\t{}\n".format(pos, merged_alignments[strand][(chrom, pos)])
+            to_write += "{}\t{}\n".format(
+                pos, merged_alignments[strand][(chrom, pos)]
+            )
         if strand == "+":
             fname = "{}_pos.wig".format(prefix)
         else:
@@ -380,7 +387,11 @@ def detect_orfs(
 
     # parse the index file
     now = datetime.datetime.now()
-    print(now.strftime("%b %d %H:%M:%S ... started parsing ribotricer index file"))
+    print(
+        now.strftime(
+            "%b %d %H:%M:%S ... started parsing ribotricer index file"
+        )
+    )
     annotated, refseq = parse_ribotricer_index(ribotricer_index)
 
     # create directory
@@ -391,7 +402,8 @@ def detect_orfs(
         now = datetime.datetime.now()
         print(
             "{} ... {}".format(
-                now.strftime("%b %d %H:%M:%S"), "started inferring experimental design"
+                now.strftime("%b %d %H:%M:%S"),
+                "started inferring experimental design",
             )
         )
         protocol = infer_protocol(bam, refseq, prefix)
@@ -400,13 +412,16 @@ def detect_orfs(
     # split bam file into strand and read length
     now = datetime.datetime.now()
     print(now.strftime("%b %d %H:%M:%S ... started reading bam file"))
-    alignments, read_length_counts = split_bam(bam, protocol, prefix, read_lengths)
+    alignments, read_length_counts = split_bam(
+        bam, protocol, prefix, read_lengths
+    )
 
     # plot read length distribution
     now = datetime.datetime.now()
     print(
         "{} ... {}".format(
-            now.strftime("%b %d %H:%M:%S"), "started plotting read length distribution"
+            now.strftime("%b %d %H:%M:%S"),
+            "started plotting read length distribution",
         )
     )
     plot_read_lengths(read_length_counts, prefix)
@@ -419,13 +434,20 @@ def detect_orfs(
             "started calculating metagene profiles. This may take a long time...",
         )
     )
-    metagenes = metagene_coverage(annotated, alignments, read_length_counts, prefix, meta_min_reads = meta_min_reads)
+    metagenes = metagene_coverage(
+        annotated,
+        alignments,
+        read_length_counts,
+        prefix,
+        meta_min_reads=meta_min_reads,
+    )
 
     # plot metagene profiles
     now = datetime.datetime.now()
     print(
         "\n{} ... {}".format(
-            now.strftime("%b %d %H:%M:%S"), "started plotting metagene profiles"
+            now.strftime("%b %d %H:%M:%S"),
+            "started plotting metagene profiles",
         )
     )
     plot_metagene(metagenes, read_length_counts, prefix)
@@ -435,7 +457,8 @@ def detect_orfs(
         now = datetime.datetime.now()
         print(
             "{} ... {}".format(
-                now.strftime("%b %d %H:%M:%S"), "started inferring P-site offsets"
+                now.strftime("%b %d %H:%M:%S"),
+                "started inferring P-site offsets",
             )
         )
         psite_offsets = align_metagenes(

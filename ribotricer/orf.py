@@ -89,7 +89,8 @@ class ORF:
                 )
             )
             return None
-        oid = fields[0]
+        # ADS: oid below is not used
+        oid = fields[0]  # noqa F841
         category = fields[1]
         tid = fields[2]
         ttype = fields[3]

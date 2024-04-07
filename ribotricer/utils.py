@@ -400,7 +400,7 @@ def translate(seq):
     protein = ""
     if len(seq) % 3 == 0:
         for i in range(0, len(seq), 3):
-            codon = seq[i : i + 3]
+            codon = seq[i: i + 3]
             protein += CODON_TO_AA[codon]
     return protein
 

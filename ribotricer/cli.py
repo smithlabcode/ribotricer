@@ -49,7 +49,7 @@ def cli():
     pass
 
 
-###################### prepare-orfs function #########################################
+# prepare-orfs function #########################################
 @cli.command(
     "prepare-orfs",
     context_settings=CONTEXT_SETTINGS,
@@ -110,7 +110,7 @@ def prepare_orfs_cmd(
     prepare_orfs(gtf, fasta, prefix, min_orf_length, start_codons, stop_codons, longest)
 
 
-###################### detect-orfs function #########################################
+# detect-orfs function #########################################
 @cli.command(
     "detect-orfs",
     context_settings=CONTEXT_SETTINGS,
@@ -200,7 +200,8 @@ def prepare_orfs_cmd(
 @click.option(
     "--meta-min-reads",
     type=int,
-    default=META_MIN_READS,
+    # ADS: META_MIN_READS was detected as undefined by flake8
+    default=META_MIN_READS,  # noqa: F821
     show_default=True,
     help="Minimum number of reads for a read length to be considered",
 )
@@ -228,7 +229,7 @@ def detect_orfs_cmd(
     if read_lengths is not None:
         try:
             read_lengths = [int(x.strip()) for x in read_lengths.strip().split(",")]
-        except:
+        except Exception:
             sys.exit("Error: cannot convert read_lengths into integers")
         if not all([x > 0 for x in read_lengths]):
             sys.exit("Error: read length must be positive")
@@ -237,8 +238,10 @@ def detect_orfs_cmd(
         sys.exit("Error: psite_offsets only allowed when read_lengths is provided")
     if read_lengths is not None and psite_offsets is not None:
         try:
-            psite_offsets = [int(x.strip()) for x in psite_offsets.strip().split(",")]
-        except:
+            psite_offsets = [
+                int(x.strip()) for x in psite_offsets.strip().split(",")
+            ]
+        except Exception:
             sys.exit("Error: cannot convert psite_offsets into integers")
         if len(read_lengths) != len(psite_offsets):
             sys.exit("Error: psite_offsets must match read_lengths")
@@ -265,7 +268,7 @@ def detect_orfs_cmd(
     )
 
 
-###################### count-orfs function #########################################
+# count-orfs function #########################################
 @cli.command(
     "count-orfs",
     context_settings=CONTEXT_SETTINGS,
@@ -307,7 +310,7 @@ def count_orfs_cmd(ribotricer_index, detected_orfs, features, out, report_all):
     count_orfs(ribotricer_index, detected_orfs, features, out, report_all)
 
 
-###################### count-orfs-codon function #########################################
+# count-orfs-codon function #########################################
 @cli.command(
     "count-orfs-codon",
     context_settings=CONTEXT_SETTINGS,
@@ -367,7 +370,7 @@ def count_orfs_codon_cmd(
     )
 
 
-###################### orfs-seq function #########################################
+# orfs-seq function #########################################
 @cli.command(
     "orfs-seq",
     context_settings=CONTEXT_SETTINGS,
@@ -396,7 +399,7 @@ def orf_seq_cmd(ribotricer_index, fasta, saveto, protein):
     orf_seq(ribotricer_index, fasta, saveto, protein)
 
 
-###################### learn-cutoff function #########################################
+# learn-cutoff function #########################################
 @cli.command(
     "learn-cutoff",
     context_settings=CONTEXT_SETTINGS,
