@@ -25,6 +25,7 @@ from .const import MINIMUM_VALID_CODONS
 from .const import MINIMUM_VALID_CODONS_RATIO
 from .const import MINIMUM_READS_PER_CODON
 from .const import MINIMUM_DENSITY_OVER_ORF
+from .const import META_MIN_READS
 
 from .count_orfs import count_orfs
 from .count_orfs import count_orfs_codon
@@ -200,8 +201,7 @@ def prepare_orfs_cmd(
 @click.option(
     "--meta-min-reads",
     type=int,
-    # ADS: META_MIN_READS was detected as undefined by flake8
-    default=META_MIN_READS,  # noqa: F821
+    default=META_MIN_READS,
     show_default=True,
     help="Minimum number of reads for a read length to be considered",
 )
