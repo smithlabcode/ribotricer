@@ -1,6 +1,7 @@
-# Unreleased 
+# v1.4.0 (2024-04-14)
 
 - Added `meta_min_reads` parameter to control minimum coverage for metagene plots ([#155](https://github.com/smithlabcode/ribotricer/pull/155))
+- Formatting changes
 
 # v1.3.3 (2022-02-09)
 
