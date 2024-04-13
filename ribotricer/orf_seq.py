@@ -92,7 +92,7 @@ def translate_nt_to_aa(seq):
     protein = ""
     if len(seq) % 3 == 0:
         for i in range(0, len(seq), 3):
-            codon = seq[i : i + 3]
+            codon = seq[i: i + 3]
             if "N" in codon:
                 protein += "X"
             elif codon not in codon_table:
@@ -142,10 +142,10 @@ def orf_seq(ribotricer_index, genome_fasta, saveto, translate=False):
             if translate:
                 if len(seq) % 3 != 0:
                     sys.stderr.write(
-                        "WARNING: Sequence length with ORF ID '{}' is not a multiple of three. Output sequence might be truncated.\n".format(
-                            orf_id
-                        )
+                        "WARNING: Sequence length with ORF ID '{orf_id}' is not "
+                        "a multiple of three. Output sequence might be "
+                        "truncated.\n"
                     )
-                    seq = seq[0 : (len(seq) // 3) * 3]
+                    seq = seq[0: (len(seq) // 3) * 3]
                 seq = translate_nt_to_aa(seq)
             fh.write("{}\t{}\n".format(orf_id, seq))

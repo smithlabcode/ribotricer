@@ -23,7 +23,7 @@ with open("requirements.txt") as req_file:
 
 setuptools.setup(
     name="ribotricer",
-    version="1.3.3",
+    version="1.4.0-dev0",
     author="Saket Choudhary, Wenzheng Li",
     author_email="saketkc@gmail.com",
     maintainer="Saket Choudhary",
@@ -48,6 +48,9 @@ setuptools.setup(
         "Operating System :: Microsoft :: Windows",
         "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8",
+        "Programming Language :: Python :: 3.9",
+        "Programming Language :: Python :: 3.10",
+        "Programming Language :: Python :: 3.11",
         "Topic :: Scientific/Engineering :: Bio-Informatics",
         "Topic :: Utilities",
     ],

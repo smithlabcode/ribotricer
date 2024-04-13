@@ -30,4 +30,4 @@ MINIMUM_VALID_CODONS_RATIO = 0
 # defined as the number of reads per unit length of the ORF
 MINIMUM_DENSITY_OVER_ORF = 0.0
 # Minimum number of reads for a read length to be considered
-META_MIN_READS=100000
+META_MIN_READS = 100000

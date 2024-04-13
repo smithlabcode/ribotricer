@@ -50,7 +50,9 @@ def is_read_uniq_mapping(read):
             return False
         else:
             sys.stdout.write(
-                "WARNING: ribotricer was unable to detect any tags for determining multimapping status. All the reads will be treated as uniquely mapping\n"
+                "WARNING: ribotricer was unable to detect any tags for "
+                "determining multimapping status. All the reads will be "
+                "treated as uniquely mapping\n"
             )
 
 
@@ -76,7 +78,9 @@ def merge_intervals(intervals):
             intervals[i].end,
             intervals[i].strand,
         )
-        while i + 1 < len(intervals) and intervals[i + 1].start <= to_merge.end:
+        while (
+            i + 1 < len(intervals) and intervals[i + 1].start <= to_merge.end
+        ):
             to_merge.end = max(to_merge.end, intervals[i + 1].end)
             i += 1
         merged_intervals.append(to_merge)
@@ -124,6 +128,7 @@ def collapse_coverage_to_codon(coverage):
                     Coverage collapsed to codon level
     """
     codon_coverage = [
-        sum(coverage[current : current + 3]) for current in range(0, len(coverage), 3)
+        sum(coverage[current: current + 3])
+        for current in range(0, len(coverage), 3)
     ]
     return codon_coverage
