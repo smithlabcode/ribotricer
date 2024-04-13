@@ -23,7 +23,7 @@ with open("requirements.txt") as req_file:
 
 setuptools.setup(
     name="ribotricer",
-    version="1.4.0-dev0",
+    version="1.4.0",
     author="Saket Choudhary, Wenzheng Li",
     author_email="saketkc@gmail.com",
     maintainer="Saket Choudhary",
