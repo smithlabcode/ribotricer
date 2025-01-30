@@ -9,7 +9,7 @@
 [![Downloads](https://anaconda.org/bioconda/ribotricer/badges/downloads.svg)](https://anaconda.org/bioconda/ribotricer)
 [![license](https://img.shields.io/pypi/l/ribotricer)](LICENSE)
 
-[Online Paper](https://academic.oup.com/bioinformatics/advance-article-abstract/doi/10.1093/bioinformatics/btz878/5637228) | [PDF](https://saket-choudhary.me/pdfs/ribotricer_2019.pdf) | [Supplementary File](https://saket-choudhary.me/pdfs/ribotricer_2019.pdf) | [Benchmarking scripts](https://github.com/smithlabcode/ribotricer-results/)
+[Publication](https://academic.oup.com/bioinformatics/advance-article-abstract/doi/10.1093/bioinformatics/btz878/5637228) | [PDF](https://saket-choudhary.me/pdfs/ribotricer_2019.pdf) | [Supplementary File](https://saket-choudhary.me/pdfs/ribotricer_2019.pdf) | [Benchmarking scripts](https://github.com/smithlabcode/ribotricer-results/)
 
 
 ## Installation
