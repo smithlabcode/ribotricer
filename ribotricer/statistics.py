@@ -1,5 +1,5 @@
-"""Statistics related functions
-"""
+"""Statistics related functions"""
+
 # Part of ribotricer software
 #
 # Copyright (C) 2020 Saket Choudhary, Wenzheng Li, and Andrew D Smith
@@ -38,7 +38,7 @@ def pvalue(x, N):
           p-value for the phase score
     """
     df, nc = 2, 2.0 / (N - 1)
-    x = 2 * N ** 2 * x / (N - 1)
+    x = 2 * N**2 * x / (N - 1)
     return stats.ncx2.sf(x, df, nc)
 
 
@@ -77,7 +77,7 @@ def phasescore(original_values):
                 image = values[i + 1] * sin(2 * pi / 3) + values[i + 2] * sin(
                     4 * pi / 3
                 )
-                norm = sqrt(real ** 2 + image ** 2)
+                norm = sqrt(real**2 + image**2)
                 if norm == 0:
                     norm = 1
                 normalized_values += [
@@ -91,14 +91,14 @@ def phasescore(original_values):
         if length == 0:
             coh, valid = (0.0, 0)
         else:
-            normalized_values = normalized_values[:length]
-            uniform_signal = [1, 0, 0] * (len(normalized_values) // 3)
+            normalized_values = np.array(normalized_values[:length])
+            uniform_signal = np.array([1, 0, 0] * (len(normalized_values) // 3))
             with warnings.catch_warnings():
                 warnings.simplefilter("ignore")
                 f, Cxy = signal.coherence(
                     normalized_values,
                     uniform_signal,
-                    window=[1.0, 1.0, 1.0],
+                    window=np.array([1.0, 1.0, 1.0]),
                     nperseg=3,
                     noverlap=0,
                 )
