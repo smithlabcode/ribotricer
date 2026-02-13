@@ -1,4 +1,5 @@
 """Functions for finding all candidate ORFs"""
+
 # Part of ribotricer software
 #
 # Copyright (C) 2020 Saket Choudhary, Wenzheng Li, and Andrew D Smith
@@ -205,7 +206,7 @@ def search_orfs(fasta, intervals, min_orf_length, start_codons, stop_codons, lon
                         )
                         seq = merged_seq[start:idx]
                         leader = merged_seq[:start]
-                        trailer = merged_seq[idx + 3:]
+                        trailer = merged_seq[idx + 3 :]
                         if ivs:
                             orfs.append((ivs, seq, leader, trailer))
                     if longest:
@@ -365,18 +366,18 @@ def prepare_orfs(
         )
         if orf.start_codon in start_codons:
             to_write += formatter.format(
-                    orf.oid,
-                    orf.category,
-                    orf.tid,
-                    orf.ttype,
-                    orf.gid,
-                    orf.gname,
-                    orf.gtype,
-                    orf.chrom,
-                    orf.strand,
-                    orf.start_codon,
-                    coordinate,
-                    )
+                orf.oid,
+                orf.category,
+                orf.tid,
+                orf.ttype,
+                orf.gid,
+                orf.gname,
+                orf.gtype,
+                orf.chrom,
+                orf.strand,
+                orf.start_codon,
+                coordinate,
+            )
 
     with open("{}_candidate_orfs.tsv".format(prefix), "w") as output:
         output.write(to_write)

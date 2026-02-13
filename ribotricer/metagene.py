@@ -1,4 +1,5 @@
 """Metagene profile related functions"""
+
 # Part of ribotricer software
 #
 # Copyright (C) 2020 Saket Choudhary, Wenzheng Li, and Andrew D Smith
@@ -281,7 +282,7 @@ def align_metagenes(
         xcorr = np.correlate(reference, cov, "full")
         origin = len(xcorr) // 2
         bound = min(base, length)
-        xcorr = xcorr[(origin - bound):(origin + bound)]
+        xcorr = xcorr[(origin - bound) : (origin + bound)]
         lag = np.argmax(xcorr) - len(xcorr) // 2
         psite_offsets[length] = lag + TYPICAL_OFFSET
         to_write += "\tlag of {}: {}\n".format(length, lag)

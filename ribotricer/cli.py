@@ -1,5 +1,5 @@
-"""Command line interface for ribotricer
-"""
+"""Command line interface for ribotricer"""
+
 # Part of ribotricer software
 #
 # Copyright (C) 2020 Saket Choudhary, Wenzheng Li, and Andrew D Smith
@@ -238,9 +238,7 @@ def detect_orfs_cmd(
         sys.exit("Error: psite_offsets only allowed when read_lengths is provided")
     if read_lengths is not None and psite_offsets is not None:
         try:
-            psite_offsets = [
-                int(x.strip()) for x in psite_offsets.strip().split(",")
-            ]
+            psite_offsets = [int(x.strip()) for x in psite_offsets.strip().split(",")]
         except Exception:
             sys.exit("Error: cannot convert psite_offsets into integers")
         if len(read_lengths) != len(psite_offsets):

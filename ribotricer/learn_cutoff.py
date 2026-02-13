@@ -1,4 +1,5 @@
 """Utilities for translating learning phase-score cutoffs"""
+
 # Part of ribotricer software
 #
 # Copyright (C) 2020 Saket Choudhary, Wenzheng Li, and Andrew D Smith

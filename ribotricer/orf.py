@@ -1,5 +1,5 @@
-"""Utilities for translating ORF detection
-"""
+"""Utilities for translating ORF detection"""
+
 # Part of ribotricer software
 #
 # Copyright (C) 2020 Saket Choudhary, Wenzheng Li, and Andrew D Smith

@@ -1,4 +1,5 @@
 """Plotting functions."""
+
 # Part of ribotricer software
 #
 # Copyright (C) 2020 Saket Choudhary, Wenzheng Li, and Andrew D Smith
@@ -15,6 +16,7 @@
 
 import numpy as np
 import matplotlib
+
 matplotlib.use("Agg")
 
 # ADS: verify that matplotlib.use("Agg") must precede imports below

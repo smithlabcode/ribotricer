@@ -1,4 +1,5 @@
 """Generate sequences for ribotricer annotation"""
+
 # Part of ribotricer software
 #
 # Copyright (C) 2020 Saket Choudhary, Wenzheng Li, and Andrew D Smith
@@ -92,7 +93,7 @@ def translate_nt_to_aa(seq):
     protein = ""
     if len(seq) % 3 == 0:
         for i in range(0, len(seq), 3):
-            codon = seq[i: i + 3]
+            codon = seq[i : i + 3]
             if "N" in codon:
                 protein += "X"
             elif codon not in codon_table:
@@ -146,6 +147,6 @@ def orf_seq(ribotricer_index, genome_fasta, saveto, translate=False):
                         "a multiple of three. Output sequence might be "
                         "truncated.\n"
                     )
-                    seq = seq[0: (len(seq) // 3) * 3]
+                    seq = seq[0 : (len(seq) // 3) * 3]
                 seq = translate_nt_to_aa(seq)
             fh.write("{}\t{}\n".format(orf_id, seq))
