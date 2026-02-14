@@ -100,12 +100,7 @@ class ORF:
         self.intervals = sorted(intervals, key=lambda x: x.start)
         start = self.intervals[0].start
         end = self.intervals[-1].end
-        self.oid = "{}_{}_{}_{}".format(
-            transcript_id,
-            start,
-            end,
-            sum([x.end - x.start + 1 for x in self.intervals]),
-        )
+        self.oid = f"{transcript_id}_{start}_{end}_{sum([x.end - x.start + 1 for x in self.intervals])}"
         self.seq = seq
         self.leader = leader
         self.trailer = trailer
@@ -255,7 +250,7 @@ class ORF:
             except AttributeError:
                 for attribute in required_attributes:
                     if not hasattr(track, attribute):
-                        print('missing attribute "{}" in {}'.format(attribute, track))
+                        print(f'missing attribute "{attribute}" in {track}')
                         return None
         if (
             len(tid) != 1
@@ -266,7 +261,7 @@ class ORF:
             or len(chrom) != 1
             or len(strand) != 1
         ):
-            print("inconsistent tracks for ORF: {}".format(track))
+            print(f"inconsistent tracks for ORF: {track}")
             return None
         tid_val = list(tid)[0]
         ttype_val = list(ttype)[0]

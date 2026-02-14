@@ -384,9 +384,7 @@ def prepare_orfs(
     to_write = "\t".join(columns)
     formatter = "{}\t" * (len(columns) - 1) + "{}\n"
     for orf in tqdm(candidate_orfs, unit="ORFs"):
-        coordinate = ",".join(
-            ["{}-{}".format(iv.start, iv.end) for iv in orf.intervals]
-        )
+        coordinate = ",".join([f"{iv.start}-{iv.end}" for iv in orf.intervals])
         if orf.start_codon in start_codons:
             to_write += formatter.format(
                 orf.oid,
@@ -402,7 +400,7 @@ def prepare_orfs(
                 coordinate,
             )
 
-    with open("{}_candidate_orfs.tsv".format(prefix), "w") as output:
+    with open(f"{prefix}_candidate_orfs.tsv", "w") as output:
         output.write(to_write)
     now = datetime.datetime.now()
     print(now.strftime("%b %d %H:%M:%S ... finished ribotricer prepare-orfs"))

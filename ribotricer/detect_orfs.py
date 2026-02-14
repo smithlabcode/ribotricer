@@ -24,7 +24,7 @@ import numpy as np
 from quicksect import Interval, IntervalTree
 from tqdm.autonotebook import tqdm
 
-from .bam import AlignmentDict, ReadLengthCounts, split_bam
+from .bam import AlignmentDict, split_bam
 from .common import collapse_coverage_to_codon, mkdir_p, parent_dir
 from .const import (
     CUTOFF,
@@ -105,12 +105,12 @@ def parse_ribotricer_index(ribotricer_index: str) -> tuple[list[ORF], RefSeq]:
     # so need to read only upto a point where the regions
     # no longer have the annotated tag.
     total_lines = 0
-    with open(ribotricer_index, "r") as anno:
+    with open(ribotricer_index) as anno:
         # read header
         anno.readline()
         while "annotated" in anno.readline():
             total_lines += 1
-    with open(ribotricer_index, "r") as anno:
+    with open(ribotricer_index) as anno:
         with tqdm(total=total_lines, unit="lines", leave=False) as pbar:
             # read header
             anno.readline()
@@ -260,12 +260,12 @@ def export_orf_coverages(
     ]
     to_write = "\t".join(columns)
     formatter = "{}\t" * (len(columns) - 1) + "{}\n"
-    with open(ribotricer_index, "r") as anno:
+    with open(ribotricer_index) as anno:
         total_lines = len(["" for line in anno])
 
     with (
-        open(ribotricer_index, "r") as anno,
-        open("{}_translating_ORFs.tsv".format(prefix), "w") as output,
+        open(ribotricer_index) as anno,
+        open(f"{prefix}_translating_ORFs.tsv", "w") as output,
     ):
         output.write(to_write)
         with tqdm(total=total_lines, unit="ORFs") as pbar:
@@ -341,12 +341,12 @@ def export_wig(merged_alignments: MergedAlignments, prefix: str) -> None:
         for chrom, pos in sorted(merged_alignments[strand]):
             if chrom != cur_chrom:
                 cur_chrom = chrom
-                to_write += "variableStep chrom={}\n".format(chrom)
-            to_write += "{}\t{}\n".format(pos, merged_alignments[strand][(chrom, pos)])
+                to_write += f"variableStep chrom={chrom}\n"
+            to_write += f"{pos}\t{merged_alignments[strand][(chrom, pos)]}\n"
         if strand == "+":
-            fname = "{}_pos.wig".format(prefix)
+            fname = f"{prefix}_pos.wig"
         else:
-            fname = "{}_neg.wig".format(prefix)
+            fname = f"{prefix}_neg.wig"
         with open(fname, "w") as output:
             output.write(to_write)
 

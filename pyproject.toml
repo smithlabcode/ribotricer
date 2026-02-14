@@ -135,9 +135,16 @@ select = [
 ignore = [
     "E501",   # line too long (handled by black)
     "B008",   # do not perform function calls in argument defaults
+    "B007",   # loop control variable not used within loop body
+    "B028",   # no explicit stacklevel keyword argument found
+    "B904",   # raise exceptions with raise ... from err
     "C901",   # too complex
     "ARG001", # unused function argument
     "ARG002", # unused method argument
+    "SIM102", # use single if statement instead of nested if
+    "SIM108", # use ternary operator
+    "SIM113", # use enumerate for index variable
+    "SIM117", # use single with statement with multiple contexts
 ]
 
 [tool.ruff.lint.per-file-ignores]

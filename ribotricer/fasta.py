@@ -56,9 +56,7 @@ class FastaReader:
             self.fasta = Fasta(fasta_location, as_raw=True, sequence_always_upper=True)
         except Exception as e:
             raise Exception(
-                "Error reading fasta file {} : {}".format(
-                    os.path.abspath(self.fasta_location), e
-                )
+                f"Error reading fasta file {os.path.abspath(self.fasta_location)} : {e}"
             )
 
     def query(self, intervals: list[Interval]) -> list[str]:
@@ -86,22 +84,18 @@ class FastaReader:
         for i in intervals:
             if i.chrom not in list(chrom_lengths.keys()):
                 warnings.warn(
-                    "Chromosome {} does not appear in the fasta".format(i.chrom),
+                    f"Chromosome {i.chrom} does not appear in the fasta",
                     UserWarning,
                 )
             else:
                 chrom_length = chrom_lengths[i.chrom]
                 if i.start > chrom_length:
                     raise Exception(
-                        "Chromosome start point exceeds chromosome length: {}>{}".format(
-                            i.start, chrom_length
-                        )
+                        f"Chromosome start point exceeds chromosome length: {i.start}>{chrom_length}"
                     )
                 elif i.end > chrom_length:
                     raise Exception(
-                        "Chromosome end point exceeds chromosome length: {}>{}".format(
-                            i.end, chrom_length
-                        )
+                        f"Chromosome end point exceeds chromosome length: {i.end}>{chrom_length}"
                     )
                 seq = self.fasta.get_seq(i.chrom, i.start, i.end)
                 sequences.append(seq)

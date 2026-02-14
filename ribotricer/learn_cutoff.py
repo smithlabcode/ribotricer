@@ -76,7 +76,7 @@ def determine_cutoff_tsv(
         )
         rna_df = pd.concat([rna_df, df])
 
-    filter_by = list(map(lambda x: x.lower(), filter_by))
+    filter_by = [x.lower() for x in filter_by]
 
     ribo_df_filtered = ribo_df.loc[ribo_df.ORF_type == "annotated"]
     ribo_df_filtered = ribo_df_filtered.loc[
@@ -122,26 +122,26 @@ def determine_cutoff_tsv(
     diff_all_mean = np.mean(diff_all)
     diff_all_std = np.std(diff_all)
 
-    print("sampling_ratio: {}".format(sampling_ratio))
-    print("n_samples: {}".format(reps))
+    print(f"sampling_ratio: {sampling_ratio}")
+    print(f"n_samples: {reps}")
 
-    print("ribo_phase_score_mean: {:.3f}".format(ribo_phase_score_mean))
-    print("ribo_phase_score_median: {:.3f}".format(ribo_phase_score_median))
-    print("ribo_phase_score_sd: {:.3f}".format(ribo_phase_score_sd))
+    print(f"ribo_phase_score_mean: {ribo_phase_score_mean:.3f}")
+    print(f"ribo_phase_score_median: {ribo_phase_score_median:.3f}")
+    print(f"ribo_phase_score_sd: {ribo_phase_score_sd:.3f}")
 
-    print("rna_phase_score_mean: {:.3f}".format(rna_phase_score_mean))
-    print("rna_phase_score_median: {:.3f}".format(rna_phase_score_median))
-    print("rna_phase_score_sd: {:.3f}".format(rna_phase_score_sd))
+    print(f"rna_phase_score_mean: {rna_phase_score_mean:.3f}")
+    print(f"rna_phase_score_median: {rna_phase_score_median:.3f}")
+    print(f"rna_phase_score_sd: {rna_phase_score_sd:.3f}")
 
-    print("diff_phase_score_sampled_mean: {:.3f}".format(diff_phase_score_mean))
-    print("diff_phase_score_sampled_median: {:.3f}".format(diff_phase_score_median))
-    print("diff_phase_score_sampled_sd: {:.3f}".format(diff_phase_score_sd))
+    print(f"diff_phase_score_sampled_mean: {diff_phase_score_mean:.3f}")
+    print(f"diff_phase_score_sampled_median: {diff_phase_score_median:.3f}")
+    print(f"diff_phase_score_sampled_sd: {diff_phase_score_sd:.3f}")
 
-    print("diff_phase_score_all_mean: {:.3f}".format(diff_all_mean))
-    print("diff_phase_score_all_median: {:.3f}".format(diff_all_median))
-    print("diff_phase_score_all_sd: {:.3f}".format(diff_all_std))
+    print(f"diff_phase_score_all_mean: {diff_all_mean:.3f}")
+    print(f"diff_phase_score_all_median: {diff_all_median:.3f}")
+    print(f"diff_phase_score_all_sd: {diff_all_std:.3f}")
 
-    print("recommended_cutoff: {:.3f}".format(diff_phase_score_median))
+    print(f"recommended_cutoff: {diff_phase_score_median:.3f}")
 
 
 def determine_cutoff_bam(
@@ -215,22 +215,18 @@ def determine_cutoff_bam(
     sample_str = "samples"
     if len(rna_bams) == 1:
         sample_str = "sample"
-    print(
-        "Running ribotricer on {} Ribo-seq {} ..... \n".format(
-            len(rna_bams), sample_str
-        )
-    )
+    print(f"Running ribotricer on {len(rna_bams)} Ribo-seq {sample_str} ..... \n")
     ribo_bams_renamed = dict(
-        zip(ribo_bams, ["ribo_bam_{}".format(i + 1) for i in range(len(ribo_bams))])
+        zip(ribo_bams, [f"ribo_bam_{i + 1}" for i in range(len(ribo_bams))])
     )
     rna_bams_renamed = dict(
-        zip(rna_bams, ["rna_bam_{}".format(i + 1) for i in range(len(rna_bams))])
+        zip(rna_bams, [f"rna_bam_{i + 1}" for i in range(len(rna_bams))])
     )
 
     rna_tsvs = []
     ribo_tsvs = []
     for bam, stranded in zip(ribo_bams, ribo_stranded_protocols):
-        bam_prefix = "{}__{}".format(prefix, ribo_bams_renamed[bam])
+        bam_prefix = f"{prefix}__{ribo_bams_renamed[bam]}"
         mkdir_p(parent_dir(bam_prefix))
         detect_orfs(
             bam,
@@ -246,12 +242,10 @@ def determine_cutoff_bam(
             min_density_over_orf=MINIMUM_DENSITY_OVER_ORF,
             report_all=report_all,
         )
-        ribo_tsvs.append("{}_translating_ORFs.tsv".format(bam_prefix))
-    print(
-        "Running ribotricer on {} RNA-seq {} ..... \n".format(len(rna_bams), sample_str)
-    )
+        ribo_tsvs.append(f"{bam_prefix}_translating_ORFs.tsv")
+    print(f"Running ribotricer on {len(rna_bams)} RNA-seq {sample_str} ..... \n")
     for bam, stranded in zip(rna_bams, rna_stranded_protocols):
-        bam_prefix = "{}__{}".format(prefix, rna_bams_renamed[bam])
+        bam_prefix = f"{prefix}__{rna_bams_renamed[bam]}"
         mkdir_p(parent_dir(bam_prefix))
         detect_orfs(
             bam,
@@ -267,5 +261,5 @@ def determine_cutoff_bam(
             min_density_over_orf=MINIMUM_DENSITY_OVER_ORF,
             report_all=report_all,
         )
-        rna_tsvs.append("{}_translating_ORFs.tsv".format(bam_prefix))
+        rna_tsvs.append(f"{bam_prefix}_translating_ORFs.tsv")
     determine_cutoff_tsv(ribo_tsvs, rna_tsvs, filter_by, sampling_ratio, reps)

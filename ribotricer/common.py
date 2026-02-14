@@ -58,10 +58,7 @@ def is_read_uniq_mapping(read: pysam.AlignedSegment) -> bool | None:
         # Reliable in case of STAR
         if read.mapping_quality == 255:
             return True
-        elif read.mapping_quality < 1:
-            return False
-        # NH tag not set so rely on flags
-        elif read.flag in __SAM_NOT_UNIQ_FLAGS__:
+        elif read.mapping_quality < 1 or read.flag in __SAM_NOT_UNIQ_FLAGS__:
             return False
         else:
             sys.stdout.write(
@@ -161,7 +158,7 @@ def _clean_input(comma_string: str) -> list[str]:
     list[str]
         List of stripped string values.
     """
-    return list(map(lambda term: term.strip(" "), comma_string.split(",")))
+    return [term.strip(" ") for term in comma_string.split(",")]
 
 
 def collapse_coverage_to_codon(coverage: list[int]) -> list[int]:

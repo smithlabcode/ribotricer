@@ -18,7 +18,8 @@ from __future__ import annotations
 
 import sys
 from collections import Counter, OrderedDict
-from typing import TYPE_CHECKING, Any, Iterator
+from collections.abc import Iterator
+from typing import TYPE_CHECKING
 
 import numpy as np
 import pandas as pd
@@ -201,7 +202,6 @@ def metagene_coverage(
             del read_lengths[length]
 
     for length in tqdm(read_lengths, unit="read-length", leave=False):
-
         metagene_coverage_start: pd.Series = pd.Series(dtype=float)
         position_counter_start: Counter[int] = Counter()
         metagene_coverage_stop: pd.Series = pd.Series(dtype=float)
@@ -254,24 +254,12 @@ def metagene_coverage(
     to_write_5p = "fragment_length\toffset_5p\tprofile\tphase_score\tvalid_codons\n"
     to_write_3p = "fragment_length\toffset_3p\tprofile\tphase_score\tvalid_codons\n"
     for length in sorted(metagenes):
-        to_write_5p += "{}\t{}\t{}\t{}\t{}\n".format(
-            length,
-            offset_5p,
-            metagenes[length][0].tolist(),
-            metagenes[length][2],
-            metagenes[length][3],
-        )
-        to_write_3p += "{}\t{}\t{}\t{}\t{}\n".format(
-            length,
-            offset_3p,
-            metagenes[length][1].tolist(),
-            metagenes[length][4],
-            metagenes[length][5],
-        )
+        to_write_5p += f"{length}\t{offset_5p}\t{metagenes[length][0].tolist()}\t{metagenes[length][2]}\t{metagenes[length][3]}\n"
+        to_write_3p += f"{length}\t{offset_3p}\t{metagenes[length][1].tolist()}\t{metagenes[length][4]}\t{metagenes[length][5]}\n"
 
-    with open("{}_metagene_profiles_5p.tsv".format(prefix), "w") as output:
+    with open(f"{prefix}_metagene_profiles_5p.tsv", "w") as output:
         output.write(to_write_5p)
-    with open("{}_metagene_profiles_3p.tsv".format(prefix), "w") as output:
+    with open(f"{prefix}_metagene_profiles_3p.tsv", "w") as output:
         output.write(to_write_3p)
 
     return metagenes
@@ -315,9 +303,7 @@ def align_metagenes(
 
     if len(read_lengths) == 0:
         sys.exit(
-            "WARNING: no periodic read length found... using cutoff {}".format(
-                phase_score_cutoff
-            )
+            f"WARNING: no periodic read length found... using cutoff {phase_score_cutoff}"
         )
 
     psite_offsets: OrderedDict[int, int] = OrderedDict()
@@ -327,7 +313,7 @@ def align_metagenes(
             base = length
             n_reads = reads
     reference = metagenes[base][0].values
-    to_write = "relative lag to base: {}\n".format(base)
+    to_write = f"relative lag to base: {base}\n"
     for length, (meta, _, _, _, _, _) in list(metagenes.items()):
         cov = meta.values
         xcorr = np.correlate(reference, cov, "full")
@@ -336,7 +322,7 @@ def align_metagenes(
         xcorr = xcorr[(origin - bound) : (origin + bound)]
         lag = int(np.argmax(xcorr) - len(xcorr) // 2)
         psite_offsets[length] = lag + TYPICAL_OFFSET
-        to_write += "\tlag of {}: {}\n".format(length, lag)
-    with open("{}_psite_offsets.txt".format(prefix), "w") as output:
+        to_write += f"\tlag of {length}: {lag}\n"
+    with open(f"{prefix}_psite_offsets.txt", "w") as output:
         output.write(to_write)
     return psite_offsets

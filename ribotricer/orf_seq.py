@@ -117,7 +117,7 @@ def translate_nt_to_aa(seq: str) -> str:
                 protein += "X"
             elif codon not in CODON_TABLE:
                 sys.stderr.write(
-                    "Found unknown codon {}. Substituting with X..\n".format(codon)
+                    f"Found unknown codon {codon}. Substituting with X..\n"
                 )
                 protein += "X"
             else:
@@ -176,4 +176,4 @@ def orf_seq(
                     )
                     seq = seq[0 : (len(seq) // 3) * 3]
                 seq = translate_nt_to_aa(seq)
-            fh.write("{}\t{}\n".format(orf_id, seq))
+            fh.write(f"{orf_id}\t{seq}\n")

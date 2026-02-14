@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-import pytest
-
 from ribotricer.interval import Interval
 from ribotricer.orf import ORF
 

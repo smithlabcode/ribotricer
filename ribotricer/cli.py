@@ -39,7 +39,7 @@ from .learn_cutoff import determine_cutoff_bam, determine_cutoff_tsv
 from .orf_seq import orf_seq
 from .prepare_orfs import prepare_orfs
 
-CONTEXT_SETTINGS: dict[str, Any] = dict(help_option_names=["-h", "--help"])
+CONTEXT_SETTINGS: dict[str, Any] = {"help_option_names": ["-h", "--help"]}
 
 
 @click.group(
@@ -103,20 +103,18 @@ def prepare_orfs_cmd(
     if min_orf_length <= 0:
         sys.exit("Error: min ORF length at least to be 1")
 
-    start_codons_set = set([x.strip().upper() for x in start_codons.strip().split(",")])
+    start_codons_set = {x.strip().upper() for x in start_codons.strip().split(",")}
     if not start_codons_set:
         sys.exit("Error: start codons cannot be empty")
     if not all(
-        [len(x) == 3 and set(x) <= {"A", "C", "G", "T"} for x in start_codons_set]
+        len(x) == 3 and set(x) <= {"A", "C", "G", "T"} for x in start_codons_set
     ):
         sys.exit("Error: invalid codon, only A, C, G, T allowed")
 
-    stop_codons_set = set([x.strip().upper() for x in stop_codons.strip().split(",")])
+    stop_codons_set = {x.strip().upper() for x in stop_codons.strip().split(",")}
     if not stop_codons_set:
         sys.exit("Error: stop codons cannot be empty")
-    if not all(
-        [len(x) == 3 and set(x) <= {"A", "C", "G", "T"} for x in stop_codons_set]
-    ):
+    if not all(len(x) == 3 and set(x) <= {"A", "C", "G", "T"} for x in stop_codons_set):
         sys.exit("Error: invalid codon, only A, C, G, T allowed")
 
     print("Using start codons: {}".format(",".join(start_codons_set)))
@@ -209,7 +207,7 @@ def prepare_orfs_cmd(
 )
 @click.option(
     "--report_all",
-    help=("Whether output all ORFs including those " "non-translating ones"),
+    help=("Whether output all ORFs including those non-translating ones"),
     is_flag=True,
 )
 @click.option(
@@ -251,7 +249,7 @@ def detect_orfs_cmd(
             ]
         except Exception:
             sys.exit("Error: cannot convert read_lengths into integers")
-        if not all([x > 0 for x in read_lengths_list]):
+        if not all(x > 0 for x in read_lengths_list):
             sys.exit("Error: read length must be positive")
 
     if read_lengths_list is None and psite_offsets is not None:
@@ -317,7 +315,7 @@ def detect_orfs_cmd(
 @click.option("--out", help="Path to output file", required=True)
 @click.option(
     "--report_all",
-    help=("Whether output all ORFs including those " "non-translating ones"),
+    help=("Whether output all ORFs including those non-translating ones"),
     is_flag=True,
 )
 def count_orfs_cmd(
@@ -334,7 +332,7 @@ def count_orfs_cmd(
     if not os.path.isfile(detected_orfs):
         sys.exit("Error: detected orfs file not found")
 
-    features_set = set(x.strip() for x in features.strip().split(","))
+    features_set = {x.strip() for x in features.strip().split(",")}
 
     count_orfs(ribotricer_index, detected_orfs, features_set, out, report_all)
 
@@ -366,7 +364,7 @@ def count_orfs_cmd(
 @click.option("--prefix", help="Prefix for output files", required=True)
 @click.option(
     "--report_all",
-    help=("Whether output all ORFs including those " "non-translating ones"),
+    help=("Whether output all ORFs including those non-translating ones"),
     is_flag=True,
 )
 def count_orfs_codon_cmd(
@@ -387,7 +385,7 @@ def count_orfs_codon_cmd(
     if not os.path.isfile(ribotricer_index_fasta):
         sys.exit("Error: ribotricer_index_fasta file not found")
 
-    features_set = set(x.strip() for x in features.strip().split(","))
+    features_set = {x.strip() for x in features.strip().split(",")}
 
     count_orfs_codon(
         ribotricer_index,
@@ -521,9 +519,8 @@ def determine_cutoff_cmd(
     if (ribo_bams and rna_tsvs) or (rna_bams and ribo_tsvs):
         sys.exit("Error: BAM and TSV inputs cannot be specified together")
 
-    if ribotricer_index:
-        if not os.path.isfile(ribotricer_index):
-            sys.exit("Error: ribotricer index file not found")
+    if ribotricer_index and not os.path.isfile(ribotricer_index):
+        sys.exit("Error: ribotricer index file not found")
 
     ribo_bams_list: list[str] = []
     rna_bams_list: list[str] = []

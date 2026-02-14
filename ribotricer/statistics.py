@@ -17,11 +17,11 @@
 from __future__ import annotations
 
 import warnings
+from collections.abc import Sequence
 from math import cos, pi, sin, sqrt
-from typing import Sequence
 
 import numpy as np
-from numpy.typing import ArrayLike, NDArray
+from numpy.typing import ArrayLike
 from scipy import signal, stats
 
 

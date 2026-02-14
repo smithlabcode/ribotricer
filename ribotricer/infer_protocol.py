@@ -97,7 +97,7 @@ def infer_protocol(
                         # (those) that have a tx_start on opposite strands
                         gene_strand = NUM_TO_STRAND[interval[0].data]
                         # count table for mapped strand vs gene strand
-                        strandedness["{}{}".format(mapped_strand, gene_strand)] += 1
+                        strandedness[f"{mapped_strand}{gene_strand}"] += 1
                         iteration += 1
 
     bam_file.close()
@@ -112,17 +112,11 @@ def infer_protocol(
     forward_mapped_reads = strandedness["++"] + strandedness["--"]
     reverse_mapped_reads = strandedness["-+"] + strandedness["+-"]
     to_write = (
-        "In total {} reads checked:\n"
-        '\tNumber of reads explained by "++, --": {} ({:.4f})\n'
-        '\tNumber of reads explained by "+-, -+": {} ({:.4f})\n'
-    ).format(
-        total,
-        forward_mapped_reads,
-        forward_mapped_reads / total,
-        reverse_mapped_reads,
-        reverse_mapped_reads / total,
+        f"In total {total} reads checked:\n"
+        f'\tNumber of reads explained by "++, --": {forward_mapped_reads} ({forward_mapped_reads / total:.4f})\n'
+        f'\tNumber of reads explained by "+-, -+": {reverse_mapped_reads} ({reverse_mapped_reads / total:.4f})\n'
     )
-    with open("{}_protocol.txt".format(prefix), "w") as output:
+    with open(f"{prefix}_protocol.txt", "w") as output:
         output.write(to_write)
     protocol = "forward"
     if reverse_mapped_reads > forward_mapped_reads:

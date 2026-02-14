@@ -110,9 +110,9 @@ def parse_ccds(annotation: str, orfs: str, saveto: str) -> None:
     anno_oids = []
     real_oids = []
     ccds = defaultdict(list)
-    with open(annotation, "r") as anno:
+    with open(annotation) as anno:
         total_lines = len(["" for line in anno])
-    with open(annotation, "r") as anno:
+    with open(annotation) as anno:
         with tqdm(total=total_lines) as pbar:
             # Skip header
             anno.readline()
@@ -131,9 +131,9 @@ def parse_ccds(annotation: str, orfs: str, saveto: str) -> None:
                 anno_oids.append(oid)
 
     ccds_orfs = {}
-    with open(orfs, "r") as orf:
+    with open(orfs) as orf:
         total_lines = len(["" for line in orf])
-    with open(orfs, "r") as orf:
+    with open(orfs) as orf:
         with tqdm(total=total_lines) as pbar:
             # Skip header
             orf.readline()
@@ -153,7 +153,7 @@ def parse_ccds(annotation: str, orfs: str, saveto: str) -> None:
                 ccds_orfs[oid] = (count, corr, pval)
                 real_oids.append(oid)
 
-    rename = {x: y for (x, y) in zip(anno_oids, real_oids)}
+    rename = dict(zip(anno_oids, real_oids))
     to_write = "Gene_ID\tCount\tPeriodicity\tPval\n"
     n_genes = 0
     for gid in ccds:
@@ -164,7 +164,7 @@ def parse_ccds(annotation: str, orfs: str, saveto: str) -> None:
             t_cnt, t_corr, t_pval = ccds_orfs[oid]
             if t_corr >= corr:
                 count, corr, pval = (t_cnt, t_corr, t_pval)
-        to_write += "{}\t{}\t{}\t{}\n".format(gid, count, corr, pval)
+        to_write += f"{gid}\t{count}\t{corr}\t{pval}\n"
 
     with open(saveto, "w") as output:
         output.write(to_write)
@@ -193,9 +193,9 @@ def benchmark(
     ribo: dict[str, list[int]] = {}
 
     print("reading RNA profiles")
-    with open(rna_file, "r") as orf:
+    with open(rna_file) as orf:
         total_lines = len(["" for line in orf])
-    with open(rna_file, "r") as orf:
+    with open(rna_file) as orf:
         with tqdm(total=total_lines) as pbar:
             for line in orf:
                 pbar.update()
@@ -207,9 +207,9 @@ def benchmark(
                 rna[ID] = cov
 
     print("reading Ribo profiles")
-    with open(ribo_file, "r") as orf:
+    with open(ribo_file) as orf:
         total_lines = len(["" for line in orf])
-    with open(ribo_file, "r") as orf:
+    with open(ribo_file) as orf:
         with tqdm(total=total_lines) as pbar:
             for line in orf:
                 pbar.update()
@@ -229,10 +229,8 @@ def benchmark(
             ribo_coh, ribo_valid = phasescore(ribo[ID])
             ribo_cov = ribo_valid / len(ribo[ID])
 
-            to_write += "{}\t{}\t{}\t{}\t{}\n".format(
-                ID, ribo_coh, rna_coh, ribo_cov, rna_cov
-            )
-    with open("{}_results.txt".format(prefix), "w") as output:
+            to_write += f"{ID}\t{ribo_coh}\t{rna_coh}\t{ribo_cov}\t{rna_cov}\n"
+    with open(f"{prefix}_results.txt", "w") as output:
         output.write(to_write)
 
 
@@ -297,9 +295,9 @@ def theta_dist(
     frame: dict[str, int] = {}
 
     print("reading frame file")
-    with open(frame_file, "r") as frame_r:
+    with open(frame_file) as frame_r:
         total_lines = len(["" for line in frame_r])
-    with open(frame_file, "r") as frame_r:
+    with open(frame_file) as frame_r:
         with tqdm(total=total_lines) as pbar:
             for line in frame_r:
                 pbar.update()
@@ -307,9 +305,9 @@ def theta_dist(
                 frame[name] = int(frame_n)
 
     print("reading RNA profiles")
-    with open(rna_file, "r") as orf:
+    with open(rna_file) as orf:
         total_lines = len(["" for line in orf])
-    with open(rna_file, "r") as orf:
+    with open(rna_file) as orf:
         with tqdm(total=total_lines) as pbar:
             for line in orf:
                 pbar.update()
@@ -321,9 +319,9 @@ def theta_dist(
                 rna[ID] = cov
 
     print("reading Ribo profiles")
-    with open(ribo_file, "r") as orf:
+    with open(ribo_file) as orf:
         total_lines = len(["" for line in orf])
-    with open(ribo_file, "r") as orf:
+    with open(ribo_file) as orf:
         with tqdm(total=total_lines) as pbar:
             for line in orf:
                 pbar.update()
@@ -359,20 +357,20 @@ def theta_dist(
     mean = total_reads / total_length
     poisson_cov = np.random.poisson(mean, total_length)
     poisson_angles, poisson_zeros = angle(poisson_cov, 0)
-    with open("{}_angle_stats.txt".format(prefix), "w") as output:
-        output.write("total_rna_reads: {}\n".format(total_reads))
-        output.write("total_rna_ccds_length: {}\n".format(total_length))
-        output.write("total_ribo_reads: {}\n".format(total_ribo_reads))
-        output.write("total_ribo_ccds_length: {}\n".format(total_ribo_length))
-        output.write("mean reads: {}\n".format(mean))
-        output.write("rna zero vectors: {}\n".format(rna_zeros))
-        output.write("poisson zero vectors: {}\n".format(poisson_zeros))
-        output.write("ribo zero vectors: {}\n".format(ribo_zeros))
-    with open("{}_rna_angles.txt".format(prefix), "w") as output:
+    with open(f"{prefix}_angle_stats.txt", "w") as output:
+        output.write(f"total_rna_reads: {total_reads}\n")
+        output.write(f"total_rna_ccds_length: {total_length}\n")
+        output.write(f"total_ribo_reads: {total_ribo_reads}\n")
+        output.write(f"total_ribo_ccds_length: {total_ribo_length}\n")
+        output.write(f"mean reads: {mean}\n")
+        output.write(f"rna zero vectors: {rna_zeros}\n")
+        output.write(f"poisson zero vectors: {poisson_zeros}\n")
+        output.write(f"ribo zero vectors: {ribo_zeros}\n")
+    with open(f"{prefix}_rna_angles.txt", "w") as output:
         output.write("\n".join(map(str, rna_angles)))
-    with open("{}_ribo_angles.txt".format(prefix), "w") as output:
+    with open(f"{prefix}_ribo_angles.txt", "w") as output:
         output.write("\n".join(map(str, ribo_angles)))
-    with open("{}_poisson_angles.txt".format(prefix), "w") as output:
+    with open(f"{prefix}_poisson_angles.txt", "w") as output:
         output.write("\n".join(map(str, poisson_angles)))
 
 
@@ -391,9 +389,9 @@ def theta_rna(rna_file: str, prefix: str, cutoff: int = 10) -> None:
     rna: dict[str, list[int]] = {}
 
     print("reading RNA profiles")
-    with open(rna_file, "r") as orf:
+    with open(rna_file) as orf:
         total_lines = len(["" for line in orf])
-    with open(rna_file, "r") as orf:
+    with open(rna_file) as orf:
         with tqdm(total=total_lines) as pbar:
             # Skip header
             orf.readline()
@@ -410,7 +408,7 @@ def theta_rna(rna_file: str, prefix: str, cutoff: int = 10) -> None:
     rna_angles = []
     for ID in tqdm(list(rna.keys())):
         rna_angles += angle(rna[ID], 0)
-    with open("{}_raw_rna_angles.txt".format(prefix), "w") as output:
+    with open(f"{prefix}_raw_rna_angles.txt", "w") as output:
         output.write("\n".join(map(str, rna_angles)))
 
 
@@ -450,7 +448,7 @@ def summarize_profile_to_codon_level(detected_orfs: str, saveto: str) -> None:
     """
     with open(saveto, "w") as fout:
         fout.write("ORF_ID\tcodon_profile\n")
-        with open(detected_orfs, "r") as fin:
+        with open(detected_orfs) as fin:
             # Skip header
             fin.readline()
             for line in fin:
@@ -463,7 +461,7 @@ def summarize_profile_to_codon_level(detected_orfs: str, saveto: str) -> None:
                 if profile_stripped[0]:
                     profile = np.array(list(map(int, profile_stripped)))
                 codon_profile = np.add.reduceat(profile, range(0, len(profile), 3))
-                fout.write("{}\t{}\n".format(oid, list(codon_profile)))
+                fout.write(f"{oid}\t{list(codon_profile)}\n")
 
 
 def translate(seq: str) -> str:
@@ -500,6 +498,7 @@ def learn_ribotricer_cutoff(roc_input_file: str) -> tuple[float, float]:
     tuple[float, float]
         Tuple of (cutoff, fscore).
     """
+    import pandas as pd
     from sklearn.metrics import precision_recall_fscore_support
 
     data = pd.read_csv(roc_input_file, sep="\t")

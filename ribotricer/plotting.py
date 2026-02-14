@@ -16,8 +16,6 @@
 
 from __future__ import annotations
 
-from typing import Any
-
 import matplotlib
 import numpy as np
 import pandas as pd
@@ -61,7 +59,7 @@ def plot_read_lengths(read_lengths: dict[int, int], prefix: str) -> None:
     ax.set_ylabel("Number of reads")
     ax.set_title("Read length distribution")
     fig.tight_layout()
-    fig.savefig("{}_read_length_dist.pdf".format(prefix))
+    fig.savefig(f"{prefix}_read_length_dist.pdf")
     plt.close()
 
 
@@ -87,7 +85,7 @@ def plot_metagene(
     total_reads = sum(read_lengths.values())
     frame_colors = ["#fc8d62", "#66c2a5", "#8da0cb"]
 
-    with PdfPages("{}_metagene_plots.pdf".format(prefix)) as pdf:
+    with PdfPages(f"{prefix}_metagene_plots.pdf") as pdf:
         for length in sorted(metagenes):
             # TODO: This only consider the 5' end, should be generalized to 3'
             metagene_cov_start, metagene_cov_stop, coh, valid, _, _ = metagenes[length]
@@ -112,9 +110,7 @@ def plot_metagene(
                 ax.set_xlabel("Distance from start codon (nt)")
                 ax.set_ylabel("Normalized mean reads")
                 ax.set_title(
-                    ("{} nt reads, proportion: {:.2%}\nphase_score: {:.2}").format(
-                        length, ratio, coh
-                    )
+                    f"{length} nt reads, proportion: {ratio:.2%}\nphase_score: {coh:.2}"
                 )
 
                 # plot distance from stop codon

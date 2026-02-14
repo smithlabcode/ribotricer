@@ -49,14 +49,14 @@ def count_orfs(
     """
     orf_index = {}
     read_counts = defaultdict(dict)
-    with open(ribotricer_index, "r") as fin:
+    with open(ribotricer_index) as fin:
         # Skip header
         fin.readline()
         for line in fin:
             orf = ORF.from_string(line)
             if orf.category in features:
                 orf_index[orf.oid] = orf
-    with open(detected_orfs, "r") as fin:
+    with open(detected_orfs) as fin:
         # Skip header
         fin.readline()
         for line in fin:
@@ -72,7 +72,7 @@ def count_orfs(
                     if strand == "-":
                         coor = coor[::-1]
                     profile_stripped = profile.strip()[1:-1].split(", ")
-                    profile = list()
+                    profile = []
                     if profile_stripped[0]:
                         profile = list(map(int, profile_stripped))
                     for pos, cov in zip(coor, profile):
@@ -86,7 +86,7 @@ def count_orfs(
             values = read_counts[gene_id, gene_name].values()
             length = len(values)
             total = sum(values)
-            fout.write("{}\t{}\t{}\n".format(gene_id, total, length))
+            fout.write(f"{gene_id}\t{total}\t{length}\n")
 
 
 def count_orfs_codon(
@@ -117,14 +117,14 @@ def count_orfs_codon(
     orf_index = {}
     fasta_df = pd.read_csv(ribotricer_index_fasta, sep="\t").set_index("ORF_ID")
     read_counts = defaultdict(dict)
-    with open(ribotricer_index, "r") as fin:
+    with open(ribotricer_index) as fin:
         # Skip header
         fin.readline()
         for line in fin:
             orf = ORF.from_string(line)
             if orf.category in features:
                 orf_index[orf.oid] = orf
-    with open(detected_orfs, "r") as fin:
+    with open(detected_orfs) as fin:
         # Skip header
         fin.readline()
         for line in fin:
@@ -143,7 +143,7 @@ def count_orfs_codon(
                     if strand == "-":
                         coor = coor[::-1]
                     profile_stripped = profile.strip()[1:-1].split(", ")
-                    profile = list()
+                    profile = []
                     if profile_stripped[0]:
                         profile = list(map(int, profile_stripped))
                     # IMP: Skip profiles that are not 3n long to avoid errors
@@ -156,7 +156,7 @@ def count_orfs_codon(
                     ).tolist()
                     assert sum(codon_profile) == sum(profile)
                     codon_seq = str(fasta_df.loc[oid].sequence)
-                    if not len(codon_seq) % 3 == 0:
+                    if len(codon_seq) % 3 != 0:
                         print(oid, len(codon_seq))
                     codon_seq_partitioned = wrap(codon_seq, 3)
                     for pos, cov, codon_seq in zip(
@@ -166,7 +166,7 @@ def count_orfs_codon(
                             read_counts[gene_id, codon_seq][pos] = cov
 
     # Output count table
-    with open("{}_genewise.tsv".format(prefix), "w") as fout:
+    with open(f"{prefix}_genewise.tsv", "w") as fout:
         fout.write(
             "\t".join(
                 "gene_id",
@@ -188,18 +188,9 @@ def count_orfs_codon(
             median_codon_coverage = np.median(values)
             var_codon_coverage = np.var(values)
             fout.write(
-                "{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\n".format(
-                    gene_id,
-                    codon_seq,
-                    values,
-                    mean_codon_coverage,
-                    median_codon_coverage,
-                    var_codon_coverage,
-                    codon_occurences,
-                    total_codon_coverage,
-                )
+                f"{gene_id}\t{codon_seq}\t{values}\t{mean_codon_coverage}\t{median_codon_coverage}\t{var_codon_coverage}\t{codon_occurences}\t{total_codon_coverage}\n"
             )
-    fout_df = pd.read_csv("{}_genewise.tsv".format(prefix), sep="\t")
+    fout_df = pd.read_csv(f"{prefix}_genewise.tsv", sep="\t")
     fout_df["per_codon_enrichment(total/n_occur)"] = (
         fout_df["total_codon_coverage"] / fout_df["codon_occurences"]
     )
@@ -208,7 +199,7 @@ def count_orfs_codon(
         / fout_df.groupby("gene_id")["total_codon_coverage"].transform("sum")
     )
     # Overwrite
-    fout_df.to_csv("{}_genewise.tsv".format(prefix), sep="\t", index=False, header=True)
+    fout_df.to_csv(f"{prefix}_genewise.tsv", sep="\t", index=False, header=True)
     # Remove infs
     fout_df = fout_df.replace([np.inf, -np.inf], np.nan)
     fout_df = fout_df.dropna()
@@ -238,5 +229,5 @@ def count_orfs_codon(
 
     relative_enrichment = relative_enrichment.reset_index()
     relative_enrichment.to_csv(
-        "{}_codonwise.tsv".format(prefix), sep="\t", index=False, header=True
+        f"{prefix}_codonwise.tsv", sep="\t", index=False, header=True
     )

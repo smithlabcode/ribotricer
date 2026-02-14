@@ -1,7 +1,5 @@
 """Tests for the interval module."""
 
-import pytest
-
 from ribotricer.interval import Interval
 
 

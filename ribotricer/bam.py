@@ -17,7 +17,6 @@
 from __future__ import annotations
 
 from collections import Counter, defaultdict
-from typing import Any
 
 import pysam
 from tqdm.autonotebook import tqdm
@@ -140,15 +139,15 @@ def split_bam(
     bam.close()
 
     summary = (
-        "summary:\n\ttotal_reads: {}\n\tunique_mapped: {}\n"
-        "\tqcfail: {}\n\tduplicate: {}\n\tsecondary: {}\n"
-        "\tunmapped:{}\n\tmulti:{}\n\nlength dist:\n"
-    ).format(total_count, valid, qcfail, duplicate, secondary, unmapped, multi)
+        f"summary:\n\ttotal_reads: {total_count}\n\tunique_mapped: {valid}\n"
+        f"\tqcfail: {qcfail}\n\tduplicate: {duplicate}\n\tsecondary: {secondary}\n"
+        f"\tunmapped:{unmapped}\n\tmulti:{multi}\n\nlength dist:\n"
+    )
 
     for length in sorted(read_length_counts):
-        summary += "\t{}: {}\n".format(length, read_length_counts[length])
+        summary += f"\t{length}: {read_length_counts[length]}\n"
 
-    with open("{}_bam_summary.txt".format(prefix), "w") as output:
+    with open(f"{prefix}_bam_summary.txt", "w") as output:
         output.write(summary)
 
     return (alignments, read_length_counts)

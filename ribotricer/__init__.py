@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 """
 ribotricer - Accurate detection of short and long active ORFs using Ribo-seq data.
 

@@ -17,7 +17,7 @@
 from __future__ import annotations
 
 from collections import defaultdict
-from typing import Any, ClassVar
+from typing import ClassVar
 
 from tqdm.autonotebook import tqdm
 
@@ -82,16 +82,16 @@ class GTFTrack:
                 setattr(self, k, v.strip('"'))
 
         if not hasattr(self, "gene_name") and hasattr(self, "gene_id"):
-            setattr(self, "gene_name", self.gene_id)
+            self.gene_name = self.gene_id
         if not hasattr(self, "transcript_name") and hasattr(self, "transcript_id"):
-            setattr(self, "transcript_name", self.transcript_id)
+            self.transcript_name = self.transcript_id
         if not hasattr(self, "transcript_type") and not hasattr(
             self, GTFTrack.standards["transcript_biotype"]
         ):
             # transcript_type not set so set it to "assumed_protein_coding".
-            setattr(self, "transcript_type", "assumed_protein_coding")
+            self.transcript_type = "assumed_protein_coding"
         if not hasattr(self, "gene_type") and hasattr(self, "transcript_type"):
-            setattr(self, "gene_type", self.transcript_type)
+            self.gene_type = self.transcript_type
 
     # Type hints for dynamically set attributes
     gene_id: str
@@ -175,9 +175,9 @@ class GTFReader:
             lambda: defaultdict(list)
         )
 
-        with open(self.gtf_location, "r") as gtf:
+        with open(self.gtf_location) as gtf:
             total_lines = len(["" for line in gtf])
-        with open(self.gtf_location, "r") as gtf:
+        with open(self.gtf_location) as gtf:
             with tqdm(total=total_lines, unit="lines", leave=False) as pbar:
                 for line in gtf:
                     pbar.update()
@@ -188,9 +188,7 @@ class GTFReader:
                             tid = track.transcript_id
                         except AttributeError:
                             print(
-                                "missing gene or transcript id {}:{}-{}".format(
-                                    track.chrom, track.start, track.end
-                                )
+                                f"missing gene or transcript id {track.chrom}:{track.start}-{track.end}"
                             )
                         else:
                             if track.feature == "exon":
