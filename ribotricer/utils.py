@@ -2,7 +2,7 @@
 
 # Part of ribotricer software
 #
-# Copyright (C) 2020 Saket Choudhary, Wenzheng Li, and Andrew D Smith
+# Copyright (C) 2020-2026 Saket Choudhary, Wenzheng Li, and Andrew D Smith
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -14,15 +14,20 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 
+from __future__ import annotations
+
 from collections import defaultdict
-from .statistics import phasescore
+from typing import Final
 
 import numpy as np
+from numpy.typing import NDArray
 from tqdm.autonotebook import tqdm
+
+from .statistics import phasescore
 
 tqdm.pandas()
 
-CODON_TO_AA = {
+CODON_TO_AA: Final[dict[str, str]] = {
     "ATA": "I",
     "ATC": "I",
     "ATT": "I",
@@ -90,23 +95,24 @@ CODON_TO_AA = {
 }
 
 
-def parse_ccds(annotation, orfs, saveto):
-    """
+def parse_ccds(annotation: str, orfs: str, saveto: str) -> None:
+    """Parse CCDS annotations.
+
     Parameters
     ----------
-    annotation: str
-                Path for annotation files of candidate ORFs
-    orfs: str
-          Path for translating ORFs
-    saveto: str
-          output file name
+    annotation : str
+        Path for annotation files of candidate ORFs.
+    orfs : str
+        Path for translating ORFs.
+    saveto : str
+        Output file name.
     """
     anno_oids = []
     real_oids = []
     ccds = defaultdict(list)
-    with open(annotation, "r") as anno:
+    with open(annotation) as anno:
         total_lines = len(["" for line in anno])
-    with open(annotation, "r") as anno:
+    with open(annotation) as anno:
         with tqdm(total=total_lines) as pbar:
             # Skip header
             anno.readline()
@@ -125,9 +131,9 @@ def parse_ccds(annotation, orfs, saveto):
                 anno_oids.append(oid)
 
     ccds_orfs = {}
-    with open(orfs, "r") as orf:
+    with open(orfs) as orf:
         total_lines = len(["" for line in orf])
-    with open(orfs, "r") as orf:
+    with open(orfs) as orf:
         with tqdm(total=total_lines) as pbar:
             # Skip header
             orf.readline()
@@ -147,7 +153,7 @@ def parse_ccds(annotation, orfs, saveto):
                 ccds_orfs[oid] = (count, corr, pval)
                 real_oids.append(oid)
 
-    rename = {x: y for (x, y) in zip(anno_oids, real_oids)}
+    rename = dict(zip(anno_oids, real_oids))
     to_write = "Gene_ID\tCount\tPeriodicity\tPval\n"
     n_genes = 0
     for gid in ccds:
@@ -158,21 +164,38 @@ def parse_ccds(annotation, orfs, saveto):
             t_cnt, t_corr, t_pval = ccds_orfs[oid]
             if t_corr >= corr:
                 count, corr, pval = (t_cnt, t_corr, t_pval)
-        to_write += "{}\t{}\t{}\t{}\n".format(gid, count, corr, pval)
+        to_write += f"{gid}\t{count}\t{corr}\t{pval}\n"
 
     with open(saveto, "w") as output:
         output.write(to_write)
 
 
-def benchmark(rna_file, ribo_file, prefix, cutoff=5):
+def benchmark(
+    rna_file: str,
+    ribo_file: str,
+    prefix: str,
+    cutoff: int = 5,
+) -> None:
+    """Benchmark RNA vs Ribo profiles.
 
-    rna = {}
-    ribo = {}
+    Parameters
+    ----------
+    rna_file : str
+        Path to RNA profile file.
+    ribo_file : str
+        Path to Ribo profile file.
+    prefix : str
+        Output prefix.
+    cutoff : int, optional
+        Minimum coverage cutoff, by default 5.
+    """
+    rna: dict[str, list[int]] = {}
+    ribo: dict[str, list[int]] = {}
 
     print("reading RNA profiles")
-    with open(rna_file, "r") as orf:
+    with open(rna_file) as orf:
         total_lines = len(["" for line in orf])
-    with open(rna_file, "r") as orf:
+    with open(rna_file) as orf:
         with tqdm(total=total_lines) as pbar:
             for line in orf:
                 pbar.update()
@@ -184,9 +207,9 @@ def benchmark(rna_file, ribo_file, prefix, cutoff=5):
                 rna[ID] = cov
 
     print("reading Ribo profiles")
-    with open(ribo_file, "r") as orf:
+    with open(ribo_file) as orf:
         total_lines = len(["" for line in orf])
-    with open(ribo_file, "r") as orf:
+    with open(ribo_file) as orf:
         with tqdm(total=total_lines) as pbar:
             for line in orf:
                 pbar.update()
@@ -206,15 +229,27 @@ def benchmark(rna_file, ribo_file, prefix, cutoff=5):
             ribo_coh, ribo_valid = phasescore(ribo[ID])
             ribo_cov = ribo_valid / len(ribo[ID])
 
-            to_write += "{}\t{}\t{}\t{}\t{}\n".format(
-                ID, ribo_coh, rna_coh, ribo_cov, rna_cov
-            )
-    with open("{}_results.txt".format(prefix), "w") as output:
+            to_write += f"{ID}\t{ribo_coh}\t{rna_coh}\t{ribo_cov}\t{rna_cov}\n"
+    with open(f"{prefix}_results.txt", "w") as output:
         output.write(to_write)
 
 
-def angle(cov, frame):
-    ans = []
+def angle(cov: list[int], frame: int) -> tuple[list[float], int]:
+    """Compute angles for coverage profile.
+
+    Parameters
+    ----------
+    cov : list[int]
+        Coverage profile.
+    frame : int
+        Frame offset.
+
+    Returns
+    -------
+    tuple[list[float], int]
+        Tuple of (angles, number of zero vectors).
+    """
+    ans: list[float] = []
     nzeros = 0
     cov = cov[frame:]
     i = 0
@@ -233,16 +268,36 @@ def angle(cov, frame):
     return ans, nzeros
 
 
-def theta_dist(rna_file, ribo_file, frame_file, prefix, cutoff=5):
+def theta_dist(
+    rna_file: str,
+    ribo_file: str,
+    frame_file: str,
+    prefix: str,
+    cutoff: int = 5,
+) -> None:
+    """Compute theta distribution from RNA and Ribo profiles.
 
-    rna = {}
-    ribo = {}
-    frame = {}
+    Parameters
+    ----------
+    rna_file : str
+        Path to RNA profile file.
+    ribo_file : str
+        Path to Ribo profile file.
+    frame_file : str
+        Path to frame file.
+    prefix : str
+        Output prefix.
+    cutoff : int, optional
+        Minimum coverage cutoff, by default 5.
+    """
+    rna: dict[str, list[int]] = {}
+    ribo: dict[str, list[int]] = {}
+    frame: dict[str, int] = {}
 
     print("reading frame file")
-    with open(frame_file, "r") as frame_r:
+    with open(frame_file) as frame_r:
         total_lines = len(["" for line in frame_r])
-    with open(frame_file, "r") as frame_r:
+    with open(frame_file) as frame_r:
         with tqdm(total=total_lines) as pbar:
             for line in frame_r:
                 pbar.update()
@@ -250,9 +305,9 @@ def theta_dist(rna_file, ribo_file, frame_file, prefix, cutoff=5):
                 frame[name] = int(frame_n)
 
     print("reading RNA profiles")
-    with open(rna_file, "r") as orf:
+    with open(rna_file) as orf:
         total_lines = len(["" for line in orf])
-    with open(rna_file, "r") as orf:
+    with open(rna_file) as orf:
         with tqdm(total=total_lines) as pbar:
             for line in orf:
                 pbar.update()
@@ -264,9 +319,9 @@ def theta_dist(rna_file, ribo_file, frame_file, prefix, cutoff=5):
                 rna[ID] = cov
 
     print("reading Ribo profiles")
-    with open(ribo_file, "r") as orf:
+    with open(ribo_file) as orf:
         total_lines = len(["" for line in orf])
-    with open(ribo_file, "r") as orf:
+    with open(ribo_file) as orf:
         with tqdm(total=total_lines) as pbar:
             for line in orf:
                 pbar.update()
@@ -302,31 +357,41 @@ def theta_dist(rna_file, ribo_file, frame_file, prefix, cutoff=5):
     mean = total_reads / total_length
     poisson_cov = np.random.poisson(mean, total_length)
     poisson_angles, poisson_zeros = angle(poisson_cov, 0)
-    with open("{}_angle_stats.txt".format(prefix), "w") as output:
-        output.write("total_rna_reads: {}\n".format(total_reads))
-        output.write("total_rna_ccds_length: {}\n".format(total_length))
-        output.write("total_ribo_reads: {}\n".format(total_ribo_reads))
-        output.write("total_ribo_ccds_length: {}\n".format(total_ribo_length))
-        output.write("mean reads: {}\n".format(mean))
-        output.write("rna zero vectors: {}\n".format(rna_zeros))
-        output.write("poisson zero vectors: {}\n".format(poisson_zeros))
-        output.write("ribo zero vectors: {}\n".format(ribo_zeros))
-    with open("{}_rna_angles.txt".format(prefix), "w") as output:
+    with open(f"{prefix}_angle_stats.txt", "w") as output:
+        output.write(f"total_rna_reads: {total_reads}\n")
+        output.write(f"total_rna_ccds_length: {total_length}\n")
+        output.write(f"total_ribo_reads: {total_ribo_reads}\n")
+        output.write(f"total_ribo_ccds_length: {total_ribo_length}\n")
+        output.write(f"mean reads: {mean}\n")
+        output.write(f"rna zero vectors: {rna_zeros}\n")
+        output.write(f"poisson zero vectors: {poisson_zeros}\n")
+        output.write(f"ribo zero vectors: {ribo_zeros}\n")
+    with open(f"{prefix}_rna_angles.txt", "w") as output:
         output.write("\n".join(map(str, rna_angles)))
-    with open("{}_ribo_angles.txt".format(prefix), "w") as output:
+    with open(f"{prefix}_ribo_angles.txt", "w") as output:
         output.write("\n".join(map(str, ribo_angles)))
-    with open("{}_poisson_angles.txt".format(prefix), "w") as output:
+    with open(f"{prefix}_poisson_angles.txt", "w") as output:
         output.write("\n".join(map(str, poisson_angles)))
 
 
-def theta_rna(rna_file, prefix, cutoff=10):
+def theta_rna(rna_file: str, prefix: str, cutoff: int = 10) -> None:
+    """Compute theta distribution from RNA profiles.
 
-    rna = {}
+    Parameters
+    ----------
+    rna_file : str
+        Path to RNA profile file.
+    prefix : str
+        Output prefix.
+    cutoff : int, optional
+        Minimum coverage cutoff, by default 10.
+    """
+    rna: dict[str, list[int]] = {}
 
     print("reading RNA profiles")
-    with open(rna_file, "r") as orf:
+    with open(rna_file) as orf:
         total_lines = len(["" for line in orf])
-    with open(rna_file, "r") as orf:
+    with open(rna_file) as orf:
         with tqdm(total=total_lines) as pbar:
             # Skip header
             orf.readline()
@@ -343,32 +408,47 @@ def theta_rna(rna_file, prefix, cutoff=10):
     rna_angles = []
     for ID in tqdm(list(rna.keys())):
         rna_angles += angle(rna[ID], 0)
-    with open("{}_raw_rna_angles.txt".format(prefix), "w") as output:
+    with open(f"{prefix}_raw_rna_angles.txt", "w") as output:
         output.write("\n".join(map(str, rna_angles)))
 
 
-def _nucleotide_to_codon_profile(profile):
-    """Summarize nucleotid profile to a codon level profile"""
-    if isinstance(profile, str):
-        profile = eval(profile)
-    profile = np.array(profile)
-    codon_profile = np.add.reduceat(profile, range(0, len(profile), 3))
-    return codon_profile
-
-
-def summarize_profile_to_codon_level(detected_orfs, saveto):
-    """Collapse nucleotide level profiles in ribotricer to codon leve.
+def _nucleotide_to_codon_profile(
+    profile: str | list[int],
+) -> NDArray[np.int64]:
+    """Summarize nucleotide profile to a codon level profile.
 
     Parameters
     ----------
-    ribotricer_output: string
-                       Path to ribotricer detect-orfs output
-    saveto: string
-            Path to write output to
+    profile : str | list[int]
+        Nucleotide profile as string or list.
+
+    Returns
+    -------
+    NDArray[np.int64]
+        Codon level profile.
+    """
+    if isinstance(profile, str):
+        profile = eval(profile)
+    profile_arr = np.array(profile)
+    codon_profile: NDArray[np.int64] = np.add.reduceat(
+        profile_arr, range(0, len(profile_arr), 3)
+    )
+    return codon_profile
+
+
+def summarize_profile_to_codon_level(detected_orfs: str, saveto: str) -> None:
+    """Collapse nucleotide level profiles in ribotricer to codon level.
+
+    Parameters
+    ----------
+    detected_orfs : str
+        Path to ribotricer detect-orfs output.
+    saveto : str
+        Path to write output to.
     """
     with open(saveto, "w") as fout:
         fout.write("ORF_ID\tcodon_profile\n")
-        with open(detected_orfs, "r") as fin:
+        with open(detected_orfs) as fin:
             # Skip header
             fin.readline()
             for line in fin:
@@ -381,23 +461,22 @@ def summarize_profile_to_codon_level(detected_orfs, saveto):
                 if profile_stripped[0]:
                     profile = np.array(list(map(int, profile_stripped)))
                 codon_profile = np.add.reduceat(profile, range(0, len(profile), 3))
-                fout.write("{}\t{}\n".format(oid, list(codon_profile)))
+                fout.write(f"{oid}\t{list(codon_profile)}\n")
 
 
-def translate(seq):
-    """Translate a given nucleotide sequence to an amino acid sequence
+def translate(seq: str) -> str:
+    """Translate a given nucleotide sequence to an amino acid sequence.
 
     Parameters
     ----------
-    seq: str
-         Nucleotide seqeunce
+    seq : str
+        Nucleotide sequence.
 
     Returns
     -------
-    protein: str
-             Translated sequence of amino acids
+    str
+        Translated sequence of amino acids.
     """
-
     protein = ""
     if len(seq) % 3 == 0:
         for i in range(0, len(seq), 3):
@@ -406,41 +485,38 @@ def translate(seq):
     return protein
 
 
-def learn_ribotricer_cutoff(roc_input_file):
-    """Learn ribotricer phase score cutoff
+def learn_ribotricer_cutoff(roc_input_file: str) -> tuple[float, float]:
+    """Learn ribotricer phase score cutoff.
 
     Parameters
     ----------
-    roc_input_file: str
-                    Path to ROC file generated using ribotricer benchmark
+    roc_input_file : str
+        Path to ROC file generated using ribotricer benchmark.
 
     Returns
     -------
-    cutoff: float
-            Recommended phase score cutoff
-
-    fscore: float
-            Corresponding F1 score acheived at the determined cutoff
+    tuple[float, float]
+        Tuple of (cutoff, fscore).
     """
-    from sklearn.metrics import precision_recall_fscore_support
     import pandas as pd
+    from sklearn.metrics import precision_recall_fscore_support
 
     data = pd.read_csv(roc_input_file, sep="\t")
     ribotricer_scores = data.ribotricer
     truth = data.truth
-    precision_recall_fscore_support_df = []
+    precision_recall_fscore_support_list: list[list[float]] = []
 
     cutoffs = np.linspace(0, 1, 1000)
 
-    for cutoff in cutoffs:
-        predicted = np.where(ribotricer_scores > cutoff, 1, 0)
+    for cutoff_val in cutoffs:
+        predicted = np.where(ribotricer_scores > cutoff_val, 1, 0)
         s = precision_recall_fscore_support(
             truth, predicted, average="binary", pos_label=1
         )
-        precision_recall_fscore_support_df.append([cutoff] + list(s))
+        precision_recall_fscore_support_list.append([cutoff_val] + list(s))
     precision_recall_fscore_support_df = pd.DataFrame(
-        precision_recall_fscore_support_df,
-        columns=["cutoff", "precision", "recall", "fscore", "cutoff"],
+        precision_recall_fscore_support_list,
+        columns=["cutoff", "precision", "recall", "fscore", "cutoff2"],
     )
     cutoff = precision_recall_fscore_support_df.loc[
         precision_recall_fscore_support_df["fscore"].idxmax()

@@ -1,8 +1,7 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 # Part of ribotricer software
 #
-# Copyright (C) 2020 Saket Choudhary, Wenzheng Li, and Andrew D Smith
+# Copyright (C) 2020-2026 Saket Choudhary, Wenzheng Li, and Andrew D Smith
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -14,44 +13,15 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 
+"""
+Minimal setup.py for backward compatibility.
+
+All package configuration is now in pyproject.toml.
+This file is kept for compatibility with older pip versions
+and editable installs.
+"""
+
 import setuptools
 
-with open("README.md") as readme_file:
-    readme = readme_file.read()
-with open("requirements.txt") as req_file:
-    requirements = req_file.read()
-
-setuptools.setup(
-    name="ribotricer",
-    version="1.4.0",
-    author="Saket Choudhary, Wenzheng Li",
-    author_email="saketkc@gmail.com",
-    maintainer="Saket Choudhary",
-    maintainer_email="saketkc@gmail.com",
-    description="Python package to detect translating ORFs from Ribo-seq data",
-    license="GPLv3",
-    long_description=readme,
-    long_description_content_type="text/markdown",
-    url="https://github.com/smithlabcode/ribotricer",
-    packages=setuptools.find_packages(),
-    entry_points={"console_scripts": ["ribotricer=ribotricer.cli:cli"]},
-    python_requires=">=3.7",
-    install_requires=requirements,
-    classifiers=[
-        "Development Status :: 5 - Production/Stable",
-        "Environment :: Console",
-        "Intended Audience :: Science/Research",
-        "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
-        "Natural Language :: English",
-        "Operating System :: POSIX :: Linux",
-        "Operating System :: MacOS",
-        "Operating System :: Microsoft :: Windows",
-        "Programming Language :: Python :: 3.7",
-        "Programming Language :: Python :: 3.8",
-        "Programming Language :: Python :: 3.9",
-        "Programming Language :: Python :: 3.10",
-        "Programming Language :: Python :: 3.11",
-        "Topic :: Scientific/Engineering :: Bio-Informatics",
-        "Topic :: Utilities",
-    ],
-)
+if __name__ == "__main__":
+    setuptools.setup()

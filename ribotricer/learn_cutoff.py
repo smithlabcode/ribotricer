@@ -2,7 +2,7 @@
 
 # Part of ribotricer software
 #
-# Copyright (C) 2020 Saket Choudhary, Wenzheng Li, and Andrew D Smith
+# Copyright (C) 2020-2026 Saket Choudhary, Wenzheng Li, and Andrew D Smith
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -14,39 +14,50 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 
+from __future__ import annotations
+
 import sys
+
 import numpy as np
 import pandas as pd
-from .common import mkdir_p
-from .common import parent_dir
-from .const import CUTOFF
-from .const import MINIMUM_VALID_CODONS
-from .const import MINIMUM_VALID_CODONS_RATIO
-from .const import MINIMUM_READS_PER_CODON
-from .const import MINIMUM_DENSITY_OVER_ORF
 
+from .common import mkdir_p, parent_dir
+from .const import (
+    CUTOFF,
+    MINIMUM_DENSITY_OVER_ORF,
+    MINIMUM_READS_PER_CODON,
+    MINIMUM_VALID_CODONS,
+    MINIMUM_VALID_CODONS_RATIO,
+)
 from .detect_orfs import detect_orfs
 
 
 def determine_cutoff_tsv(
-    ribo_tsvs, rna_tsvs, filter_by=["protein_coding"], sampling_ratio=0.33, reps=10000
-):
-    """Learn cutoff empirically from ribotricer generated ORF tsvs.
+    ribo_tsvs: list[str],
+    rna_tsvs: list[str],
+    filter_by: list[str] | None = None,
+    sampling_ratio: float = 0.33,
+    reps: int = 10000,
+) -> None:
+    """Learn cutoff empirically from ribotricer generated ORF TSVs.
 
     Parameters
     ----------
-    ribo_tsvs: list
-               List of filepath of ribotricer generated *translating_ORFs.tsv
-               for Ribo-seq samples
-
-    rna_tsvs: list
-               List of filepath of ribotricer generated *translating_ORFs.tsv
-               for RNA-seq samples
-    Returns
-    -------
-    cutoff: float
-            Suggested cutoff
+    ribo_tsvs : list[str]
+        List of filepaths of ribotricer generated *translating_ORFs.tsv
+        for Ribo-seq samples.
+    rna_tsvs : list[str]
+        List of filepaths of ribotricer generated *translating_ORFs.tsv
+        for RNA-seq samples.
+    filter_by : list[str] | None, optional
+        Transcript types to filter by, by default ['protein_coding'].
+    sampling_ratio : float, optional
+        Sampling ratio, by default 0.33.
+    reps : int, optional
+        Number of replicates, by default 10000.
     """
+    if filter_by is None:
+        filter_by = ["protein_coding"]
     ribo_df = pd.DataFrame()
     for tsv in ribo_tsvs:
         df = pd.read_csv(
@@ -65,7 +76,7 @@ def determine_cutoff_tsv(
         )
         rna_df = pd.concat([rna_df, df])
 
-    filter_by = list(map(lambda x: x.lower(), filter_by))
+    filter_by = [x.lower() for x in filter_by]
 
     ribo_df_filtered = ribo_df.loc[ribo_df.ORF_type == "annotated"]
     ribo_df_filtered = ribo_df_filtered.loc[
@@ -111,69 +122,84 @@ def determine_cutoff_tsv(
     diff_all_mean = np.mean(diff_all)
     diff_all_std = np.std(diff_all)
 
-    print("sampling_ratio: {}".format(sampling_ratio))
-    print("n_samples: {}".format(reps))
+    print(f"sampling_ratio: {sampling_ratio}")
+    print(f"n_samples: {reps}")
 
-    print("ribo_phase_score_mean: {:.3f}".format(ribo_phase_score_mean))
-    print("ribo_phase_score_median: {:.3f}".format(ribo_phase_score_median))
-    print("ribo_phase_score_sd: {:.3f}".format(ribo_phase_score_sd))
+    print(f"ribo_phase_score_mean: {ribo_phase_score_mean:.3f}")
+    print(f"ribo_phase_score_median: {ribo_phase_score_median:.3f}")
+    print(f"ribo_phase_score_sd: {ribo_phase_score_sd:.3f}")
 
-    print("rna_phase_score_mean: {:.3f}".format(rna_phase_score_mean))
-    print("rna_phase_score_median: {:.3f}".format(rna_phase_score_median))
-    print("rna_phase_score_sd: {:.3f}".format(rna_phase_score_sd))
+    print(f"rna_phase_score_mean: {rna_phase_score_mean:.3f}")
+    print(f"rna_phase_score_median: {rna_phase_score_median:.3f}")
+    print(f"rna_phase_score_sd: {rna_phase_score_sd:.3f}")
 
-    print("diff_phase_score_sampled_mean: {:.3f}".format(diff_phase_score_mean))
-    print("diff_phase_score_sampled_median: {:.3f}".format(diff_phase_score_median))
-    print("diff_phase_score_sampled_sd: {:.3f}".format(diff_phase_score_sd))
+    print(f"diff_phase_score_sampled_mean: {diff_phase_score_mean:.3f}")
+    print(f"diff_phase_score_sampled_median: {diff_phase_score_median:.3f}")
+    print(f"diff_phase_score_sampled_sd: {diff_phase_score_sd:.3f}")
 
-    print("diff_phase_score_all_mean: {:.3f}".format(diff_all_mean))
-    print("diff_phase_score_all_median: {:.3f}".format(diff_all_median))
-    print("diff_phase_score_all_sd: {:.3f}".format(diff_all_std))
+    print(f"diff_phase_score_all_mean: {diff_all_mean:.3f}")
+    print(f"diff_phase_score_all_median: {diff_all_median:.3f}")
+    print(f"diff_phase_score_all_sd: {diff_all_std:.3f}")
 
-    print("recommended_cutoff: {:.3f}".format(diff_phase_score_median))
+    print(f"recommended_cutoff: {diff_phase_score_median:.3f}")
 
 
 def determine_cutoff_bam(
-    ribo_bams,
-    rna_bams,
-    ribotricer_index,
-    prefix,
-    ribo_stranded_protocols=[],
-    rna_stranded_protocols=[],
-    filter_by=["protein_coding"],
-    sampling_ratio=0.33,
-    reps=10000,
-    phase_score_cutoff=CUTOFF,
-    min_valid_codons=MINIMUM_VALID_CODONS,
-    report_all=True,
-):
-    """Learn cutoff emprically from the given data.
+    ribo_bams: list[str],
+    rna_bams: list[str],
+    ribotricer_index: str,
+    prefix: str,
+    ribo_stranded_protocols: list[str | None] | None = None,
+    rna_stranded_protocols: list[str | None] | None = None,
+    filter_by: list[str] | None = None,
+    sampling_ratio: float = 0.33,
+    reps: int = 10000,
+    phase_score_cutoff: float = CUTOFF,
+    min_valid_codons: int = MINIMUM_VALID_CODONS,
+    report_all: bool = True,
+) -> None:
+    """Learn cutoff empirically from the given data.
 
     This uses the following steps:
 
     1. Run ribotricer using a cutoff of 0 for both RNA and Ribo samples
-    2. For each output of ribotricer, find the median difference between RNA and Ribo-seq
-    phase scores using the protein_coding annotated regions in the output.
+    2. For each output of ribotricer, find the median difference between RNA
+       and Ribo-seq phase scores using the protein_coding annotated regions
+       in the output.
 
     Parameters
     ----------
-    ribo_bams: list
-               List of filepaths to Ribo-seq bams
-
-    rna_bams: list
-              List of filepaths to RNA-seq bams
-
-    ribo_stranded_protocols: list
-                             List of 'yes/no/reverse'
-    rna_stranded_protocols: list
-                             List of 'yes/no/reverse'
-
-
-    Returns
-    -------
-    cutoff: float
-            Suggested cutoff
+    ribo_bams : list[str]
+        List of filepaths to Ribo-seq BAMs.
+    rna_bams : list[str]
+        List of filepaths to RNA-seq BAMs.
+    ribotricer_index : str
+        Path to ribotricer index file.
+    prefix : str
+        Output prefix.
+    ribo_stranded_protocols : list[str | None] | None, optional
+        List of 'yes/no/reverse', by default None.
+    rna_stranded_protocols : list[str | None] | None, optional
+        List of 'yes/no/reverse', by default None.
+    filter_by : list[str] | None, optional
+        Transcript types to filter by, by default ['protein_coding'].
+    sampling_ratio : float, optional
+        Sampling ratio, by default 0.33.
+    reps : int, optional
+        Number of replicates, by default 10000.
+    phase_score_cutoff : float, optional
+        Phase score cutoff, by default CUTOFF.
+    min_valid_codons : int, optional
+        Minimum valid codons, by default MINIMUM_VALID_CODONS.
+    report_all : bool, optional
+        Whether to report all ORFs, by default True.
     """
+    if ribo_stranded_protocols is None:
+        ribo_stranded_protocols = []
+    if rna_stranded_protocols is None:
+        rna_stranded_protocols = []
+    if filter_by is None:
+        filter_by = ["protein_coding"]
     if len(ribo_stranded_protocols) > 1:
         if len(ribo_stranded_protocols) != len(ribo_bams):
             sys.exit("Error: Ribo-seq protocol and bam file length mismatch")
@@ -189,22 +215,18 @@ def determine_cutoff_bam(
     sample_str = "samples"
     if len(rna_bams) == 1:
         sample_str = "sample"
-    print(
-        "Running ribotricer on {} Ribo-seq {} ..... \n".format(
-            len(rna_bams), sample_str
-        )
-    )
+    print(f"Running ribotricer on {len(rna_bams)} Ribo-seq {sample_str} ..... \n")
     ribo_bams_renamed = dict(
-        zip(ribo_bams, ["ribo_bam_{}".format(i + 1) for i in range(len(ribo_bams))])
+        zip(ribo_bams, [f"ribo_bam_{i + 1}" for i in range(len(ribo_bams))])
     )
     rna_bams_renamed = dict(
-        zip(rna_bams, ["rna_bam_{}".format(i + 1) for i in range(len(rna_bams))])
+        zip(rna_bams, [f"rna_bam_{i + 1}" for i in range(len(rna_bams))])
     )
 
     rna_tsvs = []
     ribo_tsvs = []
     for bam, stranded in zip(ribo_bams, ribo_stranded_protocols):
-        bam_prefix = "{}__{}".format(prefix, ribo_bams_renamed[bam])
+        bam_prefix = f"{prefix}__{ribo_bams_renamed[bam]}"
         mkdir_p(parent_dir(bam_prefix))
         detect_orfs(
             bam,
@@ -220,12 +242,10 @@ def determine_cutoff_bam(
             min_density_over_orf=MINIMUM_DENSITY_OVER_ORF,
             report_all=report_all,
         )
-        ribo_tsvs.append("{}_translating_ORFs.tsv".format(bam_prefix))
-    print(
-        "Running ribotricer on {} RNA-seq {} ..... \n".format(len(rna_bams), sample_str)
-    )
+        ribo_tsvs.append(f"{bam_prefix}_translating_ORFs.tsv")
+    print(f"Running ribotricer on {len(rna_bams)} RNA-seq {sample_str} ..... \n")
     for bam, stranded in zip(rna_bams, rna_stranded_protocols):
-        bam_prefix = "{}__{}".format(prefix, rna_bams_renamed[bam])
+        bam_prefix = f"{prefix}__{rna_bams_renamed[bam]}"
         mkdir_p(parent_dir(bam_prefix))
         detect_orfs(
             bam,
@@ -241,5 +261,5 @@ def determine_cutoff_bam(
             min_density_over_orf=MINIMUM_DENSITY_OVER_ORF,
             report_all=report_all,
         )
-        rna_tsvs.append("{}_translating_ORFs.tsv".format(bam_prefix))
+        rna_tsvs.append(f"{bam_prefix}_translating_ORFs.tsv")
     determine_cutoff_tsv(ribo_tsvs, rna_tsvs, filter_by, sampling_ratio, reps)

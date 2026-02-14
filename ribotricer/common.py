@@ -2,7 +2,7 @@
 
 # Part of ribotricer software
 #
-# Copyright (C) 2020 Saket Choudhary, Wenzheng Li, and Andrew D Smith
+# Copyright (C) 2020-2026 Saket Choudhary, Wenzheng Li, and Andrew D Smith
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -14,23 +14,37 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 
+from __future__ import annotations
+
 import ntpath
 import pathlib
 import sys
+from typing import TYPE_CHECKING
+
 from .interval import Interval
 
+if TYPE_CHECKING:
+    import pysam
+
 # Source: https://broadinstitute.github.io/picard/explain-flags.html
-__SAM_NOT_UNIQ_FLAGS__ = [4, 20, 256, 272, 2048]
+__SAM_NOT_UNIQ_FLAGS__: list[int] = [4, 20, 256, 272, 2048]
 
 
-def is_read_uniq_mapping(read):
+def is_read_uniq_mapping(read: pysam.AlignedSegment) -> bool | None:
     """Check if read is uniquely mappable.
 
     Parameters
     ----------
-    read : pysam.Alignment.fetch object
+    read : pysam.AlignedSegment
+        A pysam alignment object.
 
+    Returns
+    -------
+    bool | None
+        True if uniquely mapping, False if not, None if unable to determine.
 
+    Notes
+    -----
     Most reliable: ['NH'] tag
     """
     # Filter out secondary alignments
@@ -44,10 +58,7 @@ def is_read_uniq_mapping(read):
         # Reliable in case of STAR
         if read.mapping_quality == 255:
             return True
-        elif read.mapping_quality < 1:
-            return False
-        # NH tag not set so rely on flags
-        elif read.flag in __SAM_NOT_UNIQ_FLAGS__:
+        elif read.mapping_quality < 1 or read.flag in __SAM_NOT_UNIQ_FLAGS__:
             return False
         else:
             sys.stdout.write(
@@ -55,22 +66,24 @@ def is_read_uniq_mapping(read):
                 "determining multimapping status. All the reads will be "
                 "treated as uniquely mapping\n"
             )
+            return None
 
 
-def merge_intervals(intervals):
-    """
+def merge_intervals(intervals: list[Interval]) -> list[Interval]:
+    """Merge overlapping intervals.
+
     Parameters
     ----------
-    intervals: List[Interval]
+    intervals : list[Interval]
+        List of intervals to merge.
 
     Returns
     -------
-    merged_intervals: List[Interval]
-                      sorted and merged intervals
+    list[Interval]
+        Sorted and merged intervals.
     """
-
     intervals = sorted(intervals, key=lambda x: x.start)
-    merged_intervals = []
+    merged_intervals: list[Interval] = []
     i = 0
     while i < len(intervals):
         to_merge = Interval(
@@ -87,44 +100,79 @@ def merge_intervals(intervals):
     return merged_intervals
 
 
-def mkdir_p(path):
+def mkdir_p(path: str) -> None:
     """Make directory even if it exists.
 
     Parameters
     ----------
-    path: str
+    path : str
+        Path to directory to create.
     """
     pathlib.Path(path).mkdir(parents=True, exist_ok=True)
 
 
-def path_leaf(path):
-    """Get path's tail from a filepath"""
+def path_leaf(path: str) -> str:
+    """Get path's tail from a filepath.
+
+    Parameters
+    ----------
+    path : str
+        File path.
+
+    Returns
+    -------
+    str
+        The tail (filename) portion of the path.
+    """
     head, tail = ntpath.split(path)
     return tail or ntpath.basename(head)
 
 
-def parent_dir(path):
-    """Get path's tail from a filepath"""
+def parent_dir(path: str) -> str:
+    """Get path's parent directory from a filepath.
+
+    Parameters
+    ----------
+    path : str
+        File path.
+
+    Returns
+    -------
+    str
+        The parent directory portion of the path.
+    """
     head, tail = ntpath.split(path)
     return head
 
 
-def _clean_input(comma_string):
-    """Clean comma separated option inputs in CLI"""
-    return list(map(lambda term: term.strip(" "), comma_string.split(",")))
+def _clean_input(comma_string: str) -> list[str]:
+    """Clean comma separated option inputs in CLI.
+
+    Parameters
+    ----------
+    comma_string : str
+        Comma-separated string of values.
+
+    Returns
+    -------
+    list[str]
+        List of stripped string values.
+    """
+    return [term.strip(" ") for term in comma_string.split(",")]
 
 
-def collapse_coverage_to_codon(coverage):
+def collapse_coverage_to_codon(coverage: list[int]) -> list[int]:
     """Collapse nucleotide level coverage to codon level.
 
     Parameters
     ----------
-    coverage: list
-              Nucleotide level counts
+    coverage : list[int]
+        Nucleotide level counts.
+
     Returns
     -------
-    codon_coverage: list
-                    Coverage collapsed to codon level
+    list[int]
+        Coverage collapsed to codon level.
     """
     codon_coverage = [
         sum(coverage[current : current + 3]) for current in range(0, len(coverage), 3)

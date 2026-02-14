@@ -2,7 +2,7 @@
 
 # Part of ribotricer software
 #
-# Copyright (C) 2020 Saket Choudhary, Wenzheng Li, and Andrew D Smith
+# Copyright (C) 2020-2026 Saket Choudhary, Wenzheng Li, and Andrew D Smith
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -14,56 +14,59 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 
-from math import sin, cos, pi, sqrt
+from __future__ import annotations
+
 import warnings
+from collections.abc import Sequence
+from math import cos, pi, sin, sqrt
 
 import numpy as np
-from scipy import stats
-from scipy import signal
+from numpy.typing import ArrayLike
+from scipy import signal, stats
 
 
-def pvalue(x, N):
-    """Calculate p-value for phase score
+def pvalue(x: float, N: int) -> float:
+    """Calculate p-value for phase score.
 
     Parameters
     ----------
-    x: double
-       phase score
-    N: int
-       number of valid codons
+    x : float
+        Phase score.
+    N : int
+        Number of valid codons.
 
     Returns
     -------
-    pval: double
-          p-value for the phase score
+    float
+        P-value for the phase score.
     """
     df, nc = 2, 2.0 / (N - 1)
     x = 2 * N**2 * x / (N - 1)
-    return stats.ncx2.sf(x, df, nc)
+    return float(stats.ncx2.sf(x, df, nc))
 
 
-def phasescore(original_values):
+def phasescore(original_values: Sequence[float] | ArrayLike) -> tuple[float, int]:
     """Calculate phase score of a given signal.
 
     Parameters
     ----------
-    values : array like
-             List of value
+    original_values : Sequence[float] | ArrayLike
+        List of coverage values.
 
     Returns
     -------
-    coh : float
-          Periodicity score calculated as
-          coherence between input and idea 1-0-0 signal
-
-    valid: int
-           number of valid codons used for calculation
-
+    tuple[float, int]
+        Tuple of (periodicity_score, valid_codons).
+        - coh: Periodicity score calculated as coherence between
+          input and ideal 1-0-0 signal.
+        - valid: Number of valid codons used for calculation.
     """
-    coh, valid = 0.0, -1
+    coh: float = 0.0
+    valid: int = -1
+
     for frame in [0, 1, 2]:
-        values = original_values[frame:]
-        normalized_values = []
+        values = list(original_values)[frame:]
+        normalized_values: list[float] = []
         i = 0
         while i + 2 < len(values):
             if values[i] == values[i + 1] == values[i + 2] == 0:
@@ -91,12 +94,12 @@ def phasescore(original_values):
         if length == 0:
             coh, valid = (0.0, 0)
         else:
-            normalized_values = np.array(normalized_values[:length])
+            normalized_arr = np.array(normalized_values[:length])
             uniform_signal = np.array([1, 0, 0] * (len(normalized_values) // 3))
             with warnings.catch_warnings():
                 warnings.simplefilter("ignore")
                 f, Cxy = signal.coherence(
-                    normalized_values,
+                    normalized_arr,
                     uniform_signal,
                     window=np.array([1.0, 1.0, 1.0]),
                     nperseg=3,
@@ -108,4 +111,5 @@ def phasescore(original_values):
                     valid = length // 3
                 if valid == -1:
                     valid = length // 3
+
     return np.sqrt(coh), valid

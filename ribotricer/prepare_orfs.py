@@ -2,7 +2,7 @@
 
 # Part of ribotricer software
 #
-# Copyright (C) 2020 Saket Choudhary, Wenzheng Li, and Andrew D Smith
+# Copyright (C) 2020-2026 Saket Choudhary, Wenzheng Li, and Andrew D Smith
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -14,41 +14,47 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 
-from collections import defaultdict
+from __future__ import annotations
+
 import datetime
 import re
-
-from .common import merge_intervals
-from .fasta import FastaReader
-from .gtf import GTFReader
-from .interval import Interval
-from .orf import ORF
+from collections import defaultdict
 
 from tqdm.autonotebook import tqdm
 
+from .common import merge_intervals
+from .fasta import FastaReader
+from .gtf import GTFReader, GTFTrack
+from .interval import Interval
+from .orf import ORF
+
 tqdm.pandas()
 
+# Type alias for CDS ORF dictionary
+CDSOrfs = defaultdict[str, defaultdict[str, ORF]]
 
-def tracks_to_ivs(tracks):
-    """
+
+def tracks_to_ivs(tracks: list[GTFTrack]) -> list[Interval]:
+    """Convert GTF tracks to intervals.
+
     Parameters
     ----------
-    tracks: List[GTFTrack]
-            list of gtf tracks
+    tracks : list[GTFTrack]
+        List of GTF tracks.
 
     Returns
     -------
-    intervals: List[Interval]
-               list of Interval
+    list[Interval]
+        List of Interval objects.
     """
-    chrom = {track.chrom for track in tracks}
-    strand = {track.strand for track in tracks}
-    if len(chrom) != 1 or len(strand) != 1:
+    chrom_set = {track.chrom for track in tracks}
+    strand_set = {track.strand for track in tracks}
+    if len(chrom_set) != 1 or len(strand_set) != 1:
         print("fail to fetch seq: inconsistent chrom or strand")
-        intervals = []
+        intervals: list[Interval] = []
     else:
-        chrom = list(chrom)[0]
-        strand = list(strand)[0]
+        chrom = list(chrom_set)[0]
+        strand = list(strand_set)[0]
         intervals = [
             Interval(chrom, track.start, track.end, strand) for track in tracks
         ]
@@ -56,33 +62,36 @@ def tracks_to_ivs(tracks):
     return intervals
 
 
-def transcript_to_genome_iv(start, end, intervals, reverse=False):
-    """
+def transcript_to_genome_iv(
+    start: int,
+    end: int,
+    intervals: list[Interval],
+    reverse: bool = False,
+) -> list[Interval]:
+    """Convert transcript coordinates to genome coordinates.
+
     Parameters
     ----------
-    start: int
-           start position in transcript
-           0-based closed
-    end: int
-         end position in transcript
-         0-based closed
-    intervals: List[Interval]
-               coordinate in genome
-               1-based closed
-    reverse: bool
-             whether if it is on the reverse strand
+    start : int
+        Start position in transcript (0-based closed).
+    end : int
+        End position in transcript (0-based closed).
+    intervals : list[Interval]
+        Coordinate in genome (1-based closed).
+    reverse : bool, optional
+        Whether on the reverse strand, by default False.
 
     Returns
     -------
-    ivs: List[Interval]
-         the coordinate for start, end in genome
+    list[Interval]
+        The coordinate for start, end in genome.
     """
     total_len = sum(i.end - i.start + 1 for i in intervals)
     if reverse:
         start, end = total_len - end - 1, total_len - start - 1
-    ivs = []
-    start_genome = None
-    end_genome = None
+    ivs: list[Interval] = []
+    start_genome: int | None = None
+    end_genome: int | None = None
 
     # find start in genome
     cur = 0
@@ -111,19 +120,20 @@ def transcript_to_genome_iv(start, end, intervals, reverse=False):
     return ivs
 
 
-def fetch_seq(fasta, tracks):
-    """
+def fetch_seq(fasta: FastaReader | str, tracks: list[GTFTrack]) -> str:
+    """Fetch sequence for GTF tracks.
+
     Parameters
     ----------
-    fasta: FastaReader
-           instance of FastaReader
-    tracks: List[GTFTrack]
-            list of gtf track
+    fasta : FastaReader | str
+        Instance of FastaReader or path to FASTA file.
+    tracks : list[GTFTrack]
+        List of GTF tracks.
 
     Returns
     -------
-    merged_seq: str
-                combined seqeunce for the region
+    str
+        Combined sequence for the region.
     """
     intervals = tracks_to_ivs(tracks)
     if not isinstance(fasta, FastaReader):
@@ -136,32 +146,36 @@ def fetch_seq(fasta, tracks):
     return merged_seq
 
 
-def search_orfs(fasta, intervals, min_orf_length, start_codons, stop_codons, longest):
-    """
+def search_orfs(
+    fasta: FastaReader | str,
+    intervals: list[Interval],
+    min_orf_length: int,
+    start_codons: set[str],
+    stop_codons: set[str],
+    longest: bool,
+) -> list[tuple[list[Interval], str, str, str]]:
+    """Search for ORFs in intervals.
+
     Parameters
     ----------
-    fasta: FastaReader
-           instance of FastaReader
-    intervals: List[Interval]
-               list of intervals
-    min_orf_length: int
-                    minimum length (nts) of ORF to include
-    start_codons: set
-                  set of start codons
-    stop_codons: set
-                 set of stop codons
-    longest: bool
-             whether to choose the most upstream start codon when multiple in
-             frame ones exist
+    fasta : FastaReader | str
+        Instance of FastaReader or path to FASTA file.
+    intervals : list[Interval]
+        List of intervals.
+    min_orf_length : int
+        Minimum length (nts) of ORF to include.
+    start_codons : set[str]
+        Set of start codons.
+    stop_codons : set[str]
+        Set of stop codons.
+    longest : bool
+        Whether to choose the most upstream start codon when multiple
+        in-frame ones exist.
 
     Returns
     -------
-    orfs: list
-          list of (List[Interval], seq, leader, trailer)
-            list of intervals for candidate ORF
-            seq: sequence for the candidate ORF
-            leader: sequence upstream of the ORF
-            trailer: sequence downstream of the ORF
+    list[tuple[list[Interval], str, str, str]]
+        List of (intervals, seq, leader, trailer) tuples.
     """
     if not intervals:
         return []
@@ -215,22 +229,24 @@ def search_orfs(fasta, intervals, min_orf_length, start_codons, stop_codons, lon
     return orfs
 
 
-def check_orf_type(orf, cds_orfs):
-    """
+def check_orf_type(orf: ORF, cds_orfs: CDSOrfs) -> str:
+    """Determine the ORF type relative to annotated CDS.
+
     Parameters
     ----------
-    orf: GTFReader
-         instance of GTFReader
-    cds_orfs: FastaReader
-           instance of FastaReader
+    orf : ORF
+        Instance of ORF.
+    cds_orfs : CDSOrfs
+        Dictionary of annotated CDS ORFs.
 
     Returns
     -------
-    otype: str
-           Type of the candidate ORF
+    str
+        Type of the candidate ORF.
 
-    This method uses a fail-fast strategy
-    and hence multiple returns.
+    Notes
+    -----
+    This method uses a fail-fast strategy and hence multiple returns.
     """
     if orf.gid not in cds_orfs:
         return "novel"
@@ -260,26 +276,33 @@ def check_orf_type(orf, cds_orfs):
 
 
 def prepare_orfs(
-    gtf, fasta, prefix, min_orf_length, start_codons, stop_codons, longest
-):
-    """
+    gtf: GTFReader | str,
+    fasta: FastaReader | str,
+    prefix: str,
+    min_orf_length: int,
+    start_codons: set[str],
+    stop_codons: set[str],
+    longest: bool,
+) -> None:
+    """Prepare candidate ORFs from GTF and FASTA files.
+
     Parameters
     ----------
-    gtf: GTFReader
-         instance of GTFReader
-    fasta: FastaReader
-           instance of FastaReader
-    prefix: str
-            prefix for output file
-    min_orf_length: int
-                    minimum length (nts) of ORF to include
-    start_codons: set
-                  set of start codons
-    stop_codons: set
-                 set of stop codons
-    longest: bool
-             whether to choose the most upstream start codon when multiple in
-             frame ones exist
+    gtf : GTFReader | str
+        Instance of GTFReader or path to GTF file.
+    fasta : FastaReader | str
+        Instance of FastaReader or path to FASTA file.
+    prefix : str
+        Prefix for output file.
+    min_orf_length : int
+        Minimum length (nts) of ORF to include.
+    start_codons : set[str]
+        Set of start codons.
+    stop_codons : set[str]
+        Set of stop codons.
+    longest : bool
+        Whether to choose the most upstream start codon when multiple
+        in-frame ones exist.
     """
 
     now = datetime.datetime.now()
@@ -361,9 +384,7 @@ def prepare_orfs(
     to_write = "\t".join(columns)
     formatter = "{}\t" * (len(columns) - 1) + "{}\n"
     for orf in tqdm(candidate_orfs, unit="ORFs"):
-        coordinate = ",".join(
-            ["{}-{}".format(iv.start, iv.end) for iv in orf.intervals]
-        )
+        coordinate = ",".join([f"{iv.start}-{iv.end}" for iv in orf.intervals])
         if orf.start_codon in start_codons:
             to_write += formatter.format(
                 orf.oid,
@@ -379,7 +400,7 @@ def prepare_orfs(
                 coordinate,
             )
 
-    with open("{}_candidate_orfs.tsv".format(prefix), "w") as output:
+    with open(f"{prefix}_candidate_orfs.tsv", "w") as output:
         output.write(to_write)
     now = datetime.datetime.now()
     print(now.strftime("%b %d %H:%M:%S ... finished ribotricer prepare-orfs"))
