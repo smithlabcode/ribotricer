@@ -1,3 +1,11 @@
+# v1.5.0 (2025-02-14)
+
+- Modernized packaging with `pyproject.toml` (PEP 517/518 compliant)
+- Dropped support for Python 3.7 and 3.8 (end of life)
+- Added support for Python 3.13
+- Added type checking
+- Default to sans-serif fonts for plotting 
+
 # v1.4.0 (2024-04-14)
 
 - Added `meta_min_reads` parameter to control minimum coverage for metagene plots ([#155](https://github.com/smithlabcode/ribotricer/pull/155))

@@ -14,15 +14,20 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 
+from __future__ import annotations
+
 from collections import defaultdict
-from .statistics import phasescore
+from typing import Final
 
 import numpy as np
+from numpy.typing import NDArray
 from tqdm.autonotebook import tqdm
+
+from .statistics import phasescore
 
 tqdm.pandas()
 
-CODON_TO_AA = {
+CODON_TO_AA: Final[dict[str, str]] = {
     "ATA": "I",
     "ATC": "I",
     "ATT": "I",
@@ -90,16 +95,17 @@ CODON_TO_AA = {
 }
 
 
-def parse_ccds(annotation, orfs, saveto):
-    """
+def parse_ccds(annotation: str, orfs: str, saveto: str) -> None:
+    """Parse CCDS annotations.
+
     Parameters
     ----------
-    annotation: str
-                Path for annotation files of candidate ORFs
-    orfs: str
-          Path for translating ORFs
-    saveto: str
-          output file name
+    annotation : str
+        Path for annotation files of candidate ORFs.
+    orfs : str
+        Path for translating ORFs.
+    saveto : str
+        Output file name.
     """
     anno_oids = []
     real_oids = []
@@ -164,10 +170,27 @@ def parse_ccds(annotation, orfs, saveto):
         output.write(to_write)
 
 
-def benchmark(rna_file, ribo_file, prefix, cutoff=5):
+def benchmark(
+    rna_file: str,
+    ribo_file: str,
+    prefix: str,
+    cutoff: int = 5,
+) -> None:
+    """Benchmark RNA vs Ribo profiles.
 
-    rna = {}
-    ribo = {}
+    Parameters
+    ----------
+    rna_file : str
+        Path to RNA profile file.
+    ribo_file : str
+        Path to Ribo profile file.
+    prefix : str
+        Output prefix.
+    cutoff : int, optional
+        Minimum coverage cutoff, by default 5.
+    """
+    rna: dict[str, list[int]] = {}
+    ribo: dict[str, list[int]] = {}
 
     print("reading RNA profiles")
     with open(rna_file, "r") as orf:
@@ -213,8 +236,22 @@ def benchmark(rna_file, ribo_file, prefix, cutoff=5):
         output.write(to_write)
 
 
-def angle(cov, frame):
-    ans = []
+def angle(cov: list[int], frame: int) -> tuple[list[float], int]:
+    """Compute angles for coverage profile.
+
+    Parameters
+    ----------
+    cov : list[int]
+        Coverage profile.
+    frame : int
+        Frame offset.
+
+    Returns
+    -------
+    tuple[list[float], int]
+        Tuple of (angles, number of zero vectors).
+    """
+    ans: list[float] = []
     nzeros = 0
     cov = cov[frame:]
     i = 0
@@ -233,11 +270,31 @@ def angle(cov, frame):
     return ans, nzeros
 
 
-def theta_dist(rna_file, ribo_file, frame_file, prefix, cutoff=5):
+def theta_dist(
+    rna_file: str,
+    ribo_file: str,
+    frame_file: str,
+    prefix: str,
+    cutoff: int = 5,
+) -> None:
+    """Compute theta distribution from RNA and Ribo profiles.
 
-    rna = {}
-    ribo = {}
-    frame = {}
+    Parameters
+    ----------
+    rna_file : str
+        Path to RNA profile file.
+    ribo_file : str
+        Path to Ribo profile file.
+    frame_file : str
+        Path to frame file.
+    prefix : str
+        Output prefix.
+    cutoff : int, optional
+        Minimum coverage cutoff, by default 5.
+    """
+    rna: dict[str, list[int]] = {}
+    ribo: dict[str, list[int]] = {}
+    frame: dict[str, int] = {}
 
     print("reading frame file")
     with open(frame_file, "r") as frame_r:
@@ -319,9 +376,19 @@ def theta_dist(rna_file, ribo_file, frame_file, prefix, cutoff=5):
         output.write("\n".join(map(str, poisson_angles)))
 
 
-def theta_rna(rna_file, prefix, cutoff=10):
+def theta_rna(rna_file: str, prefix: str, cutoff: int = 10) -> None:
+    """Compute theta distribution from RNA profiles.
 
-    rna = {}
+    Parameters
+    ----------
+    rna_file : str
+        Path to RNA profile file.
+    prefix : str
+        Output prefix.
+    cutoff : int, optional
+        Minimum coverage cutoff, by default 10.
+    """
+    rna: dict[str, list[int]] = {}
 
     print("reading RNA profiles")
     with open(rna_file, "r") as orf:
@@ -347,24 +414,39 @@ def theta_rna(rna_file, prefix, cutoff=10):
         output.write("\n".join(map(str, rna_angles)))
 
 
-def _nucleotide_to_codon_profile(profile):
-    """Summarize nucleotid profile to a codon level profile"""
-    if isinstance(profile, str):
-        profile = eval(profile)
-    profile = np.array(profile)
-    codon_profile = np.add.reduceat(profile, range(0, len(profile), 3))
-    return codon_profile
-
-
-def summarize_profile_to_codon_level(detected_orfs, saveto):
-    """Collapse nucleotide level profiles in ribotricer to codon leve.
+def _nucleotide_to_codon_profile(
+    profile: str | list[int],
+) -> NDArray[np.int64]:
+    """Summarize nucleotide profile to a codon level profile.
 
     Parameters
     ----------
-    ribotricer_output: string
-                       Path to ribotricer detect-orfs output
-    saveto: string
-            Path to write output to
+    profile : str | list[int]
+        Nucleotide profile as string or list.
+
+    Returns
+    -------
+    NDArray[np.int64]
+        Codon level profile.
+    """
+    if isinstance(profile, str):
+        profile = eval(profile)
+    profile_arr = np.array(profile)
+    codon_profile: NDArray[np.int64] = np.add.reduceat(
+        profile_arr, range(0, len(profile_arr), 3)
+    )
+    return codon_profile
+
+
+def summarize_profile_to_codon_level(detected_orfs: str, saveto: str) -> None:
+    """Collapse nucleotide level profiles in ribotricer to codon level.
+
+    Parameters
+    ----------
+    detected_orfs : str
+        Path to ribotricer detect-orfs output.
+    saveto : str
+        Path to write output to.
     """
     with open(saveto, "w") as fout:
         fout.write("ORF_ID\tcodon_profile\n")
@@ -384,20 +466,19 @@ def summarize_profile_to_codon_level(detected_orfs, saveto):
                 fout.write("{}\t{}\n".format(oid, list(codon_profile)))
 
 
-def translate(seq):
-    """Translate a given nucleotide sequence to an amino acid sequence
+def translate(seq: str) -> str:
+    """Translate a given nucleotide sequence to an amino acid sequence.
 
     Parameters
     ----------
-    seq: str
-         Nucleotide seqeunce
+    seq : str
+        Nucleotide sequence.
 
     Returns
     -------
-    protein: str
-             Translated sequence of amino acids
+    str
+        Translated sequence of amino acids.
     """
-
     protein = ""
     if len(seq) % 3 == 0:
         for i in range(0, len(seq), 3):
@@ -406,41 +487,37 @@ def translate(seq):
     return protein
 
 
-def learn_ribotricer_cutoff(roc_input_file):
-    """Learn ribotricer phase score cutoff
+def learn_ribotricer_cutoff(roc_input_file: str) -> tuple[float, float]:
+    """Learn ribotricer phase score cutoff.
 
     Parameters
     ----------
-    roc_input_file: str
-                    Path to ROC file generated using ribotricer benchmark
+    roc_input_file : str
+        Path to ROC file generated using ribotricer benchmark.
 
     Returns
     -------
-    cutoff: float
-            Recommended phase score cutoff
-
-    fscore: float
-            Corresponding F1 score acheived at the determined cutoff
+    tuple[float, float]
+        Tuple of (cutoff, fscore).
     """
     from sklearn.metrics import precision_recall_fscore_support
-    import pandas as pd
 
     data = pd.read_csv(roc_input_file, sep="\t")
     ribotricer_scores = data.ribotricer
     truth = data.truth
-    precision_recall_fscore_support_df = []
+    precision_recall_fscore_support_list: list[list[float]] = []
 
     cutoffs = np.linspace(0, 1, 1000)
 
-    for cutoff in cutoffs:
-        predicted = np.where(ribotricer_scores > cutoff, 1, 0)
+    for cutoff_val in cutoffs:
+        predicted = np.where(ribotricer_scores > cutoff_val, 1, 0)
         s = precision_recall_fscore_support(
             truth, predicted, average="binary", pos_label=1
         )
-        precision_recall_fscore_support_df.append([cutoff] + list(s))
+        precision_recall_fscore_support_list.append([cutoff_val] + list(s))
     precision_recall_fscore_support_df = pd.DataFrame(
-        precision_recall_fscore_support_df,
-        columns=["cutoff", "precision", "recall", "fscore", "cutoff"],
+        precision_recall_fscore_support_list,
+        columns=["cutoff", "precision", "recall", "fscore", "cutoff2"],
     )
     cutoff = precision_recall_fscore_support_df.loc[
         precision_recall_fscore_support_df["fscore"].idxmax()

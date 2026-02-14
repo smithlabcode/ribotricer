@@ -14,27 +14,44 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 
-import numpy as np
+from __future__ import annotations
+
+from typing import Any
+
 import matplotlib
+import numpy as np
+import pandas as pd
 
 matplotlib.use("Agg")
 
-# ADS: verify that matplotlib.use("Agg") must precede imports below
-import matplotlib.pyplot as plt  # noqa E402
-from matplotlib.backends.backend_pdf import PdfPages  # noqa E402
+import matplotlib.pyplot as plt  # noqa: E402
+from matplotlib.backends.backend_pdf import PdfPages  # noqa: E402
 
+matplotlib.rcParams["font.family"] = "sans-serif"
+matplotlib.rcParams["font.sans-serif"] = [
+    "Arial",
+    "Helvetica",
+    "Liberation Sans",
+    "Nimbus Sans",
+    "FreeSans",
+    "DejaVu Sans",
+]
 matplotlib.rcParams["pdf.fonttype"] = 42
 matplotlib.rcParams["ps.fonttype"] = 42
 
+# Type alias for metagene data
+MetageneDict = dict[int, tuple[pd.Series, pd.Series, float, int, float, int]]
 
-def plot_read_lengths(read_lengths, prefix):
-    """
+
+def plot_read_lengths(read_lengths: dict[int, int], prefix: str) -> None:
+    """Plot read length distribution.
+
     Parameters
     ----------
-    read_lengths: dict
-                  key is the length, value is the number of reads
-    prefix: str
-            prefix for the output file
+    read_lengths : dict[int, int]
+        Dictionary where key is the length, value is the number of reads.
+    prefix : str
+        Prefix for the output file.
     """
     fig, ax = plt.subplots()
     x = sorted(read_lengths.keys())
@@ -48,19 +65,28 @@ def plot_read_lengths(read_lengths, prefix):
     plt.close()
 
 
-def plot_metagene(metagenes, read_lengths, prefix, offset=200):
-    """
+def plot_metagene(
+    metagenes: MetageneDict,
+    read_lengths: dict[int, int],
+    prefix: str,
+    offset: int = 200,
+) -> None:
+    """Plot metagene profiles.
+
     Parameters
     ----------
-    metagenes: dict
-               key is the length, value is the metagene coverage
-    read_lengths: dict
-                  key is the length, value is the number of reads
-    prefix: str
-            prefix for the output file
+    metagenes : MetageneDict
+        Dictionary where key is the length, value is the metagene coverage tuple.
+    read_lengths : dict[int, int]
+        Dictionary where key is the length, value is the number of reads.
+    prefix : str
+        Prefix for the output file.
+    offset : int, optional
+        Number of positions to show, by default 200.
     """
     total_reads = sum(read_lengths.values())
     frame_colors = ["#fc8d62", "#66c2a5", "#8da0cb"]
+
     with PdfPages("{}_metagene_plots.pdf".format(prefix)) as pdf:
         for length in sorted(metagenes):
             # TODO: This only consider the 5' end, should be generalized to 3'

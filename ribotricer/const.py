@@ -14,21 +14,29 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 
-# ribotricer default cutoff for lavbeling ORFs 'translating'
-CUTOFF = 0.428571428571
+from typing import Final
+
+# ribotricer default cutoff for labeling ORFs 'translating'
+CUTOFF: Final[float] = 0.428571428571
+
 # p-site offset
-TYPICAL_OFFSET = 12
+TYPICAL_OFFSET: Final[int] = 12
+
 # minimum number of valid codons required in an ORF to label
 # it 'translating'
-MINIMUM_VALID_CODONS = 5
+MINIMUM_VALID_CODONS: Final[int] = 5
+
 # minimum number of reads required per codon in an ORF to label
 # it 'translating'
 # default: 0 (decided by CUTOFF and MINIMUM_VALID_CODONS)
-MINIMUM_READS_PER_CODON = 0
+MINIMUM_READS_PER_CODON: Final[int] = 0
+
 # fraction of codons with non zero reads
-MINIMUM_VALID_CODONS_RATIO = 0
+MINIMUM_VALID_CODONS_RATIO: Final[float] = 0
+
 # Minimum read density over ORF
 # defined as the number of reads per unit length of the ORF
-MINIMUM_DENSITY_OVER_ORF = 0.0
+MINIMUM_DENSITY_OVER_ORF: Final[float] = 0.0
+
 # Minimum number of reads for a read length to be considered
-META_MIN_READS = 100000
+META_MIN_READS: Final[int] = 100000

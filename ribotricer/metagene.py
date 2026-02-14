@@ -14,20 +14,57 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 
-from .statistics import phasescore
-from .interval import Interval
-from .const import CUTOFF, TYPICAL_OFFSET
+from __future__ import annotations
+
 import sys
 from collections import Counter, OrderedDict
+from typing import TYPE_CHECKING, Any, Iterator
 
 import numpy as np
 import pandas as pd
 from tqdm.autonotebook import tqdm
 
+from .const import CUTOFF, TYPICAL_OFFSET
+from .interval import Interval
+from .statistics import phasescore
+
+if TYPE_CHECKING:
+    from .orf import ORF
+
 tqdm.pandas()
 
+# Type aliases
+AlignmentDict = dict[int, dict[str, Counter[tuple[str, int]]]]
+MetageneDict = dict[int, tuple[pd.Series, pd.Series, float, int, float, int]]
 
-def next_genome_pos(ivs, max_positions, leader, trailer, reverse=False):
+
+def next_genome_pos(
+    ivs: list[Interval],
+    max_positions: int,
+    leader: int,
+    trailer: int,
+    reverse: bool = False,
+) -> Iterator[int]:
+    """Generate genome positions from intervals.
+
+    Parameters
+    ----------
+    ivs : list[Interval]
+        List of intervals.
+    max_positions : int
+        Maximum number of positions to yield.
+    leader : int
+        Number of positions to include upstream.
+    trailer : int
+        Number of positions to include downstream.
+    reverse : bool, optional
+        Whether to iterate in reverse, by default False.
+
+    Yields
+    ------
+    int
+        Genome position.
+    """
     if len(ivs) == 0:
         return iter([])
     cnt = 0
@@ -55,32 +92,37 @@ def next_genome_pos(ivs, max_positions, leader, trailer, reverse=False):
 
 
 def orf_coverage_length(
-    orf, alignments, length, max_positions, offset_5p=20, offset_3p=0
-):
-    """
+    orf: ORF,
+    alignments: AlignmentDict,
+    length: int,
+    max_positions: int,
+    offset_5p: int = 20,
+    offset_3p: int = 0,
+) -> tuple[pd.Series, pd.Series]:
+    """Calculate ORF coverage for a specific read length.
+
     Parameters
     ----------
-    orf: ORF
-         instance of ORF
-    alignments: dict(dict(Counter))
-                alignments summarized from bam
-    length: int
-            the target length
-    max_positions: int
-                   the number of nts to include
-    offset_5p: int
-               the number of nts to include from 5'prime
-    offset_3p: int
-               the number of nts to include from 3'prime
+    orf : ORF
+        Instance of ORF.
+    alignments : AlignmentDict
+        Alignments summarized from bam.
+    length : int
+        The target length.
+    max_positions : int
+        The number of nts to include.
+    offset_5p : int, optional
+        The number of nts to include from 5'prime, by default 20.
+    offset_3p : int, optional
+        The number of nts to include from 3'prime, by default 0.
 
     Returns
     -------
-    from_start: Series
-                coverage for ORF for specific length aligned at start codon
-    from_stop: Series
-               coverage for ORF for specific length aligned at stop codon
+    tuple[pd.Series, pd.Series]
+        - from_start: Coverage for ORF for specific length aligned at start codon.
+        - from_stop: Coverage for ORF for specific length aligned at stop codon.
     """
-    coverage = []
+    coverage: list[int] = []
     chrom = orf.chrom
     strand = orf.strand
     if strand == "-":
@@ -115,43 +157,43 @@ def orf_coverage_length(
 
 
 def metagene_coverage(
-    cds,
-    alignments,
-    read_lengths,
-    prefix,
-    max_positions=600,
-    offset_5p=20,
-    offset_3p=0,
-    meta_min_reads=100000,
-):
-    """
+    cds: list[ORF],
+    alignments: AlignmentDict,
+    read_lengths: dict[int, int],
+    prefix: str,
+    max_positions: int = 600,
+    offset_5p: int = 20,
+    offset_3p: int = 0,
+    meta_min_reads: int = 100000,
+) -> MetageneDict:
+    """Calculate metagene coverage profiles.
+
     Parameters
     ----------
-    cds: List[ORF]
-         list of cds
-    alignments: dict(dict(Counter))
-                alignments summarized from bam
-    read_lengths: dict
-                  key is the length, value is the number reads
-    prefix: str
-            prefix for the output file
-    max_positions: int
-                   the number of nts to include
-    offset_5p: int
-               the number of nts to include from the 5'prime
-    offset_3p: int
-               the number of nts to include from the 3'prime
-    meta_min_reads: int
-                    minimum number of reads for a read length to be considered
+    cds : list[ORF]
+        List of CDS ORFs.
+    alignments : AlignmentDict
+        Alignments summarized from bam.
+    read_lengths : dict[int, int]
+        Dictionary where key is the length, value is the number reads.
+    prefix : str
+        Prefix for the output file.
+    max_positions : int, optional
+        The number of nts to include, by default 600.
+    offset_5p : int, optional
+        The number of nts to include from the 5'prime, by default 20.
+    offset_3p : int, optional
+        The number of nts to include from the 3'prime, by default 0.
+    meta_min_reads : int, optional
+        Minimum number of reads for a read length to be considered, by default 100000.
 
     Returns
     -------
-    metagenes: dict
-               key is the length, value is (from_start, from_stop, phasescore,
-               pval)
+    MetageneDict
+        Dictionary where key is the length, value is tuple of
+        (from_start, from_stop, phasescore_5p, valid_5p, phasescore_3p, valid_3p).
     """
-    # print('calculating metagene profiles...')
-    metagenes = {}
+    metagenes: MetageneDict = {}
 
     # remove read length whose read number is small
     for length, reads in list(read_lengths.items()):
@@ -160,10 +202,10 @@ def metagene_coverage(
 
     for length in tqdm(read_lengths, unit="read-length", leave=False):
 
-        metagene_coverage_start = pd.Series(dtype=float)
-        position_counter_start = Counter()
-        metagene_coverage_stop = pd.Series(dtype=float)
-        position_counter_stop = Counter()
+        metagene_coverage_start: pd.Series = pd.Series(dtype=float)
+        position_counter_start: Counter[int] = Counter()
+        metagene_coverage_stop: pd.Series = pd.Series(dtype=float)
+        position_counter_stop: Counter[int] = Counter()
 
         for orf in tqdm(cds, position=1, unit="ORFs", leave=False):
             from_start, from_stop = orf_coverage_length(
@@ -189,10 +231,14 @@ def metagene_coverage(
             position_counter_stop
         ) != len(metagene_coverage_stop):
             raise RuntimeError("Metagene coverage and counter mismatch")
-        position_counter_start = pd.Series(position_counter_start)
-        metagene_coverage_start = metagene_coverage_start.div(position_counter_start)
-        position_counter_stop = pd.Series(position_counter_stop)
-        metagene_coverage_stop = metagene_coverage_stop.div(position_counter_stop)
+        position_counter_start_series = pd.Series(position_counter_start)
+        metagene_coverage_start = metagene_coverage_start.div(
+            position_counter_start_series
+        )
+        position_counter_stop_series = pd.Series(position_counter_stop)
+        metagene_coverage_stop = metagene_coverage_stop.div(
+            position_counter_stop_series
+        )
 
         phasescore_5p, valid_5p = phasescore(metagene_coverage_start.tolist())
         phasescore_3p, valid_3p = phasescore(metagene_coverage_stop.tolist())
@@ -232,29 +278,34 @@ def metagene_coverage(
 
 
 def align_metagenes(
-    metagenes, read_lengths, prefix, phase_score_cutoff=CUTOFF, remove_nonperiodic=False
-):
-    """align metagene coverages to determine the lag of the psites, the
-    non-periodic read length will be discarded in this step
+    metagenes: MetageneDict,
+    read_lengths: dict[int, int],
+    prefix: str,
+    phase_score_cutoff: float = CUTOFF,
+    remove_nonperiodic: bool = False,
+) -> OrderedDict[int, int]:
+    """Align metagene coverages to determine the lag of the psites.
+
+    The non-periodic read length will be discarded in this step.
 
     Parameters
     ----------
-    metagenes: dict
-               key is the length, value is the metagene coverage
-    read_lengths: dict
-                  key is the length, value is the number of reads
-    prefix: str
-            prefix for output files
-    remove_nonperiodic: bool
-                        Whether remove non-periodic read lengths
+    metagenes : MetageneDict
+        Dictionary where key is the length, value is the metagene coverage.
+    read_lengths : dict[int, int]
+        Dictionary where key is the length, value is the number of reads.
+    prefix : str
+        Prefix for output files.
+    phase_score_cutoff : float, optional
+        Phase score cutoff, by default CUTOFF.
+    remove_nonperiodic : bool, optional
+        Whether remove non-periodic read lengths, by default False.
 
     Returns
     -------
-    psite_offsets: dict
-                   key is the length, value is the offset
+    OrderedDict[int, int]
+        Dictionary where key is the length, value is the offset.
     """
-    # print('aligning metagene profiles from different lengths...')
-
     # discard non-periodic read lengths
     if remove_nonperiodic:
         for length, (_, _, coh, _, _, _) in list(metagenes.items()):
@@ -269,7 +320,7 @@ def align_metagenes(
             )
         )
 
-    psite_offsets = OrderedDict()
+    psite_offsets: OrderedDict[int, int] = OrderedDict()
     base = n_reads = 0
     for length, reads in list(read_lengths.items()):
         if reads > n_reads:
@@ -283,7 +334,7 @@ def align_metagenes(
         origin = len(xcorr) // 2
         bound = min(base, length)
         xcorr = xcorr[(origin - bound) : (origin + bound)]
-        lag = np.argmax(xcorr) - len(xcorr) // 2
+        lag = int(np.argmax(xcorr) - len(xcorr) // 2)
         psite_offsets[length] = lag + TYPICAL_OFFSET
         to_write += "\tlag of {}: {}\n".format(length, lag)
     with open("{}_psite_offsets.txt".format(prefix), "w") as output:

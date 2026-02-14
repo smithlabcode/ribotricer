@@ -1,4 +1,4 @@
-"""Utilities for spliting bam file"""
+"""Utilities for splitting bam file"""
 
 # Part of ribotricer software
 #
@@ -14,48 +14,59 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 
-from .common import is_read_uniq_mapping
-from collections import Counter
-from collections import defaultdict
+from __future__ import annotations
+
+from collections import Counter, defaultdict
+from typing import Any
 
 import pysam
 from tqdm.autonotebook import tqdm
 
+from .common import is_read_uniq_mapping
+
 tqdm.pandas()
 
+# Type aliases for complex nested types
+AlignmentDict = defaultdict[int, defaultdict[str, Counter[tuple[str, int]]]]
+ReadLengthCounts = defaultdict[int, int]
 
-def split_bam(bam_path, protocol, prefix, read_lengths=None):
-    """Split bam by read length and strand
+
+def split_bam(
+    bam_path: str,
+    protocol: str,
+    prefix: str,
+    read_lengths: list[int] | None = None,
+) -> tuple[AlignmentDict, ReadLengthCounts]:
+    """Split bam by read length and strand.
 
     Parameters
     ----------
     bam_path : str
-          Path to bam file
-    protocol: str
-          Experiment protocol [forward, reverse]
-    prefix: str
-            prefix for output files
-    read_lengths: list[int]
-                  read lengths to use
-                  If None, it will be automatically determined by assessing
-                  the periodicity of metagene profile of this read length
+        Path to bam file.
+    protocol : str
+        Experiment protocol ['forward', 'reverse'].
+    prefix : str
+        Prefix for output files.
+    read_lengths : list[int] | None, optional
+        Read lengths to use. If None, it will be automatically determined
+        by assessing the periodicity of metagene profile of this read length.
 
     Returns
     -------
-    alignments: dict(dict(Counter))
-                bam split by length, strand, (chrom, pos)
-    read_length_counts: dict
-                  key is the length, value is the number of reads
+    tuple[AlignmentDict, ReadLengthCounts]
+        - alignments: dict(dict(Counter)) - bam split by length, strand, (chrom, pos)
+        - read_length_counts: dict - key is the length, value is the number of reads
     """
-    alignments = defaultdict(lambda: defaultdict(Counter))
-    read_length_counts = defaultdict(int)
+    alignments: AlignmentDict = defaultdict(lambda: defaultdict(Counter))
+    read_length_counts: ReadLengthCounts = defaultdict(int)
     total_count = qcfail = duplicate = secondary = unmapped = multi = valid = 0
-    # print('reading bam file...')
+
     # First pass just counts the reads
     # this is required to display a progress bar
     bam = pysam.AlignmentFile(bam_path, "rb")
     total_reads = bam.count(until_eof=True)
     bam.close()
+
     with tqdm(total=total_reads, unit="reads", leave=False) as pbar:
         bam = pysam.AlignmentFile(bam_path, "rb")
         for read in bam.fetch(until_eof=True):
@@ -83,10 +94,11 @@ def split_bam(bam_path, protocol, prefix, read_lengths=None):
             if is_usable:
                 map_strand = "-" if read.is_reverse else "+"
                 ref_positions = read.get_reference_positions()
-                strand = None
-                pos = None
+                strand: str | None = None
+                pos: int | None = None
                 chrom = read.reference_name
                 length = len(ref_positions)
+
                 if read_lengths is not None and length not in read_lengths:
                     # Do nothing
                     pass
@@ -119,11 +131,14 @@ def split_bam(bam_path, protocol, prefix, read_lengths=None):
                             # The 5'end is the first position
                             pos = ref_positions[0]
 
-                    # convert bam coordinate to one-based
-                    alignments[length][strand][(chrom, pos + 1)] += 1
-                    read_length_counts[length] += 1
-                    valid += 1
+                    if strand is not None and pos is not None and chrom is not None:
+                        # convert bam coordinate to one-based
+                        alignments[length][strand][(chrom, pos + 1)] += 1
+                        read_length_counts[length] += 1
+                        valid += 1
+
     bam.close()
+
     summary = (
         "summary:\n\ttotal_reads: {}\n\tunique_mapped: {}\n"
         "\tqcfail: {}\n\tduplicate: {}\n\tsecondary: {}\n"

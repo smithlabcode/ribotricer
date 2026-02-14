@@ -14,20 +14,44 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 
+from __future__ import annotations
+
 
 class Interval:
-    """Class for interval
-    All the intervals used in this project is 1-based and closed
+    """Class for interval.
+
+    All the intervals used in this project are 1-based and closed.
+
+    Attributes
+    ----------
+    chrom : str | None
+        Chromosome name.
+    start : int
+        Start position (1-based, inclusive).
+    end : int
+        End position (1-based, inclusive).
+    strand : str
+        Strand ('+' or '-').
     """
 
-    def __init__(self, chrom=None, start=1, end=1, strand="+"):
+    __slots__ = ("chrom", "start", "end", "strand")
+
+    def __init__(
+        self,
+        chrom: str | None = None,
+        start: int = 1,
+        end: int = 1,
+        strand: str = "+",
+    ) -> None:
         self.chrom = chrom
         self.start = int(start)
         self.end = int(end)
         self.strand = strand
 
-    def __eq__(self, other):
-        """Override the default Equals behavior"""
+    def __eq__(self, other: object) -> bool:
+        """Override the default Equals behavior."""
+        if not isinstance(other, Interval):
+            return NotImplemented
         return (
             self.chrom == other.chrom
             and self.start == other.start
@@ -35,5 +59,13 @@ class Interval:
             and self.strand == other.strand
         )
 
-    def __repr__(self):
-        return "{}\t{}\t{}\t{}".format(self.chrom, self.start, self.end, self.strand)
+    def __repr__(self) -> str:
+        return f"{self.chrom}\t{self.start}\t{self.end}\t{self.strand}"
+
+    def __len__(self) -> int:
+        """Return the length of the interval."""
+        return self.end - self.start + 1
+
+    def __hash__(self) -> int:
+        """Make Interval hashable."""
+        return hash((self.chrom, self.start, self.end, self.strand))

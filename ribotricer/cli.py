@@ -14,38 +14,39 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 
-import click
+from __future__ import annotations
+
 import os
 import sys
+from typing import Any
+
+import click
+from click_help_colors import HelpColorsGroup
 
 from . import __version__
 from .common import _clean_input
-from .const import CUTOFF
-from .const import MINIMUM_VALID_CODONS
-from .const import MINIMUM_VALID_CODONS_RATIO
-from .const import MINIMUM_READS_PER_CODON
-from .const import MINIMUM_DENSITY_OVER_ORF
-from .const import META_MIN_READS
-
-from .count_orfs import count_orfs
-from .count_orfs import count_orfs_codon
+from .const import (
+    CUTOFF,
+    META_MIN_READS,
+    MINIMUM_DENSITY_OVER_ORF,
+    MINIMUM_READS_PER_CODON,
+    MINIMUM_VALID_CODONS,
+    MINIMUM_VALID_CODONS_RATIO,
+)
+from .count_orfs import count_orfs, count_orfs_codon
 from .detect_orfs import detect_orfs
-from .learn_cutoff import determine_cutoff_bam
-from .learn_cutoff import determine_cutoff_tsv
-
+from .learn_cutoff import determine_cutoff_bam, determine_cutoff_tsv
 from .orf_seq import orf_seq
 from .prepare_orfs import prepare_orfs
 
-from click_help_colors import HelpColorsGroup
-
-CONTEXT_SETTINGS = dict(help_option_names=["-h", "--help"])
+CONTEXT_SETTINGS: dict[str, Any] = dict(help_option_names=["-h", "--help"])
 
 
 @click.group(
     cls=HelpColorsGroup, help_headers_color="yellow", help_options_color="green"
 )
 @click.version_option(version=__version__)
-def cli():
+def cli() -> None:
     """ribotricer: Tool for detecting translating ORF from Ribo-seq data"""
     pass
 
@@ -84,8 +85,15 @@ def cli():
     is_flag=True,
 )
 def prepare_orfs_cmd(
-    gtf, fasta, prefix, min_orf_length, start_codons, stop_codons, longest
-):
+    gtf: str,
+    fasta: str,
+    prefix: str,
+    min_orf_length: int,
+    start_codons: str,
+    stop_codons: str,
+    longest: bool,
+) -> None:
+    """Prepare ORFs command handler."""
     if not os.path.isfile(gtf):
         sys.exit("Error: GTF file not found")
 
@@ -95,20 +103,26 @@ def prepare_orfs_cmd(
     if min_orf_length <= 0:
         sys.exit("Error: min ORF length at least to be 1")
 
-    start_codons = set([x.strip().upper() for x in start_codons.strip().split(",")])
-    if not start_codons:
+    start_codons_set = set([x.strip().upper() for x in start_codons.strip().split(",")])
+    if not start_codons_set:
         sys.exit("Error: start codons cannot be empty")
-    if not all([len(x) == 3 and set(x) <= {"A", "C", "G", "T"} for x in start_codons]):
+    if not all(
+        [len(x) == 3 and set(x) <= {"A", "C", "G", "T"} for x in start_codons_set]
+    ):
         sys.exit("Error: invalid codon, only A, C, G, T allowed")
 
-    stop_codons = set([x.strip().upper() for x in stop_codons.strip().split(",")])
-    if not stop_codons:
+    stop_codons_set = set([x.strip().upper() for x in stop_codons.strip().split(",")])
+    if not stop_codons_set:
         sys.exit("Error: stop codons cannot be empty")
-    if not all([len(x) == 3 and set(x) <= {"A", "C", "G", "T"} for x in stop_codons]):
+    if not all(
+        [len(x) == 3 and set(x) <= {"A", "C", "G", "T"} for x in stop_codons_set]
+    ):
         sys.exit("Error: invalid codon, only A, C, G, T allowed")
 
-    print("Using start codons: {}".format(",".join(start_codons)))
-    prepare_orfs(gtf, fasta, prefix, min_orf_length, start_codons, stop_codons, longest)
+    print("Using start codons: {}".format(",".join(start_codons_set)))
+    prepare_orfs(
+        gtf, fasta, prefix, min_orf_length, start_codons_set, stop_codons_set, longest
+    )
 
 
 # detect-orfs function #########################################
@@ -206,63 +220,74 @@ def prepare_orfs_cmd(
     help="Minimum number of reads for a read length to be considered",
 )
 def detect_orfs_cmd(
-    bam,
-    ribotricer_index,
-    prefix,
-    stranded,
-    read_lengths,
-    psite_offsets,
-    phase_score_cutoff,
-    min_valid_codons,
-    min_reads_per_codon,
-    min_valid_codons_ratio,
-    min_read_density,
-    report_all,
-    meta_min_reads,
-):
+    bam: str,
+    ribotricer_index: str,
+    prefix: str,
+    stranded: str | None,
+    read_lengths: str | None,
+    psite_offsets: str | None,
+    phase_score_cutoff: float,
+    min_valid_codons: int,
+    min_reads_per_codon: int,
+    min_valid_codons_ratio: float,
+    min_read_density: float,
+    report_all: bool,
+    meta_min_reads: int,
+) -> None:
+    """Detect ORFs command handler."""
     if not os.path.isfile(bam):
         sys.exit("Error: BAM file not found")
 
     if not os.path.isfile(ribotricer_index):
         sys.exit("Error: ribotricer index file not found")
 
+    read_lengths_list: list[int] | None = None
+    psite_offsets_dict: dict[int, int] | None = None
+
     if read_lengths is not None:
         try:
-            read_lengths = [int(x.strip()) for x in read_lengths.strip().split(",")]
+            read_lengths_list = [
+                int(x.strip()) for x in read_lengths.strip().split(",")
+            ]
         except Exception:
             sys.exit("Error: cannot convert read_lengths into integers")
-        if not all([x > 0 for x in read_lengths]):
+        if not all([x > 0 for x in read_lengths_list]):
             sys.exit("Error: read length must be positive")
 
-    if read_lengths is None and psite_offsets is not None:
+    if read_lengths_list is None and psite_offsets is not None:
         sys.exit("Error: psite_offsets only allowed when read_lengths is provided")
-    if read_lengths is not None and psite_offsets is not None:
+    if read_lengths_list is not None and psite_offsets is not None:
         try:
-            psite_offsets = [int(x.strip()) for x in psite_offsets.strip().split(",")]
+            psite_offsets_list = [
+                int(x.strip()) for x in psite_offsets.strip().split(",")
+            ]
         except Exception:
             sys.exit("Error: cannot convert psite_offsets into integers")
-        if len(read_lengths) != len(psite_offsets):
+        if len(read_lengths_list) != len(psite_offsets_list):
             sys.exit("Error: psite_offsets must match read_lengths")
-        if not all(x >= 0 for x in psite_offsets):
+        if not all(x >= 0 for x in psite_offsets_list):
             sys.exit("Error: P-site offset must be >= 0")
-        if not all(x > y for (x, y) in zip(read_lengths, psite_offsets)):
+        if not all(x > y for (x, y) in zip(read_lengths_list, psite_offsets_list)):
             sys.exit("Error: P-site offset must be smaller than read length")
-        psite_offsets = dict(list(zip(read_lengths, psite_offsets)))
+        psite_offsets_dict = dict(list(zip(read_lengths_list, psite_offsets_list)))
+
     if stranded == "yes":
         stranded = "forward"
+
     detect_orfs(
         bam,
         ribotricer_index,
         prefix,
         stranded,
-        read_lengths,
-        psite_offsets,
+        read_lengths_list,
+        psite_offsets_dict,
         phase_score_cutoff,
         min_valid_codons,
         min_reads_per_codon,
         min_valid_codons_ratio,
         min_read_density,
         report_all,
+        meta_min_reads,
     )
 
 
@@ -295,17 +320,23 @@ def detect_orfs_cmd(
     help=("Whether output all ORFs including those " "non-translating ones"),
     is_flag=True,
 )
-def count_orfs_cmd(ribotricer_index, detected_orfs, features, out, report_all):
-
+def count_orfs_cmd(
+    ribotricer_index: str,
+    detected_orfs: str,
+    features: str,
+    out: str,
+    report_all: bool,
+) -> None:
+    """Count ORFs command handler."""
     if not os.path.isfile(ribotricer_index):
         sys.exit("Error: ribotricer index file not found")
 
     if not os.path.isfile(detected_orfs):
         sys.exit("Error: detected orfs file not found")
 
-    features = set(x.strip() for x in features.strip().split(","))
+    features_set = set(x.strip() for x in features.strip().split(","))
 
-    count_orfs(ribotricer_index, detected_orfs, features, out, report_all)
+    count_orfs(ribotricer_index, detected_orfs, features_set, out, report_all)
 
 
 # count-orfs-codon function #########################################
@@ -339,14 +370,14 @@ def count_orfs_cmd(ribotricer_index, detected_orfs, features, out, report_all):
     is_flag=True,
 )
 def count_orfs_codon_cmd(
-    ribotricer_index,
-    detected_orfs,
-    features,
-    ribotricer_index_fasta,
-    prefix,
-    report_all,
-):
-
+    ribotricer_index: str,
+    detected_orfs: str,
+    features: str,
+    ribotricer_index_fasta: str,
+    prefix: str,
+    report_all: bool,
+) -> None:
+    """Count ORFs at codon level command handler."""
     if not os.path.isfile(ribotricer_index):
         sys.exit("Error: ribotricer index file not found")
 
@@ -356,12 +387,12 @@ def count_orfs_codon_cmd(
     if not os.path.isfile(ribotricer_index_fasta):
         sys.exit("Error: ribotricer_index_fasta file not found")
 
-    features = set(x.strip() for x in features.strip().split(","))
+    features_set = set(x.strip() for x in features.strip().split(","))
 
     count_orfs_codon(
         ribotricer_index,
         detected_orfs,
-        features,
+        features_set,
         ribotricer_index_fasta,
         prefix,
         report_all,
@@ -387,7 +418,13 @@ def count_orfs_codon_cmd(
     "--protein", help="Output protein sequence instead of nucleotide", is_flag=True
 )
 @click.option("--saveto", help="Path to output file", required=True)
-def orf_seq_cmd(ribotricer_index, fasta, saveto, protein):
+def orf_seq_cmd(
+    ribotricer_index: str,
+    fasta: str,
+    saveto: str,
+    protein: bool,
+) -> None:
+    """Generate ORF sequences command handler."""
     if not os.path.isfile(ribotricer_index):
         sys.exit("Error: ribotricer index file not found")
 
@@ -457,23 +494,23 @@ def orf_seq_cmd(ribotricer_index, fasta, saveto, protein):
     help="Number of bootstraps",
 )
 def determine_cutoff_cmd(
-    ribo_bams,
-    rna_bams,
-    ribo_tsvs,
-    rna_tsvs,
-    ribotricer_index,
-    prefix,
-    filter_by_tx_annotation,
-    phase_score_cutoff,
-    min_valid_codons,
-    sampling_ratio,
-    n_bootstraps,
-):
-
+    ribo_bams: str | None,
+    rna_bams: str | None,
+    ribo_tsvs: str | None,
+    rna_tsvs: str | None,
+    ribotricer_index: str | None,
+    prefix: str | None,
+    filter_by_tx_annotation: str,
+    phase_score_cutoff: float,
+    min_valid_codons: int,
+    sampling_ratio: float,
+    n_bootstraps: int,
+) -> None:
+    """Learn cutoff command handler."""
     filter_by = _clean_input(filter_by_tx_annotation)
 
-    ribo_stranded_protocols = []
-    rna_stranded_protocols = []
+    ribo_stranded_protocols: list[str | None] = []
+    rna_stranded_protocols: list[str | None] = []
 
     if ribo_bams and ribo_tsvs:
         sys.exit("Error: --ribo-bams and --rna_bams cannot be specified together")
@@ -487,22 +524,28 @@ def determine_cutoff_cmd(
     if ribotricer_index:
         if not os.path.isfile(ribotricer_index):
             sys.exit("Error: ribotricer index file not found")
-    if ribo_bams:
-        ribo_bams = _clean_input(ribo_bams)
-        rna_bams = _clean_input(rna_bams)
-    else:
-        ribo_tsvs = _clean_input(ribo_tsvs)
-        rna_tsvs = _clean_input(rna_tsvs)
 
-    if ribo_bams and rna_bams:
+    ribo_bams_list: list[str] = []
+    rna_bams_list: list[str] = []
+    ribo_tsvs_list: list[str] = []
+    rna_tsvs_list: list[str] = []
+
+    if ribo_bams:
+        ribo_bams_list = _clean_input(ribo_bams)
+        rna_bams_list = _clean_input(rna_bams) if rna_bams else []
+    else:
+        ribo_tsvs_list = _clean_input(ribo_tsvs) if ribo_tsvs else []
+        rna_tsvs_list = _clean_input(rna_tsvs) if rna_tsvs else []
+
+    if ribo_bams_list and rna_bams_list:
         if not prefix:
             sys.exit("Error: --prefix required with BAM inputs")
         elif not ribotricer_index:
             sys.exit("Error: --ribotricer_index required with BAM inputs")
         else:
             determine_cutoff_bam(
-                ribo_bams,
-                rna_bams,
+                ribo_bams_list,
+                rna_bams_list,
                 ribotricer_index,
                 prefix,
                 ribo_stranded_protocols,
@@ -516,5 +559,5 @@ def determine_cutoff_cmd(
             )
     else:
         determine_cutoff_tsv(
-            ribo_tsvs, rna_tsvs, filter_by, sampling_ratio, n_bootstraps
+            ribo_tsvs_list, rna_tsvs_list, filter_by, sampling_ratio, n_bootstraps
         )
