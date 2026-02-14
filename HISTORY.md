@@ -1,4 +1,4 @@
-# v1.5.0 (2025-02-14)
+# v1.5.0 (2026-02-14)
 
 - Modernized packaging with `pyproject.toml` (PEP 517/518 compliant)
 - Dropped support for Python 3.7 and 3.8 (end of life)
