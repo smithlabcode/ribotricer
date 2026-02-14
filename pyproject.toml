@@ -118,6 +118,7 @@ exclude = [
     "build",
     "dist",
     "docs",
+    "notebooks",
 ]
 
 [tool.ruff.lint]

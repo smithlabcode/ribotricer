@@ -2,7 +2,7 @@
 
 # Part of ribotricer software
 #
-# Copyright (C) 2020 Saket Choudhary, Wenzheng Li, and Andrew D Smith
+# Copyright (C) 2020-2026 Saket Choudhary, Wenzheng Li, and Andrew D Smith
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
