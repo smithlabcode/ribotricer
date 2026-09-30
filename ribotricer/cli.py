@@ -34,7 +34,7 @@ from .const import (
     MINIMUM_VALID_CODONS_RATIO,
 )
 from .count_orfs import count_orfs, count_orfs_codon
-from .detect_orfs import detect_orfs
+from .detect_orfs import detect_orfs, detect_orfs_batch
 from .learn_cutoff import determine_cutoff_bam, determine_cutoff_tsv
 from .orf_seq import orf_seq
 from .prepare_orfs import prepare_orfs
@@ -129,7 +129,23 @@ def prepare_orfs_cmd(
     context_settings=CONTEXT_SETTINGS,
     help="Detect translating ORFs from BAM file",
 )
-@click.option("--bam", help="Path to BAM file", required=True)
+@click.option("--bam", help="Path to BAM file")
+@click.option(
+    "--bam_list",
+    type=click.Path(exists=True, dir_okay=False),
+    help=(
+        "File with one BAM path per line, processed instead of --bam.\n"
+        "--prefix is then an output directory; each BAM writes to "
+        "{prefix}/{bam name without .bam}"
+    ),
+)
+@click.option(
+    "--jobs",
+    type=click.IntRange(min=1),
+    default=1,
+    show_default=True,
+    help="Number of BAMs processed in parallel with --bam_list",
+)
 @click.option(
     "--ribotricer_index",
     help=(
@@ -218,7 +234,9 @@ def prepare_orfs_cmd(
     help="Minimum number of reads for a read length to be considered",
 )
 def detect_orfs_cmd(
-    bam: str,
+    bam: str | None,
+    bam_list: str | None,
+    jobs: int,
     ribotricer_index: str,
     prefix: str,
     stranded: str | None,
@@ -233,8 +251,16 @@ def detect_orfs_cmd(
     meta_min_reads: int,
 ) -> None:
     """Detect ORFs command handler."""
-    if not os.path.isfile(bam):
-        sys.exit("Error: BAM file not found")
+    if (bam is None) == (bam_list is None):
+        sys.exit("Error: provide exactly one of --bam or --bam_list")
+    if bam_list is None:
+        bams = [bam]
+    else:
+        with open(bam_list) as f:
+            bams = [line.strip() for line in f if line.strip()]
+    missing = [b for b in bams if not os.path.isfile(b)]
+    if missing:
+        sys.exit("Error: BAM file(s) not found: " + ", ".join(missing[:10]))
 
     if not os.path.isfile(ribotricer_index):
         sys.exit("Error: ribotricer index file not found")
@@ -272,21 +298,30 @@ def detect_orfs_cmd(
     if stranded == "yes":
         stranded = "forward"
 
-    detect_orfs(
-        bam,
-        ribotricer_index,
-        prefix,
-        stranded,
-        read_lengths_list,
-        psite_offsets_dict,
-        phase_score_cutoff,
-        min_valid_codons,
-        min_reads_per_codon,
-        min_valid_codons_ratio,
-        min_read_density,
-        report_all,
-        meta_min_reads,
-    )
+    kwargs: dict[str, Any] = {
+        "ribotricer_index": ribotricer_index,
+        "protocol": stranded,
+        "read_lengths": read_lengths_list,
+        "psite_offsets": psite_offsets_dict,
+        "phase_score_cutoff": phase_score_cutoff,
+        "min_valid_codons": min_valid_codons,
+        "min_reads_per_codon": min_reads_per_codon,
+        "min_valid_codons_ratio": min_valid_codons_ratio,
+        "min_density_over_orf": min_read_density,
+        "report_all": report_all,
+        "meta_min_reads": meta_min_reads,
+    }
+    if bam is not None:
+        detect_orfs(bam=bam, prefix=prefix, **kwargs)
+        return
+    try:
+        failed = detect_orfs_batch(bams, prefix, jobs, **kwargs)
+    except ValueError as e:
+        sys.exit(f"Error: {e}")
+    for failed_bam, err in failed:
+        print(f"FAILED {failed_bam}: {err}", file=sys.stderr)
+    if failed:
+        sys.exit(f"Error: {len(failed)}/{len(bams)} BAM(s) failed")
 
 
 # count-orfs function #########################################

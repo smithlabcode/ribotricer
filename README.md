@@ -175,6 +175,28 @@ The periodicity of all ORF profiles are assessed and the translating ones are ou
 of the translation status with option ```--report_all```  
 Output: {OUTPUT_PREFIX}\_translating\_ORFs.tsv
 
+### Processing many BAM files
+
+To run `detect-orfs` on many samples, pass a text file with one BAM path per line
+using `--bam_list` instead of `--bam`. `--prefix` is then treated as an output
+directory, and each BAM writes its outputs to `{OUTPUT_DIR}/{BAM name without .bam}_*`,
+so BAM file names must be unique. Use `--jobs` to process several BAMs in parallel:
+
+```bash
+ribotricer detect-orfs \
+             --bam_list bams.txt \
+             --jobs 8 \
+             --ribotricer_index {RIBOTRICER_INDEX_PREFIX}_candidate_ORFs.tsv \
+             --prefix {OUTPUT_DIR}
+```
+
+All other `detect-orfs` options apply to every BAM in the list. Each job runs in its own
+process and loads the index once, so memory use grows with `--jobs`; choose it based on
+available RAM as well as cores. If a BAM fails, the remaining BAMs are still processed;
+failed BAMs are listed at the end and the command exits with an error. To spread
+thousands of samples across a cluster, split the list and submit one `--bam_list` job
+per node.
+
 ------------------
 
 ## Definition of ORF types

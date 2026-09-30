@@ -1,8 +1,8 @@
 name: Publish to PyPI
 
 on:
-  release:
-    types: [published]
+  push:
+    tags: ["v*"]
   workflow_dispatch:
     inputs:
       test_pypi:
@@ -28,6 +28,12 @@ jobs:
           python -m pip install --upgrade pip
           pip install build twine
 
+      - name: Check tag matches package version
+        if: github.ref_type == 'tag'
+        run: |
+          pkg=$(grep -m1 '^version' pyproject.toml | cut -d'"' -f2)
+          [ "v$pkg" = "$GITHUB_REF_NAME" ] || { echo "Tag $GITHUB_REF_NAME != pyproject version $pkg"; exit 1; }
+
       - name: Build package
         run: python -m build
 
@@ -44,7 +50,7 @@ jobs:
     name: Publish to Test PyPI
     needs: build
     runs-on: ubuntu-latest
-    if: github.event_name == 'workflow_dispatch' && inputs.test_pypi == 'true'
+    if: github.event_name == 'workflow_dispatch' && inputs.test_pypi
     environment:
       name: test-pypi
       url: https://test.pypi.org/p/ribotricer
@@ -67,7 +73,7 @@ jobs:
     name: Publish to PyPI
     needs: build
     runs-on: ubuntu-latest
-    if: github.event_name == 'release' || (github.event_name == 'workflow_dispatch' && inputs.test_pypi == 'false')
+    if: github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && !inputs.test_pypi)
     environment:
       name: pypi
       url: https://pypi.org/p/ribotricer

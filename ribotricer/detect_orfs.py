@@ -17,7 +17,10 @@
 from __future__ import annotations
 
 import datetime
+import multiprocessing
+import os
 from collections import Counter, defaultdict
+from functools import partial
 from typing import Final
 
 import numpy as np
@@ -365,6 +368,7 @@ def detect_orfs(
     min_density_over_orf: float,
     report_all: bool,
     meta_min_reads: int = 100000,
+    parsed_index: tuple[list[ORF], RefSeq] | None = None,
 ) -> None:
     """Detect translating ORFs from Ribo-seq data.
 
@@ -397,6 +401,8 @@ def detect_orfs(
         Whether to output all ORFs' scores regardless of translation status.
     meta_min_reads : int, optional
         Minimum number of reads for a read length to be considered, by default 100000.
+    parsed_index : tuple[list[ORF], RefSeq] | None, optional
+        Output of parse_ribotricer_index, to skip re-parsing across many BAMs.
     """
     now = datetime.datetime.now()
     print(now.strftime("%b %d %H:%M:%S ..... started ribotricer detect-orfs"))
@@ -404,7 +410,9 @@ def detect_orfs(
     # parse the index file
     now = datetime.datetime.now()
     print(now.strftime("%b %d %H:%M:%S ... started parsing ribotricer index file"))
-    annotated, refseq = parse_ribotricer_index(ribotricer_index)
+    if parsed_index is None:
+        parsed_index = parse_ribotricer_index(ribotricer_index)
+    annotated, refseq = parsed_index
 
     # create directory
     mkdir_p(parent_dir(prefix))
@@ -419,7 +427,8 @@ def detect_orfs(
             )
         )
         protocol = infer_protocol(bam, refseq, prefix)
-    del refseq
+    # frees the tree in single runs; in batch mode the caller still holds it
+    del refseq, parsed_index
 
     # split bam file into strand and read length
     now = datetime.datetime.now()
@@ -524,3 +533,58 @@ def detect_orfs(
             now.strftime("%b %d %H:%M:%S"), "finished ribotricer detect-orfs"
         )
     )
+
+
+_WORKER_INDEX: tuple[list[ORF], RefSeq] | None = None
+
+
+def _init_worker(ribotricer_index: str) -> None:
+    global _WORKER_INDEX
+    _WORKER_INDEX = parse_ribotricer_index(ribotricer_index)
+
+
+def _detect_one(bam: str, outdir: str, **kwargs) -> tuple[str, str | None]:
+    prefix = os.path.join(outdir, _sample_name(bam))
+    try:
+        detect_orfs(bam=bam, prefix=prefix, parsed_index=_WORKER_INDEX, **kwargs)
+    except Exception as e:  # keep going: one bad BAM must not kill the batch
+        return bam, f"{type(e).__name__}: {e}"
+    return bam, None
+
+
+def _sample_name(bam: str) -> str:
+    return os.path.basename(bam).removesuffix(".bam")
+
+
+def detect_orfs_batch(
+    bams: list[str], outdir: str, jobs: int = 1, **kwargs
+) -> list[tuple[str, str]]:
+    """Run detect_orfs on many BAMs, parsing the index once per worker.
+
+    Output prefix for each BAM is ``{outdir}/{bam basename without .bam}``.
+    kwargs are passed to detect_orfs (must include ribotricer_index).
+
+    Returns
+    -------
+    list[tuple[str, str]]
+        (bam, error) for each BAM that failed.
+
+    Raises
+    ------
+    ValueError
+        If two BAMs would write to the same output prefix.
+    """
+    names = [_sample_name(bam) for bam in bams]
+    if len(set(names)) != len(names):
+        raise ValueError("BAM file names must be unique")
+    run = partial(_detect_one, outdir=outdir, **kwargs)
+    jobs = min(jobs, len(bams))
+    if jobs <= 1:
+        _init_worker(kwargs["ribotricer_index"])
+        results = map(run, bams)
+        return [(bam, err) for bam, err in results if err is not None]
+    with multiprocessing.Pool(
+        jobs, initializer=_init_worker, initargs=(kwargs["ribotricer_index"],)
+    ) as pool:
+        results = pool.imap_unordered(run, bams)
+        return [(bam, err) for bam, err in results if err is not None]

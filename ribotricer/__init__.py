@@ -7,5 +7,5 @@ from ribosome profiling (Ribo-seq) data.
 """
 
 __author__ = "Saket Choudhary, Wenzheng Li"
-__version__ = "1.5.0"
+__version__ = "1.6.0"
 __all__ = ["__version__", "__author__"]

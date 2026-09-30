@@ -1,3 +1,7 @@
+# v1.6.0 (2026-09-30)
+
+- Added support for running multiple bams ([#174](https://github.com/smithlabcode/ribotricer/issues/174))
+
 # v1.5.0 (2026-02-14)
 
 - Modernized packaging with `pyproject.toml` (PEP 517/518 compliant)
